@@ -159,6 +159,12 @@ def exercise_filter(core: Any, vs: Any) -> dict[str, Any]:
     }
 
 
+def installed_plugin_dir(module_file: str) -> Path:
+    module_dir = Path(module_file).resolve().parent
+    package_dir = module_dir if module_dir.name.casefold() == "vapoursynth" else module_dir / "vapoursynth"
+    return package_dir / "plugins" / PACKAGE_DIR_NAME
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Smoke test a native vs-nlq package.")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -174,7 +180,7 @@ def main(argv: list[str]) -> int:
     policy: IsolatedEnvironmentPolicy | None = None
     try:
         if args.installed_wheel:
-            package_dir = Path(vs.__file__).resolve().parent / "plugins" / PACKAGE_DIR_NAME
+            package_dir = installed_plugin_dir(vs.__file__)
             mode = "installed-wheel-autoload"
             core = vs.core
             if not hasattr(core, "vsnlq"):

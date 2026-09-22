@@ -27,6 +27,12 @@ def create_core(vs: object):
     return vs.core
 
 
+def installed_plugin_dir(module_file: str) -> Path:
+    module_dir = Path(module_file).resolve().parent
+    package_dir = module_dir if module_dir.name.casefold() == "vapoursynth" else module_dir / "vapoursynth"
+    return package_dir / "plugins" / PACKAGE_DIR_NAME
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Smoke-test an installed vs-nlq wheel.")
     parser.add_argument("--exercise-filter", action="store_true", help="Create a MapNLQ node without requesting a frame.")
@@ -38,8 +44,8 @@ def main(argv: list[str]) -> int:
         print(f"failed to import VapourSynth Python module: {exc}", file=sys.stderr)
         return 1
 
-    vs_pkg = Path(vs.__file__).resolve().parent
-    plugin_dir = vs_pkg / "plugins" / PACKAGE_DIR_NAME
+    vs_module_dir = Path(vs.__file__).resolve().parent
+    plugin_dir = installed_plugin_dir(vs.__file__)
     required = [
         plugin_dir / f"{DLL_BASENAME}.dll",
         plugin_dir / "manifest.vs",
@@ -52,7 +58,7 @@ def main(argv: list[str]) -> int:
     add_existing_dll_dirs(
         [
             plugin_dir,
-            vs_pkg,
+            vs_module_dir,
             Path(sys.executable).resolve().parent,
             Path(sysconfig.get_paths().get("platlib", "")),
             Path(sysconfig.get_paths().get("purelib", "")),

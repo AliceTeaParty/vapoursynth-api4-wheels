@@ -1,7 +1,6 @@
 # vs-nlq migration record
 
-Status: implementation complete locally; publishing and clean-environment
-installation verification are pending GitHub authentication.
+Status: published and verified on Windows and Linux x86_64.
 
 ## Aligned revisions
 
@@ -45,3 +44,10 @@ Fork-derived files:
 The Windows and Linux build, artifact load, installed-wheel smoke, source
 fallback smoke, GLIBC check, and Rust commands are copied from the verified
 fork workflow. Only the path and publication adaptations above differ.
+
+## Published result
+
+- Release: `vs-nlq-v1.2.0`
+- Index: `https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/`
+- Windows: WinPython with VapourSynth R80, installed-wheel node smoke passed
+- Linux: `vpy:generic` with VapourSynth R80, full three-frame native smoke passed

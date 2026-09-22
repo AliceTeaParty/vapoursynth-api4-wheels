@@ -25,7 +25,7 @@ the project index is supplied with `--extra-index-url`.
 
 | Upstream | Package | Version | Platforms | Status |
 | --- | --- | --- | --- | --- |
-| [quietvoid/vs-nlq](https://github.com/quietvoid/vs-nlq) | `vs-nlq` | `1.2.0` | Windows/Linux x86_64 | First migration |
+| [quietvoid/vs-nlq](https://github.com/quietvoid/vs-nlq) | `vs-nlq` | `1.2.0` | Windows/Linux x86_64 | Published and verified |
 
 See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
 

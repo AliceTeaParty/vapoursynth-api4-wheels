@@ -15,4 +15,4 @@ allowed Windows and Linux verification environments.
 
 Completed reflections:
 
-- None yet. `vs-nlq` remains in progress until the hosted wheel is verified.
+- [vs-nlq](vs-nlq.md)
