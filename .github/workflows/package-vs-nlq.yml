@@ -1,0 +1,266 @@
+name: Package - vs-nlq
+
+on:
+  push:
+    branches: [main]
+    tags: ["vs-nlq-v*"]
+    paths:
+      - plugins/vs-nlq/**
+      - .github/workflows/package-vs-nlq.yml
+  pull_request:
+    paths:
+      - plugins/vs-nlq/**
+      - .github/workflows/package-vs-nlq.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Build - Windows x86_64
+    runs-on: windows-2025
+    defaults:
+      run:
+        working-directory: plugins/vs-nlq
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python tools
+        run: python -m pip install --upgrade pip build hatchling packaging
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Check
+        run: cargo check --workspace --all-features --locked
+
+      - name: Rustfmt
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-features --all-targets --tests --locked -- --deny warnings
+
+      - name: Prepare VapourSynth R77 wheel
+        run: python tools\ci_prepare_windows.py
+
+      - name: Build plugin package
+        run: python tools\ci_build_windows.py --clean
+
+      - name: Smoke-load artifact
+        run: >-
+          python tools\smoke_load_artifact.py
+          --vapoursynth-root _deps\vapoursynth-wheel-R77
+          --artifact-dir dist\windows-x86_64
+          --exercise-filter
+
+      - name: Smoke-load artifact through manifest autoload
+        run: >-
+          python tools\smoke_load_artifact.py
+          --vapoursynth-root _deps\vapoursynth-wheel-R77
+          --artifact-dir dist\windows-x86_64
+          --autoload
+          --exercise-filter
+
+      - name: Pack release zip
+        run: >-
+          python tools\package_plugin_zip.py
+          --input-dir dist\windows-x86_64
+          --output dist\vs-nlq-windows-x86_64.zip
+
+      - name: Build wheel from local prebuilt package
+        env:
+          VS_NLQ_PREBUILT_URL: ${{ github.workspace }}\plugins\vs-nlq\dist\vs-nlq-windows-x86_64.zip
+        run: python -m build --wheel --no-isolation --outdir dist\wheels
+
+      - name: Install built wheel
+        shell: cmd
+        run: for %%I in (dist\wheels\*.whl) do python -m pip install --force-reinstall "%%~fI"
+
+      - name: Smoke test installed wheel
+        run: python tools\smoke_installed_wheel.py --exercise-filter
+
+      - name: Smoke test source install with prebuilt release asset
+        env:
+          VS_NLQ_PREBUILT_URL: ${{ github.workspace }}\plugins\vs-nlq\dist\vs-nlq-windows-x86_64.zip
+        run: |
+          python -m pip uninstall -y vs-nlq
+          python -m pip install --force-reinstall --no-deps --no-build-isolation -v .
+          python tools\smoke_installed_wheel.py --exercise-filter
+
+      - name: Assemble Windows release assets
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force dist\release-assets-windows | Out-Null
+          Copy-Item dist\vs-nlq-windows-x86_64.zip dist\release-assets-windows\
+          Copy-Item dist\wheels\*.whl dist\release-assets-windows\
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vs-nlq-release-assets-windows
+          path: plugins/vs-nlq/dist/release-assets-windows
+          if-no-files-found: error
+
+  linux-x86_64:
+    name: Build - Linux x86_64
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build conservative Linux wheel and release payload
+        shell: bash
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE/plugins/vs-nlq:/workspace" -w /workspace \
+            quay.io/pypa/manylinux2014_x86_64 bash -c '
+              source /opt/rh/devtoolset-10/enable
+              set -euxo pipefail
+              py=/opt/python/cp313-cp313/bin/python
+              export PATH="/opt/python/cp313-cp313/bin:$PATH"
+              export RUSTUP_HOME=/tmp/rustup CARGO_HOME=/tmp/cargo
+              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.88.0 --profile minimal
+              export PATH="$CARGO_HOME/bin:$PATH"
+              "$py" -m pip install --upgrade pip build hatchling packaging
+              rm -rf dist .ci-cargo-target
+              export CARGO_TARGET_DIR="$PWD/.ci-cargo-target"
+              export VS_NLQ_FORCE_BUILD=1
+              export VS_NLQ_PLATFORM_TAG=manylinux_2_27_x86_64
+              "$py" -m build --wheel --no-isolation --outdir dist/wheels-linux
+              wheel=$(find dist/wheels-linux -name "*.whl" -print -quit)
+              test -n "$wheel"
+              mkdir -p dist/linux-unpacked dist/linux-x86_64
+              unzip -q "$wheel" "vapoursynth/plugins/vs-nlq/*" -d dist/linux-unpacked
+              mv dist/linux-unpacked/vapoursynth/plugins/vs-nlq dist/linux-x86_64/vs-nlq
+              "$py" tools/package_plugin_zip.py --input-dir dist/linux-x86_64 --output dist/vs-nlq-linux-x86_64.zip
+              ldd dist/linux-x86_64/vs-nlq/libvs_nlq.so
+              if ldd dist/linux-x86_64/vs-nlq/libvs_nlq.so | grep -F "not found"; then exit 1; fi
+              "$py" -c "import re, subprocess; out = subprocess.check_output([\"readelf\", \"--version-info\", \"dist/linux-x86_64/vs-nlq/libvs_nlq.so\"], text=True); versions = [tuple(map(int, value.split(\".\"))) for value in re.findall(r\"GLIBC_(\\d+\\.\\d+)\", out)]; assert all(version <= (2, 17) for version in versions), versions"
+              mkdir -p dist/release-assets-linux
+              cp dist/vs-nlq-linux-x86_64.zip dist/release-assets-linux/
+              cp "$wheel" dist/release-assets-linux/
+            '
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vs-nlq-release-assets-linux
+          path: plugins/vs-nlq/dist/release-assets-linux
+          if-no-files-found: error
+
+  linux-runtime-smoke:
+    name: Test - Linux x86_64
+    needs: linux-x86_64
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/vs-nlq
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: vs-nlq-release-assets-linux
+          path: plugins/vs-nlq/dist/release-assets-linux
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install VapourSynth R79
+        run: python -m pip install --upgrade pip "VapourSynth==79"
+
+      - name: Install and smoke the Linux wheel
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip install --force-reinstall --no-deps dist/release-assets-linux/*.whl
+          python tools/smoke_native_package.py --installed-wheel --json
+
+      - name: Explicitly smoke the Linux Release zip
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python tools/smoke_native_package.py --artifact-zip dist/release-assets-linux/vs-nlq-linux-x86_64.zip --json
+
+      - name: Smoke source install using the Linux Release payload
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip uninstall -y vs-nlq
+          export VS_NLQ_PREBUILT_URL="$GITHUB_WORKSPACE/plugins/vs-nlq/dist/release-assets-linux/vs-nlq-linux-x86_64.zip"
+          python -m pip install --force-reinstall --no-deps -v . 2>&1 | tee /tmp/vs-nlq-prebuilt.log
+          grep -F "using prebuilt release asset" /tmp/vs-nlq-prebuilt.log
+          python tools/smoke_native_package.py --installed-wheel --json
+
+      - name: Install Rust for source fallback
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Smoke isolated force-build fallback with unrelated pkg-config metadata
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip uninstall -y vs-nlq
+          VS_NLQ_FORCE_BUILD=1 PKG_CONFIG_PATH=/opt/unrelated-pkgconfig \
+            python -m pip install --force-reinstall --no-deps -v . 2>&1 | tee /tmp/vs-nlq-force-build.log
+          grep -F "VS_NLQ_FORCE_BUILD is set" /tmp/vs-nlq-force-build.log
+          python tools/smoke_native_package.py --installed-wheel --json
+
+  publish-release:
+    name: Publish - GitHub Release
+    if: startsWith(github.ref, 'refs/tags/vs-nlq-v')
+    needs: [windows, linux-runtime-smoke]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vs-nlq-release-assets-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish exactly the current Release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          tag="$GITHUB_REF_NAME"
+          version="${tag#vs-nlq-v}"
+          expected=(
+            "vs-nlq-linux-x86_64.zip"
+            "vs-nlq-windows-x86_64.zip"
+            "vs_nlq-${version}-py3-none-manylinux_2_27_x86_64.whl"
+            "vs_nlq-${version}-py3-none-win_amd64.whl"
+          )
+          mapfile -t actual < <(find release-assets -maxdepth 1 -type f -printf "%f\\n" | sort)
+          test "${#actual[@]}" -eq "${#expected[@]}"
+          for name in "${expected[@]}"; do
+            printf "%s\\n" "${actual[@]}" | grep -Fx "$name"
+          done
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            mapfile -t stale < <(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq ".assets[].name")
+            for name in "${stale[@]}"; do
+              gh release delete-asset "$tag" "$name" --yes --repo "$GITHUB_REPOSITORY"
+            done
+            gh release upload "$tag" release-assets/* --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$tag" release-assets/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "vs-nlq $version" \
+              --notes "Automated Windows and Linux x86_64 release."
+          fi
+          mapfile -t published < <(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq ".assets[].name" | sort)
+          test "${#published[@]}" -eq "${#expected[@]}"
+          for name in "${expected[@]}"; do
+            printf "%s\\n" "${published[@]}" | grep -Fx "$name"
+          done
+          gh api "repos/$GITHUB_REPOSITORY/dispatches" -f event_type=index
