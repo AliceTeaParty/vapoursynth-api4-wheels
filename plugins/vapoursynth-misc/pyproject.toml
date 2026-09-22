@@ -1,0 +1,19 @@
+[build-system]
+requires = ["VapourSynth>=79", "meson>=1.3", "ninja"]
+build-backend = "build_backend"
+backend-path = ["."]
+
+[project]
+name = "vapoursynth-misc"
+version = "2.1"
+description = "Miscellaneous VapourSynth filters: SCDetect, AverageFrames, and Hysteresis"
+readme = "README.md"
+license = { file = "LICENSE" }
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [{ name = "MiscFilters contributors" }]
+dependencies = ["VapourSynth>=79"]
+
+[project.urls]
+"Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-misc"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases"
