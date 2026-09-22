@@ -11,7 +11,7 @@ a time.
 | Former fork repository | Published package name | Audited version |
 | --- | --- | --- |
 | `RyougiKukoc/vs-nlq` | `vs-nlq` | `1.2.0` |
-| `RyougiKukoc/VapourSynth-NNEDI3CL-api4` | `vapoursynth-nnedi3cl` | Pending |
+| `RyougiKukoc/VapourSynth-NNEDI3CL-api4` | `vapoursynth-nnedi3cl` | `8.1` |
 | `RyougiKukoc/vapoursynth-smoothuv-api4` | `vapoursynth-smoothuv` | Pending |
 | `RyougiKukoc/VapourSynth-DFTTest-api4` | `vapoursynth-dfttest` | Pending |
 | `RyougiKukoc/VapourSynth-KNLMeansCL-api4` | `vapoursynth-knlm` | Pending |

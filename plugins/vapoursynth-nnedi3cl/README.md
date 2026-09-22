@@ -1,71 +1,246 @@
-Description
-===========
+# NNEDI3CL
 
-NNEDI3 is an intra-field only deinterlacer. It takes in a frame, throws away one field, and then interpolates the missing pixels using only information from the kept field. It has same rate and double rate modes, and works with YV12, YUY2, and RGB24 input. NNEDI3 is also very good for enlarging images by powers of 2.
+NNEDI3 is an intra-field only deinterlacer. It throws away one field, then
+interpolates the missing pixels from the kept field. It also works well for
+enlarging images by powers of two.
 
-Ported from AviSynth plugin http://bengal.missouri.edu/~kes25c/ and borrowed some codes from https://github.com/dubhater/vapoursynth-nnedi3 & https://forum.doom9.org/showthread.php?t=169766.
+This repository is the API4 port plus a Release-backed Windows and Linux
+packaging flow for `NNEDI3CL`.
 
+## Installation
 
-Usage
-=====
+Recommended on Windows or Linux x86_64:
 
-The file `nnedi3_weights.bin` is required. On Windows, it must be located in the same folder as `NNEDI3CL.dll`. Everywhere else it can be located either in the same folder as `libnnedi3cl.so`/`libnnedi3cl.dylib`, or in `$prefix/share/NNEDI3CL/`. The build system installs it at the latter location automatically.
-
-    nnedi3cl.NNEDI3CL(clip, int field[, bint dh=False, bint dw=False, int[] planes=[0, 1, 2], int nsize=6, int nns=1, int qual=1, int etype=0, int pscrn=2, int device=-1, bint list_device=False, bint info=False])
-
-* clip: Clip to process. Any planar format with either integer sample type of 8-16 bit depth or float sample type of 32 bit depth is supported.
-
-* field: Controls the mode of operation (double vs same rate) and which field is kept.
-  * 0 = same rate, keep bottom field
-  * 1 = same rate, keep top field
-  * 2 = double rate (alternates each frame), starts with bottom
-  * 3 = double rate (alternates each frame), starts with top
-
-* dh: Doubles the height of the input. Each line of the input is copied to every other line of the output and the missing lines are interpolated. If field=0, the input is copied to the odd lines of the output. If field=1, the input is copied to the even lines of the output. field must be set to either 0 or 1 when using dh=True.
-
-* dw: Doubles the width of the input. It does the same thing as `Transpose().nnedi3(dh=True).Transpose()` but also avoids unnecessary data copies when you scale both dimensions.
-
-* planes: Sets which planes will be processed. Planes that are not processed will contain uninitialized memory.
-
-* nsize: Sets the size of the local neighborhood around each pixel (x_diameter x y_diameter) that is used by the predictor neural network. For image enlargement it is recommended to use 0 or 4. Larger y_diameter settings will result in sharper output. For deinterlacing larger x_diameter settings will allow connecting lines of smaller slope. However, what setting to use really depends on the amount of aliasing (lost information) in the source. If the source was heavily low-pass filtered before interlacing then aliasing will be low and a large x_diameter setting wont be needed, and vice versa.
-  * 0 = 8x6
-  * 1 = 16x6
-  * 2 = 32x6
-  * 3 = 48x6
-  * 4 = 8x4
-  * 5 = 16x4
-  * 6 = 32x4
-
-* nns: Sets the number of neurons in the predictor neural network. 0 is fastest. 4 is slowest, but should give the best quality. This is a quality vs speed option; however, differences are usually small. The difference in speed will become larger as `qual` is increased.
-  * 0 = 16
-  * 1 = 32
-  * 2 = 64
-  * 3 = 128
-  * 4 = 256
-
-* qual: Controls the number of different neural network predictions that are blended together to compute the final output value. Each neural network was trained on a different set of training data. Blending the results of these different networks improves generalization to unseen data. Possible values are 1 or 2. Essentially this is a quality vs speed option. Larger values will result in more processing time, but should give better results. However, the difference is usually pretty small. I would recommend using `qual>1` for things like single image enlargement.
-
-* etype: Controls which set of weights to use in the predictor nn.
-  * 0 = weights trained to minimize absolute error
-  * 1 = weights trained to minimize squared error
-
-* pscrn: Controls whether or not the prescreener neural network is used to decide which pixels should be processed by the predictor neural network and which can be handled by simple cubic interpolation. The prescreener is trained to know whether cubic interpolation will be sufficient for a pixel or whether it should be predicted by the predictor nn. The computational complexity of the prescreener nn is much less than that of the predictor nn. Since most pixels can be handled by cubic interpolation, using the prescreener generally results in much faster processing. The prescreener is pretty accurate, so the difference between using it and not using it is almost always unnoticeable. The new prescreener is faster than the old one, and it also causes more pixels to be handled by cubic interpolation.
-  * 1 = old prescreener
-  * 2 = new prescreener (unavailable with float input)
-
-* device: Sets target OpenCL device. Use `list_device` to get the index of the available devices. By default the default device is selected.
-
-* list_device: Whether to draw the devices list on the frame.
-
-* info: Whether to draw the OpenCL-related info on the frame.
-
-
-Compilation
-===========
-
-Requires `Boost`.
-
+```powershell
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-nnedi3cl
 ```
-meson build
+
+That install path builds a wheel from the repository metadata, but the build
+hook first tries to reuse the matching GitHub Release asset. Version `8.1`
+maps to release tag `vapoursynth-nnedi3cl-v8.1`:
+
+```text
+Windows: nnedi3cl-msys2-ucrt64.zip
+Linux x86_64: nnedi3cl-linux-x86_64.zip
+```
+
+If the prebuilt asset is available, `pip` repackages that tested plugin payload
+into the wheel. If it is unavailable, the build hook falls back to the native
+build for the current platform: MSYS2/UCRT64 on Windows and Meson on Linux.
+Linux source builds require an API4-compatible VapourSynth
+SDK, Boost headers, OpenCL headers, and an OpenCL loader. The hook discovers
+the R79 wheel's `vapoursynth/pkgconfig` metadata while preserving a caller's
+existing `PKG_CONFIG_PATH`.
+
+Direct wheel install is also supported. Download the wheel from the repository
+Releases page and install it with:
+
+```powershell
+pip install vapoursynth_nnedi3cl-8.1-py3-none-win_amd64.whl
+pip install vapoursynth_nnedi3cl-8.1-py3-none-manylinux_2_27_x86_64.whl
+```
+
+The wheel installs the plugin package under:
+
+```text
+site-packages/vapoursynth/plugins/nnedi3cl/
+```
+
+so users do not need to manually copy `dll` files into a plugin directory.
+
+Useful install controls:
+
+```powershell
+$env:NNEDI3CL_FORCE_BUILD = "1"
+pip install --no-build-isolation "vapoursynth-nnedi3cl @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-nnedi3cl"
+```
+
+forces a local build instead of using a Release asset.
+
+```powershell
+$env:NNEDI3CL_PREBUILT_URL = "C:\path\to\nnedi3cl-msys2-ucrt64.zip"
+pip install --no-build-isolation "vapoursynth-nnedi3cl @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-nnedi3cl"
+```
+
+forces a specific local or remote prebuilt zip.
+
+On Linux, the same controls use normal shell syntax:
+
+```bash
+NNEDI3CL_FORCE_BUILD=1 pip install "vapoursynth-nnedi3cl @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-nnedi3cl"
+NNEDI3CL_PREBUILT_URL=/path/to/nnedi3cl-linux-x86_64.zip pip install "vapoursynth-nnedi3cl @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-nnedi3cl"
+```
+
+## Usage
+
+This package does not expose a separate helper module. After installation, use
+the normal VapourSynth plugin namespace:
+
+```python
+import vapoursynth as vs
+
+core = vs.core
+clip = core.std.BlankClip(width=640, height=360, format=vs.YUV420P8)
+out = core.nnedi3cl.NNEDI3CL(clip, field=1, dh=True)
+```
+
+The required `nnedi3_weights.bin` file is installed beside the platform-native
+plugin automatically. Filtering requires a functioning OpenCL ICD and device;
+the packaged Linux payload intentionally uses the host OpenCL loader and driver
+rather than bundling a GPU vendor runtime.
+
+Function signature:
+
+```text
+nnedi3cl.NNEDI3CL(clip, int field[, bint dh=False, bint dw=False, int[] planes=[0, 1, 2], int nsize=6, int nns=1, int qual=1, int etype=0, int pscrn=2, int device=-1, bint list_device=False, bint info=False])
+```
+
+- `clip`: planar integer 8-16 bit or float 32 bit clip to process.
+- `field`: same-rate or double-rate mode, and which field to keep.
+  `0` bottom, `1` top, `2` double-rate starting bottom, `3` double-rate starting top.
+- `dh`: doubles height. Requires `field` to be `0` or `1`.
+- `dw`: doubles width.
+- `planes`: planes to process. Unprocessed planes are left uninitialized.
+- `nsize`: predictor neighborhood size.
+  `0=8x6`, `1=16x6`, `2=32x6`, `3=48x6`, `4=8x4`, `5=16x4`, `6=32x4`.
+- `nns`: predictor neuron count.
+  `0=16`, `1=32`, `2=64`, `3=128`, `4=256`.
+- `qual`: number of blended predictor outputs. Valid values are `1` or `2`.
+- `etype`: weight set.
+  `0` absolute-error trained, `1` squared-error trained.
+- `pscrn`: prescreener mode.
+  `1` old prescreener, `2` new prescreener.
+- `device`: OpenCL device index.
+- `list_device`: draw the device list on the frame.
+- `info`: draw OpenCL info on the frame.
+
+## Build And Release
+
+The primary workflow is `.github/workflows/build-msys2.yml`. It builds the
+Windows UCRT64 and Linux x86_64 payloads, smoke-loads explicit package paths,
+builds and installs their wheels, and publishes all assets from one tag-only
+job after both platforms pass.
+
+The packaged plugin layout is:
+
+```text
+nnedi3cl/
+  manifest.vs
+  nnedi3cl.dll
+  nnedi3_weights.bin
+  OpenCL.dll
+  libgcc_s_seh-1.dll
+  libstdc++-6.dll
+  libwinpthread-1.dll
+```
+
+`manifest.vs` ensures VapourSynth loads only `nnedi3cl.dll` from this
+directory. The other `dll` files are support/runtime libraries. `OpenCL.dll`
+here is the Khronos ICD loader; actual filtering still needs a real OpenCL
+driver/runtime.
+
+The MSYS2 workflow does this:
+
+1. Install GCC, Meson, Ninja, pkgconf, Boost, OpenCL headers, and the OpenCL ICD loader.
+2. Download and normalize the VapourSynth R77 wheel for API4 headers and `pkg-config`.
+3. Build `nnedi3cl.dll`.
+4. Package `nnedi3cl/` and smoke-load it.
+5. Build `vapoursynth-nnedi3cl` wheel metadata from the repository.
+6. Create release assets:
+   `nnedi3cl-msys2-ucrt64.zip` and `vapoursynth_nnedi3cl-*.whl`.
+7. Smoke-test the installed wheel.
+8. Smoke-test source install from repository metadata while forcing the local release zip as the prebuilt asset.
+
+Push a `v*` tag or publish a GitHub Release to upload the assets automatically.
+Linux wheels are built in manylinux2014 with a `manylinux_2_27_x86_64` wheel
+tag. The plugin itself is checked for GLIBC symbols no newer than 2.17, while
+the R79 VapourSynth runtime sets the end-to-end 2.27 floor.
+
+### Local MSYS2 Build
+
+Install packages:
+
+```bash
+pacman -S --needed \
+  mingw-w64-ucrt-x86_64-gcc \
+  mingw-w64-ucrt-x86_64-python \
+  mingw-w64-ucrt-x86_64-meson \
+  mingw-w64-ucrt-x86_64-ninja \
+  mingw-w64-ucrt-x86_64-pkgconf \
+  mingw-w64-ucrt-x86_64-boost \
+  mingw-w64-ucrt-x86_64-opencl-headers \
+  mingw-w64-ucrt-x86_64-opencl-icd
+```
+
+Prepare the extracted VapourSynth wheel from a normal Windows shell:
+
+```bat
+python tools\ci_prepare_msys2.py
+```
+
+Build from an MSYS2 UCRT64 shell:
+
+```bash
+/ucrt64/bin/python tools/ci_build_msys2.py --clean
+```
+
+Build a wheel from the repository:
+
+```powershell
+python -m pip install --upgrade build hatchling packaging VapourSynth
+$env:NNEDI3CL_FORCE_BUILD = "1"
+python -m build --wheel --no-isolation --outdir dist\wheels
+```
+
+Smoke-load the packaged directory:
+
+```bat
+python tools\smoke_load_artifact.py --vapoursynth-root _deps\vapoursynth-wheel-R77 --artifact-dir dist\msys2-ucrt64 --exercise-filter
+```
+
+### MSVC Compatibility Build
+
+`.github/workflows/build-windows.yml` is kept as a manual-only compatibility
+workflow. It uses MSVC, the VapourSynth R73 portable SDK, Boost 1.71.0 headers,
+and a locally built Khronos OpenCL ICD loader.
+
+Local MSVC build:
+
+```bat
+python -m pip install --upgrade meson ninja
+python tools\ci_prepare_windows.py
+python tools\ci_build_windows.py --clean
+python tools\smoke_load_artifact.py --vapoursynth-root _deps\vapoursynth-portable-R73 --artifact-dir dist\windows-x64 --exercise-filter
+```
+
+Direct Meson invocation is also possible:
+
+```bat
+meson setup build --buildtype release ^
+  -Dvapoursynth_incdir=C:/path/to/vapoursynth/sdk/include/vapoursynth ^
+  -Dboost_root=C:/path/to/boost_1_71_0 ^
+  -Dopencl_incdir=C:/path/to/opencl-headers ^
+  -Dopencl_libdir=C:/path/to/opencl/lib ^
+  -Dvapoursynth_plugindir=C:/path/to/output
 ninja -C build
 ```
+
+### Linux
+
+The original Meson flow is still supported when dependencies are discoverable:
+
+```bash
+meson setup build --buildtype release
+ninja -C build
+```
+
+Required dependencies:
+
+- VapourSynth API4 development headers and library/pkg-config metadata.
+- Boost headers, plus Boost filesystem/system only if `-Doffline_cache=true`.
+- OpenCL headers and loader library.
+
+Linux needs a vendor OpenCL ICD at runtime. The release payload
+contains `nnedi3cl.so`, `manifest.vs`, and `nnedi3_weights.bin`; it does not
+bundle the loader or vendor driver. macOS, ARM, and other platforms are not
+supported by this combined wheel repository.
