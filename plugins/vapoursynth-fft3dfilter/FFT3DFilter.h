@@ -20,24 +20,158 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *****************************************************************************/
 
-#include <string>
-
+#include <memory>
 #include <fftw3.h>
+#include <VapourSynth4.h>
 
-#include "VapourSynth.h"
+ /** declarations of filtering functions: **/
+ /* C */
+void ApplyWiener2D_C(fftwf_complex *__restrict out, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta, float sharpen, float sigmaSquaredSharpenMin, float sigmaSquaredSharpenMax, const float *wsharpen, float dehalo, const float *wdehalo, float ht2n);
+void ApplyPattern2D_C(fftwf_complex *__restrict outcur, int outwidth, int outpitchelems, int bh, int howmanyblocks, float pfactor, const float *pattern2d0, float beta);
+void ApplyWiener3D2_C(fftwf_complex *__restrict outcur, const fftwf_complex *outprev, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta);
+void ApplyPattern3D2_C(fftwf_complex *__restrict outcur, const fftwf_complex *outprev, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *pattern3d, float beta);
+void ApplyWiener3D3_C(fftwf_complex *__restrict out, const fftwf_complex *outprev, const fftwf_complex *outnext, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta);
+void ApplyPattern3D3_C(fftwf_complex *__restrict out, const fftwf_complex *outprev, const fftwf_complex *outnext, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *pattern3d, float beta);
+void ApplyWiener3D4_C(fftwf_complex *__restrict out, const fftwf_complex *outprev2, const fftwf_complex *outprev, const fftwf_complex *outnext, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta);
+void ApplyPattern3D4_C(fftwf_complex *__restrict out, const fftwf_complex *outprev2, const fftwf_complex *outprev, const fftwf_complex *outnext, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *pattern3d, float beta);
+void ApplyWiener3D5_C(fftwf_complex *__restrict out, const fftwf_complex *outprev2, const fftwf_complex *outprev, const fftwf_complex *outnext, const fftwf_complex *outnext2, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta);
+void ApplyPattern3D5_C(fftwf_complex *__restrict out, const fftwf_complex *outprev2, const fftwf_complex *outprev, const fftwf_complex *outnext, const fftwf_complex *outnext2, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *pattern3d, float beta);
+void ApplyKalmanPattern_C(const fftwf_complex *outcur, fftwf_complex *__restrict outLast, fftwf_complex *__restrict covar, fftwf_complex *__restrict covarProcess, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *covarNoiseNormed, float kratio2);
+void ApplyKalman_C(const fftwf_complex *outcur, fftwf_complex *__restrict outLast, fftwf_complex *__restrict covar, fftwf_complex *__restrict covarProcess, int outwidth, int outpitchelems, int bh, int howmanyblocks, float covarNoiseNormed, float kratio2);
+void Sharpen_C(fftwf_complex *__restrict outcur, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sharpen, float sigmaSquaredSharpenMin, float sigmaSquaredSharpenMax, const float *wsharpen, float dehalo, const float *wdehalo, float ht2n);
+/* degrid_C */
+void ApplyWiener2D_degrid_C(fftwf_complex *__restrict out, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta, float sharpen, float sigmaSquaredSharpenMin, float sigmaSquaredSharpenMax, const float *wsharpen, float degrid, const fftwf_complex *gridsample, float dehalo, const float *wdehalo, float ht2n);
+void ApplyWiener3D2_degrid_C(fftwf_complex *__restrict outcur, const fftwf_complex *outprev, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta, float degrid, const fftwf_complex *gridsample);
+void ApplyWiener3D3_degrid_C(fftwf_complex *__restrict outcur, const fftwf_complex *outprev, const fftwf_complex *outnext, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta, float degrid, const fftwf_complex *gridsample);
+void ApplyWiener3D4_degrid_C(fftwf_complex *__restrict outcur, const fftwf_complex *outprev2, const fftwf_complex *outprev, const fftwf_complex *outnext, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta, float degrid, const fftwf_complex *gridsample);
+void ApplyWiener3D5_degrid_C(fftwf_complex *__restrict outcur, const fftwf_complex *outprev2, const fftwf_complex *outprev, const fftwf_complex *outnext, const fftwf_complex *outnext2, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sigmaSquaredNoiseNormed, float beta, float degrid, const fftwf_complex *gridsample);
+void Sharpen_degrid_C(fftwf_complex *__restrict outcur, int outwidth, int outpitchelems, int bh, int howmanyblocks, float sharpen, float sigmaSquaredSharpenMin, float sigmaSquaredSharpenMax, const float *wsharpen, float degrid, const fftwf_complex *gridsample, float dehalo, const float *wdehalo, float ht2n);
+void ApplyPattern2D_degrid_C(fftwf_complex *__restrict outcur, int outwidth, int outpitchelems, int bh, int howmanyblocks, float pfactor, const float *pattern2d0, float beta, float degrid, const fftwf_complex *gridsample);
+void ApplyPattern3D2_degrid_C(fftwf_complex *__restrict outcur, const fftwf_complex *outprev, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *pattern3d, float beta, float degrid, const fftwf_complex *gridsample);
+void ApplyPattern3D3_degrid_C(fftwf_complex *__restrict out, const fftwf_complex *outprev, const fftwf_complex *outnext, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *pattern3d, float beta, float degrid, const fftwf_complex *gridsample);
+void ApplyPattern3D4_degrid_C(fftwf_complex *__restrict out, const fftwf_complex *outprev2, const fftwf_complex *outprev, const fftwf_complex *outnext, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *pattern3d, float beta, float degrid, const fftwf_complex *gridsample);
+void ApplyPattern3D5_degrid_C(fftwf_complex *__restrict out, const fftwf_complex *outprev2, const fftwf_complex *outprev, const fftwf_complex *outnext, const fftwf_complex *outnext2, int outwidth, int outpitchelems, int bh, int howmanyblocks, const float *pattern3d, float beta, float degrid, const fftwf_complex *gridsample);
 
-class CustomException
-{
+class FFT3DFilterTransform {
 private:
-    const std::string name;
+    /* parameters */
+    int plane;
+    int bw;
+    int bh;
+    int ow;
+    int oh;
+    int px;
+    int py;
+    float pcutoff;
+    float degrid;
+    bool interlaced;
+    VSNode *node;
+
+    std::unique_ptr<uint8_t[]> coverbuf; /*  block buffer covering the frame without remainders (with sufficient width and heigth) */
+    int coverwidth;
+    int coverheight;
+    ptrdiff_t coverpitch;
+
+    int mirw; /* mirror width for padding */
+    int mirh; /* mirror height for padding */
+
+    VSVideoInfo dstvi;
+    VSVideoInfo outvi;
+
+    int planeBase;
+
+    int nox, noy;
+    int outwidth;
+    int outpitchelems; /* v.1.7 */
+
+    std::unique_ptr<float[]> wanxl; /* analysis */
+    std::unique_ptr<float[]> wanxr;
+    std::unique_ptr<float[]> wanyl;
+    std::unique_ptr<float[]> wanyr;
+
+    std::unique_ptr<float[], decltype(&fftw_free)> in;
+    std::unique_ptr<fftwf_plan_s, decltype(&fftwf_destroy_plan)> plan;
 public:
-    CustomException() : name( std::string() ) {}
-    CustomException( const std::string name ) : name( name ) {}
-    const char * what() const noexcept { return name.c_str(); }
+    const VSVideoInfo *GetOutputVI() const { return &outvi; };
+
+    FFT3DFilterTransform(bool pshow, VSNode *node, int plane, int wintype, int bw, int bh, int ow, int oh, int px, int py, float pcutoff, float degrid, bool interlaced, bool measure, int ncpu, VSCore *core, const VSAPI *vsapi);
+    const VSFrame *GetGridSample(VSCore *core, const VSAPI *vsapi);
+    VSFrame *GetFrame(const VSFrame *src, VSCore *core, const VSAPI *vsapi);
+    void GetNoisePattern(int n, int &px, int &py, float *pattern2d, float &psigma, const fftwf_complex *gridsample, VSCore *core, const VSAPI *vsapi);
+    VSFrame *GetPShowInfo(const VSFrame *src, VSCore *core, const VSAPI *vsapi);
+
+    static const VSFrame *VS_CC GetFrame(int n, int activation_reason, void *instance_data, void **frame_data, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi);
+    static const VSFrame *VS_CC GetPShowFrame(int n, int activation_reason, void *instance_data, void **frame_data, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi);
+    static void VS_CC Free(void *instance_data, VSCore *core, const VSAPI *vsapi);
 };
 
-class FFT3DFilter
-{
+class FFT3DFilterInvTransform {
+private:
+    /* parameters */
+    int bw;
+    int bh;
+    int ow;
+    int oh;
+    bool interlaced;
+    VSNode *node;
+
+    std::unique_ptr<uint8_t[]> coverbuf; /*  block buffer covering the frame without remainders (with sufficient width and heigth) */
+    int coverwidth;
+    int coverheight;
+    ptrdiff_t coverpitch;
+
+    int mirw; /* mirror width for padding */
+    int mirh; /* mirror height for padding */
+
+    int planeBase;
+
+    int nox, noy;
+    int outwidth;
+    int outpitchelems;
+
+    float norm; /* normalization factor */
+
+    VSVideoInfo dstvi;
+
+    std::unique_ptr<float[]> wsynxl;
+    std::unique_ptr<float[]> wsynxr;
+    std::unique_ptr<float[]> wsynyl;
+    std::unique_ptr<float[]> wsynyr;
+
+    std::unique_ptr<float[], decltype(&fftw_free)> in;
+    std::unique_ptr<fftwf_plan_s, decltype(&fftwf_destroy_plan)> planinv;
+
+    VSFrame *GetFrame(const VSFrame *src, VSCore *core, const VSAPI *vsapi);
+public:
+    const VSVideoInfo *GetOutputVI() const { return &dstvi; };
+
+    FFT3DFilterInvTransform(VSNode *node, const VSVideoInfo *vi, int plane, int wintype, int bw, int bh, int ow, int oh, bool interlaced, bool measure, int ncpu, VSCore *core, const VSAPI *vsapi);
+
+    static const VSFrame *VS_CC GetFrame(int n, int activation_reason, void *instance_data, void **frame_data, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi);
+    static void VS_CC Free(void *instance_data, VSCore *core, const VSAPI *vsapi);
+};
+
+class FFT3DFilterPShow {
+private:
+    /* parameters */
+    int plane;
+    int bw;
+    int bh;
+    int ow;
+    int oh;
+    VSNode *node;
+
+    const VSVideoInfo *vi;
+
+public:
+    FFT3DFilterPShow(VSNode *node, int plane, int bw, int bh, int ow, int oh, bool interlaced, VSCore *core, const VSAPI *vsapi);
+    VSFrame *GetFrame(const VSFrame *src, VSCore *core, const VSAPI *vsapi);
+
+    static const VSFrame *VS_CC GetFrame(int n, int activation_reason, void *instance_data, void **frame_data, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi);
+    static void VS_CC Free(void *instance_data, VSCore *core, const VSAPI *vsapi);
+};
+
+class FFT3DFilter {
 private:
     /* parameters */
     float sigma;    /* noise level (std deviation) for high frequncies */
@@ -54,14 +188,9 @@ private:
     float svr;      /* sharpen vertical ratio (0 to 1 and above) - v.1.0 */
     float smin;     /* minimum limit for sharpen (prevent noise amplifying) - v.1.1 */
     float smax;     /* maximum limit for sharpen (prevent oversharping) - v.1.1 */
-    bool  measure;  /* fft optimal method */
-    bool  interlaced;
-    int   wintype;  /* window type */
     int   pframe;   /* noise pattern frame number */
     int   px;       /* noise pattern window x-position */
     int   py;       /* noise pattern window y-position */
-    bool  pshow;    /* show noise pattern */
-    float pcutoff;  /* pattern cutoff frequency (relative to max) */
     float pfactor;  /* noise pattern denoise strength */
     float sigma2;   /* noise level for middle frequencies */
     float sigma3;   /* noise level for low frequencies */
@@ -70,141 +199,57 @@ private:
     float dehalo;   /* remove halo strength - v.1.9 */
     float hr;       /* halo radius - v1.9 */
     float ht;       /* halo threshold - v1.9 */
-    int   ncpu;     /* number of threads - v2.0 */
-
-    int multiplane; /* multiplane value */
 
     /* additional parameterss */
-    float *in;
-    fftwf_complex *outcache[5], *outtemp;
-    fftwf_complex *outrez, *gridsample; /* v1.8 */
-    fftwf_plan plan, planinv, plan1;
+
+    const VSFrame *gridsample;
     int nox, noy;
     int outwidth;
-    int outpitch; /* v.1.7 */
+    ptrdiff_t outpitch;
+    int outpitchelems;
 
     int outsize;
     int howmanyblocks;
 
-    int ndim[2];
-    int inembed[2];
-    int onembed[2];
+    std::unique_ptr<float[], decltype(&fftw_free)> wsharpen;
+    std::unique_ptr<float[], decltype(&fftw_free)> wdehalo;
 
-    float *wanxl; /* analysis */
-    float *wanxr;
-    float *wanyl;
-    float *wanyr;
-
-    float *wsynxl; /* synthesis */
-    float *wsynxr;
-    float *wsynyl;
-    float *wsynyr;
-
-    float *wsharpen;
-    float *wdehalo;
-
-    int nlast;  /* frame number at last step */
-    int btcurlast;  /* v1.7 */
-
-    fftwf_complex *outLast,*covar, *covarProcess;
+    // Shared buffers only used for bt=0 (kalman) mode
+    std::unique_ptr<fftwf_complex[], decltype(&fftw_free)> outLast;
+    std::unique_ptr<fftwf_complex[], decltype(&fftw_free)> covar;
+    std::unique_ptr<fftwf_complex[], decltype(&fftw_free)> covarProcess;
+    //
     float sigmaSquaredNoiseNormed;
     float sigmaSquaredNoiseNormed2D;
-    float sigmaNoiseNormed2D;
-    float sigmaMotionNormed;
     float sigmaSquaredSharpenMinNormed;
     float sigmaSquaredSharpenMaxNormed;
     float ht2n; /* halo threshold squared normed */
     float norm; /* normalization factor */
 
-    uint8_t *coverbuf; /*  block buffer covering the frame without remainders (with sufficient width and heigth) */
-    int coverwidth;
-    int coverheight;
-    int coverpitch;
+    std::unique_ptr<float[], decltype(&fftw_free)> pattern2d;
+    std::unique_ptr<float[], decltype(&fftw_free)> pattern3d;
 
-    int mirw; /* mirror width for padding */
-    int mirh; /* mirror height for padding */
+    const VSVideoInfo *vi;
+    VSNode *node;
 
-    int planeBase; /* color base value (0 for luma, 128 for chroma) */
-
-    float *mean;
-
-    float *pwin;
-    float *pattern2d;
-    float *pattern3d;
-    bool  isPatternSet;
-    float psigma;
-    char *messagebuf;
-
-    fftwf_complex ** cachefft;  /* v1.8 */
-    int            * cachewhat; /* v1.8 */
-    int              cachesize; /* v1.8 */
-
-    void InitOverlapPlane( float * inp, const uint8_t *srcp, int src_pitch, int planeBase );
-    void DecodeOverlapPlane( const float *in, float norm, uint8_t *dstp, int dst_pitch, int planeBase );
-
-    template < int btcur > void Wiener3D( int n, const VSFrameRef *src, VSFrameContext *frame_ctx, const VSAPI *vsapi );
+    template < int btcur >
+    void Wiener3D(int n, VSNode *node, VSFrame *dst, VSFrameContext *frame_ctx, const VSAPI *vsapi);
 
 public:
-    VSVideoInfo vi;
-    VSNodeRef  *node;
-    using bad_param = class bad_param : public CustomException { using CustomException::CustomException; };
-    using bad_alloc = class bad_alloc : public CustomException { using CustomException::CustomException; };
-    using bad_open  = class bad_open  : public CustomException { using CustomException::CustomException; };
-    using bad_plan  = class bad_plan  : public CustomException { using CustomException::CustomException; };
-
-    void ApplyFilter( int n, VSFrameRef *dst, const VSFrameRef *src, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi );
-
-    inline bool getIsPatternSet() { return isPatternSet; }
+    const VSFrame *ApplyFilter(int n, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi);
 
     /* Constructor */
     FFT3DFilter
     (
+        FFT3DFilterTransform *transform, const VSVideoInfo *vi,
         float _sigma, float _beta, int _plane, int _bw, int _bh, int _bt, int _ow, int _oh,
         float _kratio, float _sharpen, float _scutoff, float _svr, float _smin, float _smax,
-        bool _measure, bool _interlaced, int _wintype,
-        int _pframe, int _px, int _py, bool _pshow, float _pcutoff, float _pfactor,
-        float _sigma2, float _sigma3, float _sigma4, float _degrid,
-        float _dehalo, float _hr, float _ht, int _ncpu, int _multiplane,
-        VSVideoInfo _vi, VSNodeRef *node
-    );
-
-    /* Destructor */
-    ~FFT3DFilter();
-};
-
-class FFT3DFilterMulti
-{
-    FFT3DFilter *filtered;
-    FFT3DFilter *YClip, *UClip, *VClip;
-    int   multiplane;
-    int   bt;       /* block size  along time (mumber of frames), =0 for Kalman, >0 for Wiener */
-    int   pframe;   /* noise pattern frame number */
-    bool  pshow;    /* show noise pattern */
-    float pfactor;  /* noise pattern denoise strength */
-    bool  isPatternSet;
-
-    VSFrameRef *newVideoFrame( const VSFrameRef *src, VSCore *core, const VSAPI *vsapi );
-
-public:
-    VSVideoInfo vi;
-    VSNodeRef  *node;
-    using bad_param = class bad_param : public CustomException { using CustomException::CustomException; };
-
-    void RequestFrame( int n, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi );
-    VSFrameRef *GetFrame( int n, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi );
-
-    /* Constructor */
-    FFT3DFilterMulti
-    (
-        float _sigma, float _beta, int _multiplane, int _bw, int _bh, int _bt, int _ow, int _oh,
-        float _kratio, float _sharpen, float _scutoff, float _svr, float _smin, float _smax,
-        bool _measure, bool _interlaced, int _wintype,
         int _pframe, int _px, int _py, bool _pshow, float _pcutoff, float _pfactor,
         float _sigma2, float _sigma3, float _sigma4, float _degrid,
         float _dehalo, float _hr, float _ht, int _ncpu,
-        const VSMap *in, const VSAPI *vsapi
+        VSNode *node, VSCore *core, const VSAPI *vsapi
     );
 
-    /* Destructor */
-    ~FFT3DFilterMulti();
+    static const VSFrame *VS_CC GetFrame(int n, int activation_reason, void *instance_data, void **frame_data, VSFrameContext *frame_ctx, VSCore *core, const VSAPI *vsapi);
+    static void VS_CC Free(void *instance_data, VSCore *core, const VSAPI *vsapi);
 };

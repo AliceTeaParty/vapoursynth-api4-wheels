@@ -16,3 +16,11 @@
 config.*
 *.py
 *.vpy
+__pycache__/
+_deps/
+build-*/
+dist/
+vapoursynth/
+!hatch_build.py
+!tools/
+!tools/*.py
