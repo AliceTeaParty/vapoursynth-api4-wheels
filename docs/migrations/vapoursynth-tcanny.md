@@ -1,6 +1,6 @@
 # vapoursynth-tcanny migration record
 
-Status: branch validation pending.
+Status: published and verified on Windows and Linux x86_64.
 
 ## Aligned revisions
 
@@ -39,3 +39,11 @@ All compilation and smoke commands come directly from the fork's verified
 `.github/workflows/release.yml`. Changes are limited to monorepo working
 directories and artifact paths, package-specific triggers and release
 inventory, removal of the unsupported macOS job, and Pages dispatch.
+
+## Published result
+
+- Release: `vapoursynth-tcanny-v14.1`
+- Index: `https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/`
+- Windows and Linux: Pages-only binary wheel installs autoloaded
+  `core.tcanny`, rendered the test clip, and returned identical frame hashes
+  and PlaneStats.
