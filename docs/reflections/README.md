@@ -20,3 +20,4 @@ Completed reflections:
 - [vapoursynth-smoothuv](vapoursynth-smoothuv.md)
 - [vapoursynth-dfttest](vapoursynth-dfttest.md)
 - [vapoursynth-knlm](vapoursynth-knlm.md)
+- [vapoursynth-retinex](vapoursynth-retinex.md)

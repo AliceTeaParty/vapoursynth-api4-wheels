@@ -30,7 +30,7 @@ the project index is supplied with `--extra-index-url`.
 | [dubhatervapoursynth/vapoursynth-smoothuv](https://github.com/dubhatervapoursynth/vapoursynth-smoothuv) | `vapoursynth-smoothuv` | `3.1` | Windows/Linux x86_64 | Published and verified |
 | [HomeOfVapourSynthEvolution/VapourSynth-DFTTest](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-DFTTest) | `vapoursynth-dfttest` | `1.1` | Windows/Linux x86_64 | Published and verified |
 | [Khanattila/KNLMeansCL](https://github.com/Khanattila/KNLMeansCL) | `vapoursynth-knlm` | `1.1.2` | Windows/Linux x86_64 | Published and verified |
-| [HomeOfVapourSynthEvolution/VapourSynth-Retinex](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex) | `vapoursynth-retinex` | `4.1` | Windows/Linux x86_64 | Migration in progress |
+| [HomeOfVapourSynthEvolution/VapourSynth-Retinex](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex) | `vapoursynth-retinex` | `4.1` | Windows/Linux x86_64 | Published and verified |
 
 See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
 
