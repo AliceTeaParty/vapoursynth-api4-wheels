@@ -21,3 +21,4 @@ Completed reflections:
 - [vapoursynth-dfttest](vapoursynth-dfttest.md)
 - [vapoursynth-knlm](vapoursynth-knlm.md)
 - [vapoursynth-retinex](vapoursynth-retinex.md)
+- [vapoursynth-tcomb](vapoursynth-tcomb.md)

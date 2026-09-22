@@ -31,7 +31,7 @@ the project index is supplied with `--extra-index-url`.
 | [HomeOfVapourSynthEvolution/VapourSynth-DFTTest](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-DFTTest) | `vapoursynth-dfttest` | `1.1` | Windows/Linux x86_64 | Published and verified |
 | [Khanattila/KNLMeansCL](https://github.com/Khanattila/KNLMeansCL) | `vapoursynth-knlm` | `1.1.2` | Windows/Linux x86_64 | Published and verified |
 | [HomeOfVapourSynthEvolution/VapourSynth-Retinex](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex) | `vapoursynth-retinex` | `4.1` | Windows/Linux x86_64 | Published and verified |
-| [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` | `4.2` | Windows/Linux x86_64 | Migration in progress |
+| [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` | `4.2` | Windows/Linux x86_64 | Published and verified |
 | [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | `vapoursynth-tcanny` | `14.1` | Windows/Linux x86_64 | Migration in progress |
 
 See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
