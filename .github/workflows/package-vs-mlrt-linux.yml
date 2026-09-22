@@ -150,7 +150,8 @@ jobs:
           python3 -m pip install --break-system-packages "vapoursynth==79" numpy onnx onnxconverter-common
           # A whole archive or any one of its volumes resolves to the volumes.
           paths="$PWD/vs-mlrt-linux-x64-$VARIANT.zip"
-          VSMLRT_PAYLOAD_TAG="$VARIANT" VSMLRT_PREBUILT_PATHS="$paths" python3 -m pip install --break-system-packages --no-deps --force-reinstall --no-cache-dir .
+          VSMLRT_PAYLOAD_TAG="$VARIANT" VSMLRT_PREBUILT_PATHS="$paths" VSMLRT_MODELS_PREBUILT_PATH="$PWD/models.zip" \
+            python3 -m pip install --break-system-packages --no-deps --force-reinstall --no-cache-dir .
           python3 tools/smoke_linux_vcs_install.py --variant "$VARIANT"
 
       - name: Upload Linux assets
