@@ -1,7 +1,6 @@
 # vs-cfl migration record
 
-Status: migration prepared; publication and allowed-environment verification
-remain pending.
+Status: published and verified.
 
 ## Aligned revisions
 
@@ -44,6 +43,10 @@ Only these integration details differ:
 - Publication is restricted to Windows and Linux x86_64 assets, validates the
   exact four-file inventory, and dispatches the Pages index workflow.
 
-No release, tag, online installation, or local compilation was performed in
-this preparation branch. A reflection must be added only after both allowed
-consumer environments install the published wheels and pass the fork smoke.
+## Published result
+
+- Release: `vs-cfl-v1.0.2`
+- Index: `https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/`
+- Windows and Linux: Pages-only binary wheel installs autoloaded
+  `core.cfl.KACFL`, rendered frames 0, 3, and 11 with identical hashes and
+  PlaneStats, and returned the documented invalid-RGB error.
