@@ -22,3 +22,4 @@ Completed reflections:
 - [vapoursynth-knlm](vapoursynth-knlm.md)
 - [vapoursynth-retinex](vapoursynth-retinex.md)
 - [vapoursynth-tcomb](vapoursynth-tcomb.md)
+- [vapoursynth-tcanny](vapoursynth-tcanny.md)
