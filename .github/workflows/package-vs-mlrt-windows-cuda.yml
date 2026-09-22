@@ -1,0 +1,581 @@
+name: Package - vs-mlrt CUDA - Windows
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - vs-mlrt-cu121-v*
+      - vs-mlrt-cu129-v*
+    paths:
+      - plugins/vs-mlrt/**
+      - .github/workflows/package-vs-mlrt-windows-cuda.yml
+  workflow_dispatch:
+    inputs:
+      cuda-flavor:
+        description: CUDA payload line to build
+        type: choice
+        required: true
+        default: cu121
+        options:
+          - all
+          - cu121
+          - cu129
+      publish:
+        description: Upload payload to the matching GitHub Release
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        cuda_flavor: [cu121, cu129]
+    runs-on: windows-2022
+    defaults:
+      run:
+        working-directory: plugins/vs-mlrt
+
+    steps:
+      - name: Select CUDA flavor
+        id: select
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_CUDA_FLAVOR: ${{ inputs['cuda-flavor'] || '' }}
+          MATRIX_CUDA_FLAVOR: ${{ matrix.cuda_flavor }}
+        run: |
+          $shouldBuild = (
+            ($env:EVENT_NAME -eq "push" -and $env:REF_NAME -eq "main") -or
+            ($env:EVENT_NAME -eq "push" -and $env:REF_NAME -like "vs-mlrt-$($env:MATRIX_CUDA_FLAVOR)-v*") -or
+            ($env:EVENT_NAME -eq "workflow_dispatch" -and (
+              $env:INPUT_CUDA_FLAVOR -eq "all" -or
+              $env:INPUT_CUDA_FLAVOR -eq $env:MATRIX_CUDA_FLAVOR
+            ))
+          )
+          "should_build=$($shouldBuild.ToString().ToLowerInvariant())" | Add-Content -LiteralPath $env:GITHUB_OUTPUT -Encoding utf8
+
+      - name: Checkout repo
+        if: steps.select.outputs.should_build == 'true'
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Resolve CUDA and TensorRT versions
+        id: versions
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          if ("${{ matrix.cuda_flavor }}" -eq "cu121") {
+            $envLines = @(
+              "CUDA_VERSION=12.1.1",
+              "CUDA_MINOR=12.1",
+              "MSVC_TOOLSET=14.38",
+              "CUDA_ARCHS=75;86-real;89-real",
+              "TENSORRT_VERSION=8.6.1.6",
+              "TENSORRT_URL=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/zip/TensorRT-8.6.1.6.Windows10.x86_64.cuda-12.0.zip",
+              "TENSORRT_LIBRARY_SUFFIX=",
+              "TENSORRT_OSS_REF=v8.6.1",
+              "TENSORRT_RTX_ENABLED=0",
+              "CUDNN_URL=https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-8.9.7.29_cuda12-archive.zip"
+            )
+          } else {
+            $envLines = @(
+              "CUDA_VERSION=12.9.1",
+              "CUDA_MINOR=12.9",
+              "MSVC_TOOLSET=14.44",
+              "CUDA_ARCHS=75;86-real;89-real;120-real",
+              "TENSORRT_VERSION=11.1.0.106",
+              "TENSORRT_URL=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/11.1.0/zip/TensorRT-Enterprise-11.1.0.106-Windows-amd64-cuda-12.9-Release-external.zip",
+              "TENSORRT_LIBRARY_SUFFIX=_11",
+              "TENSORRT_OSS_REF=v11.1",
+              "TENSORRT_RTX_ENABLED=1",
+              "TENSORRT_RTX_VERSION=1.5.0.114",
+              "TENSORRT_RTX_URL=https://developer.nvidia.com/downloads/trt/rtx_sdk/secure/1.5/TensorRT-RTX-1.5.0.114-Windows-amd64-cuda-12.9-Release-external.zip",
+              "TENSORRT_RTX_LIBRARY_SUFFIX=_1_5",
+              "CUDNN_URL=https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-9.19.0.56_cuda12-archive.zip"
+            )
+          }
+          $envLines | Add-Content -LiteralPath $env:GITHUB_ENV -Encoding utf8
+          foreach ($line in $envLines) {
+            $name, $value = $line -split "=", 2
+            "$($name.ToLowerInvariant())=$value" | Add-Content -LiteralPath $env:GITHUB_OUTPUT -Encoding utf8
+          }
+
+      - name: Ensure CUDA 12.1 compatible MSVC toolset
+        if: steps.select.outputs.should_build == 'true' && matrix.cuda_flavor == 'cu121'
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $install = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not (Get-ChildItem "$install\VC\Tools\MSVC\14.38.*" -Directory -ErrorAction SilentlyContinue)) {
+            $setup = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
+            $process = Start-Process -FilePath $setup -WindowStyle Hidden -Wait -PassThru -ArgumentList @("modify", "--installPath", "`"$install`"", "--add", "Microsoft.VisualStudio.Component.VC.14.38.17.8.x86.x64", "--quiet", "--norestart", "--nocache")
+            if ($process.ExitCode -notin @(0, 3010)) { throw "MSVC 14.38 installation failed: $($process.ExitCode)" }
+          }
+
+      - name: Setup MSVC
+        if: steps.select.outputs.should_build == 'true'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: ${{ env.MSVC_TOOLSET }}
+
+      - name: Setup Ninja
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: python -m pip install ninja
+
+      - name: Cache CUDA
+        if: steps.select.outputs.should_build == 'true'
+        id: cache-cuda
+        uses: actions/cache@v6
+        with:
+          path: plugins/vs-mlrt/cuda-redist/${{ matrix.cuda_flavor }}
+          key: ${{ runner.os }}-vsmlrt-vcs-${{ matrix.cuda_flavor }}-${{ env.CUDA_VERSION }}-redist-v3-profiler
+
+      - name: Setup CUDA
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          $cudaPath = Join-Path $pwd "cuda-redist\${{ matrix.cuda_flavor }}"
+          $nvcc = Join-Path $cudaPath "bin\nvcc.exe"
+
+          if (-not (Test-Path -LiteralPath $nvcc) -or -not (Test-Path "$cudaPath\include\cuda_profiler_api.h")) {
+            $baseUrl = "https://developer.download.nvidia.com/compute/cuda/redist"
+            $manifestPath = "cuda-redistrib.json"
+            curl.exe -fL -o $manifestPath "$baseUrl/redistrib_$env:CUDA_VERSION.json"
+            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+            $packages = @(
+              "cuda_cccl",
+              "cuda_cudart",
+              "cuda_cupti",
+              "cuda_nvcc",
+              "cuda_nvrtc",
+              "cuda_nvtx",
+              "cuda_profiler_api",
+              "libcublas",
+              "libcufft",
+              "libnvjitlink"
+            )
+            New-Item -ItemType Directory -Force -Path $cudaPath, cuda-downloads | Out-Null
+
+            foreach ($package in $packages) {
+              $entry = $manifest.$package.'windows-x86_64'
+              if (-not $entry) {
+                throw "CUDA redistrib package $package is unavailable for Windows x86_64"
+              }
+              $archive = "cuda-downloads\$package.zip"
+              $extract = "cuda-downloads\$package"
+              curl.exe -fL -o $archive "$baseUrl/$($entry.relative_path)"
+              if ($LASTEXITCODE) { throw "CUDA download failed: $package" }
+              if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry.sha256) { throw "CUDA component digest mismatch: $package" }
+              7z x -y $archive "-o$extract"
+              if ($LASTEXITCODE) { throw "CUDA extraction failed: $package" }
+              $root = Get-ChildItem -Path $extract -Directory | Select-Object -First 1
+              Copy-Item -Path "$($root.FullName)\*" -Destination $cudaPath -Recurse -Force
+            }
+          }
+
+          if (-not (Test-Path -LiteralPath $nvcc)) {
+            Write-Host "CUDA directories found:"
+            Get-ChildItem -Path $cudaPath -Recurse -Filter nvcc.exe -ErrorAction SilentlyContinue |
+              Select-Object -ExpandProperty FullName
+            throw "nvcc was not found at $nvcc"
+          }
+          & $nvcc --version
+          "CUDA_PATH=$cudaPath" | Add-Content -LiteralPath $env:GITHUB_ENV -Encoding utf8
+          "$cudaPath\bin" | Add-Content -LiteralPath $env:GITHUB_PATH -Encoding utf8
+          "$cudaPath\nvvm\bin" | Add-Content -LiteralPath $env:GITHUB_PATH -Encoding utf8
+
+      - name: Download TensorRT
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          curl.exe -L -o trt.zip $env:TENSORRT_URL
+          Expand-Archive -LiteralPath trt.zip -DestinationPath . -Force
+          Move-Item -Path (Get-ChildItem -Directory TensorRT-* | Select-Object -First 1).FullName -Destination tensorrt
+
+      - name: Download TensorRT-RTX
+        if: steps.select.outputs.should_build == 'true' && matrix.cuda_flavor == 'cu129'
+        shell: pwsh
+        run: |
+          curl.exe -L -o trt-rtx.zip $env:TENSORRT_RTX_URL
+          Expand-Archive -LiteralPath trt-rtx.zip -DestinationPath . -Force
+          Move-Item -Path (Get-ChildItem -Directory TensorRT-RTX-* | Select-Object -First 1).FullName -Destination tensorrt-rtx
+
+      - name: Download cuDNN
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          curl.exe -L -o cudnn.zip $env:CUDNN_URL
+          Expand-Archive -LiteralPath cudnn.zip -DestinationPath . -Force
+          Move-Item -Path (Get-ChildItem -Directory cudnn-windows-* | Select-Object -First 1).FullName -Destination cudnn
+
+      - name: Download VapourSynth R77 headers
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          curl.exe -s -o vs.zip -L https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R77.zip
+          Expand-Archive -LiteralPath vs.zip -DestinationPath vstrt -Force
+          Move-Item -Path (Get-ChildItem -Path vstrt -Directory -Filter "vapoursynth-*" | Select-Object -First 1).FullName -Destination vstrt\vapoursynth
+
+      - name: Configure vstrt
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          $cudaPath = $env:CUDA_PATH
+          cmake -S vstrt -B vstrt\build -G Ninja -LA `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D CMAKE_CXX_FLAGS="/EHsc /Wall /wd4100 /wd4625 /wd4626 /wd4710 /wd4711 /wd4820 /wd4996 /wd5026 /wd5027" `
+            -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+            -D CUDAToolkit_ROOT="$cudaPath" `
+            -D VAPOURSYNTH_INCLUDE_DIRECTORY="$pwd\vstrt\vapoursynth\include" `
+            -D TENSORRT_HOME="$pwd\tensorrt" `
+            -D USE_NVINFER_PLUGIN=ON `
+            -D TENSORRT_LIBRARY_SUFFIX="$env:TENSORRT_LIBRARY_SUFFIX"
+
+      - name: Build vstrt
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          cmake --build vstrt\build --config Release --verbose
+          cmake --install vstrt\build --prefix vstrt\install
+
+      - name: Configure vstrt_rtx
+        if: steps.select.outputs.should_build == 'true' && matrix.cuda_flavor == 'cu129'
+        shell: pwsh
+        run: |
+          $cudaPath = $env:CUDA_PATH
+          cmake -S vstrt -B vstrt\build_rtx -G Ninja -LA `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D CMAKE_CXX_FLAGS="/EHsc /Wall /wd4100 /wd4625 /wd4626 /wd4710 /wd4711 /wd4820 /wd4996 /wd5026 /wd5027" `
+            -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+            -D CUDAToolkit_ROOT="$cudaPath" `
+            -D VAPOURSYNTH_INCLUDE_DIRECTORY="$pwd\vstrt\vapoursynth\include" `
+            -D TENSORRT_HOME="$pwd\tensorrt-rtx" `
+            -D TENSORRT_LIBRARY_SUFFIX="$env:TENSORRT_RTX_LIBRARY_SUFFIX"
+
+      - name: Build vstrt_rtx
+        if: steps.select.outputs.should_build == 'true' && matrix.cuda_flavor == 'cu129'
+        shell: pwsh
+        run: |
+          cmake --build vstrt\build_rtx --config Release --verbose
+          cmake --install vstrt\build_rtx --prefix vstrt\install_rtx
+
+      - name: Checkout TensorRT OSS
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: git clone --depth 1 --branch $env:TENSORRT_OSS_REF https://github.com/NVIDIA/TensorRT.git tensorrt-oss
+
+      - name: Build custom trtexec
+        if: steps.select.outputs.should_build == 'true'
+        id: trtexec
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force tensorrt-oss\include\nlohmann | Out-Null
+          curl.exe -fL -o tensorrt-oss\include\nlohmann\json.hpp https://raw.githubusercontent.com/nlohmann/json/refs/tags/v3.11.3/single_include/nlohmann/json.hpp
+          if ($LASTEXITCODE) { throw "nlohmann/json download failed" }
+          python tools/build_custom_trtexec.py --source tensorrt-oss --sdk tensorrt --version "$env:TENSORRT_VERSION" --cuda "$env:CUDA_PATH" --architectures "$env:CUDA_ARCHS"
+
+      - name: Verify custom trtexec logging and file locks
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          python tools/test_custom_trtexec.py --bin-dir vstrt/trtexec-install/bin --runtime-dir tensorrt/bin --runtime-dir tensorrt/lib --runtime-dir "$env:CUDA_PATH\bin"
+
+      - name: Assemble payload
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          # Runtime families the published plugins never load, checked by reading
+          # the dynamic dependencies and the dlopen name strings of every shipped
+          # DLL: the deprecated nvparsers, the .alt NVRTC builds, and the cuDNN
+          # training libraries, which are only reachable through the training
+          # backends. nvJitLink and nvvm stay: libnvinfer names both.
+          $unusedRuntime = '(?i)(nvparsers|\.alt\.|_train)'
+          function Copy-DllsFromPackage($packageDir, $destinationDir, [switch]$Recursive, [switch]$IncludeBuildResources) {
+            if ($Recursive) {
+              $dlls = Get-ChildItem -LiteralPath $packageDir -Recurse -Filter "*.dll" -File -ErrorAction SilentlyContinue
+            } else {
+              $dlls = foreach ($runtimePath in @("$packageDir\bin\*.dll", "$packageDir\bin\x64\*.dll", "$packageDir\lib\*.dll", "$packageDir\lib\x64\*.dll")) {
+                Get-ChildItem -Path $runtimePath -File -ErrorAction SilentlyContinue
+              }
+            }
+            foreach ($dll in $dlls) {
+              if (-not $IncludeBuildResources -and $dll.Name -match '(?i)(builder_resource|sample|test)') {
+                Write-Host "Excluding build/test-only runtime: $($dll.Name)"
+                continue
+              }
+              if ($dll.Name -match $unusedRuntime) {
+                Write-Host "Excluding runtime no published plugin loads: $($dll.Name)"
+                continue
+              }
+              Copy-Item -LiteralPath $dll.FullName -Destination (Join-Path $destinationDir $dll.Name) -Force
+            }
+          }
+
+          $basePluginDir = "payload-base\vsmlrt"
+          $baseCudaDir = "$basePluginDir\vsmlrt-cuda"
+          $cudaPayloadDir = "payload-cuda\vsmlrt\vsmlrt-cuda"
+          $cudnnPayloadDir = "payload-cudnn\vsmlrt\vsmlrt-cuda"
+          $builderCudaDir = "payload-builder\vsmlrt\vsmlrt-cuda"
+          New-Item -ItemType Directory -Force $baseCudaDir, $cudaPayloadDir, $cudnnPayloadDir, $builderCudaDir | Out-Null
+
+          Copy-Item vstrt\install\bin\vstrt.dll $basePluginDir
+          # A CUDA payload is self-contained: it carries the generic plugins and
+          # their OpenVINO support DLLs, so an install downloads the model
+          # payload plus this archive and nothing else.
+          curl.exe -fsSL -o "$env:RUNNER_TEMP\generic.zip" "https://github.com/${{ github.repository }}/releases/download/generic/vs-mlrt-windows-x64-generic.zip"
+          Expand-Archive -LiteralPath "$env:RUNNER_TEMP\generic.zip" -DestinationPath generic-dependency -Force
+          Get-ChildItem -LiteralPath "generic-dependency\vsmlrt" -File |
+            Where-Object { $_.Name -ne "manifest.vs" } |
+            Copy-Item -Destination $basePluginDir -Force
+          $manifestPlugins = @("[VapourSynth Manifest V1]", "vsncnn", "vsov", "vstrt")
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            $manifestPlugins += "vstrt_rtx"
+          }
+          $manifestPlugins | Set-Content -LiteralPath "$basePluginDir\manifest.vs" -Encoding ascii
+          Copy-DllsFromPackage "tensorrt" $baseCudaDir
+          Copy-DllsFromPackage "cudnn" $cudnnPayloadDir -Recursive
+          Copy-Item vstrt\trtexec-install\bin\trtexec.exe $builderCudaDir
+          Copy-Item vstrt\trtexec-install\bin\trtexec-build.json $builderCudaDir
+          $builderResources = @(Get-ChildItem -LiteralPath tensorrt -Recurse -Filter "*builder_resource*.dll" -File | Sort-Object Name)
+          if ($builderResources.Count -eq 0) {
+            throw "TensorRT package contains no builder resource DLLs."
+          }
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            # TensorRT 11.1 ships about 3.45 GiB of architecture-specific
+            # builder resources. Three size-balanced overlays keep every asset
+            # comfortably below GitHub's 2 GiB per-asset limit.
+            for ($index = 1; $index -le 3; $index++) {
+              New-Item -ItemType Directory -Force "payload-builder-resource-$index\vsmlrt\vsmlrt-cuda" | Out-Null
+            }
+            $resourceBytes = @(0, 0, 0)
+            foreach ($resource in ($builderResources | Sort-Object Length -Descending)) {
+              $slot = 0
+              if ($resourceBytes[1] -lt $resourceBytes[$slot]) { $slot = 1 }
+              if ($resourceBytes[2] -lt $resourceBytes[$slot]) { $slot = 2 }
+              Copy-Item -LiteralPath $resource.FullName -Destination "payload-builder-resource-$($slot + 1)\vsmlrt\vsmlrt-cuda" -Force
+              $resourceBytes[$slot] += [int64]$resource.Length
+            }
+          } else {
+            $builderResources | Copy-Item -Destination $builderCudaDir -Force
+          }
+
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            $trtCoreCudaDir = "payload-trt-core\vsmlrt\vsmlrt-cuda"
+            $trtPluginCudaDir = "payload-trt-plugin\vsmlrt\vsmlrt-cuda"
+            $trtExtraCudaDir = "payload-trt-extra\vsmlrt\vsmlrt-cuda"
+            New-Item -ItemType Directory -Force $trtCoreCudaDir, $trtPluginCudaDir, $trtExtraCudaDir | Out-Null
+            foreach ($dll in Get-ChildItem -Path $baseCudaDir -Filter "*.dll") {
+              if ($dll.Name -eq "nvinfer_11.dll") {
+                Move-Item -LiteralPath $dll.FullName -Destination $trtCoreCudaDir
+              } elseif ($dll.Name -eq "nvinfer_plugin_11.dll") {
+                Move-Item -LiteralPath $dll.FullName -Destination $trtPluginCudaDir
+              } else {
+                Move-Item -LiteralPath $dll.FullName -Destination $trtExtraCudaDir
+              }
+            }
+          }
+
+          $cudaPath = $env:CUDA_PATH
+          foreach ($runtimePath in @("$cudaPath\bin\*.dll", "$cudaPath\bin\x64\*.dll", "$cudaPath\extras\CUPTI\lib64\*.dll", "$cudaPath\nvvm\bin\*.dll")) {
+            Get-ChildItem -Path $runtimePath -File -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -notmatch $unusedRuntime } |
+              Copy-Item -Destination $cudaPayloadDir
+          }
+          if (Test-Path vstrt\install_rtx\bin\vstrt_rtx.dll) {
+            $rtxPluginDir = "payload-rtx\vsmlrt"
+            $rtxCudaDir = "$rtxPluginDir\vsmlrt-cuda"
+            New-Item -ItemType Directory -Force $rtxCudaDir | Out-Null
+            Copy-Item vstrt\install_rtx\bin\vstrt_rtx.dll $rtxPluginDir
+            Copy-DllsFromPackage "tensorrt-rtx" $rtxCudaDir
+            Copy-Item tensorrt-rtx\bin\tensorrt_rtx.exe $rtxCudaDir -ErrorAction SilentlyContinue
+          }
+
+      - name: Inspect payload layout
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          $trtSuffix = ""
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            $trtSuffix = "_11"
+          }
+          $required = @(
+            "payload-base\vsmlrt\manifest.vs",
+            "payload-base\vsmlrt\vstrt.dll",
+            "payload-cuda\vsmlrt\vsmlrt-cuda\cublas64_12.dll",
+            "payload-cuda\vsmlrt\vsmlrt-cuda\cublasLt64_12.dll",
+            "payload-cuda\vsmlrt\vsmlrt-cuda\cudart64_12.dll"
+          )
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            $required += "payload-trt-core\vsmlrt\vsmlrt-cuda\nvinfer_11.dll"
+            $required += "payload-trt-plugin\vsmlrt\vsmlrt-cuda\nvinfer_plugin_11.dll"
+            $required += "payload-trt-extra\vsmlrt\vsmlrt-cuda\nvonnxparser_11.dll"
+            $required += "payload-rtx\vsmlrt\vstrt_rtx.dll"
+            $required += "payload-rtx\vsmlrt\vsmlrt-cuda\tensorrt_rtx_1_5.dll"
+          } else {
+            $required += "payload-base\vsmlrt\vsmlrt-cuda\nvinfer$trtSuffix.dll"
+            $required += "payload-base\vsmlrt\vsmlrt-cuda\nvinfer_plugin$trtSuffix.dll"
+          }
+          foreach ($path in $required) {
+            if (-not (Test-Path $path)) {
+              throw "Missing payload item: $path"
+            }
+          }
+          foreach ($path in @("payload-builder\vsmlrt\vsmlrt-cuda\trtexec.exe", "payload-builder\vsmlrt\vsmlrt-cuda\trtexec-build.json")) {
+            if (-not (Test-Path $path)) { throw "Missing builder payload item: $path" }
+          }
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            foreach ($index in 1..3) {
+              if (-not (Get-ChildItem "payload-builder-resource-$index\vsmlrt\vsmlrt-cuda" -Filter "*builder_resource*.dll" -File -ErrorAction SilentlyContinue)) {
+                throw "Builder resource overlay $index is empty."
+              }
+            }
+          } elseif (-not (Get-ChildItem "payload-builder\vsmlrt\vsmlrt-cuda" -Filter "*builder_resource*.dll" -File -ErrorAction SilentlyContinue)) {
+            throw "Builder payload is missing TensorRT builder resources."
+          }
+          $manifest = Get-Content "payload-base\vsmlrt\manifest.vs"
+          $expectedManifest = @("[VapourSynth Manifest V1]", "vsncnn", "vsov", "vstrt")
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            $expectedManifest += "vstrt_rtx"
+          }
+          if (Compare-Object $expectedManifest $manifest) {
+            throw "CUDA manifest.vs does not match the selected plugin set."
+          }
+          foreach ($selfContained in @("payload-base\vsmlrt\vsncnn.dll", "payload-base\vsmlrt\vsov.dll", "payload-base\vsmlrt\openvino.dll")) {
+            if (-not (Test-Path $selfContained)) {
+              throw "CUDA payload is not self-contained, missing: $selfContained"
+            }
+          }
+          foreach ($glob in @("payload-cuda\vsmlrt\vsmlrt-cuda\nvrtc*.dll", "payload-cudnn\vsmlrt\vsmlrt-cuda\cudnn*.dll")) {
+            if (-not (Test-Path $glob)) {
+              throw "Missing payload item matching: $glob"
+            }
+          }
+          foreach ($path in @("payload-base\vsmlrt\vsmlrt-cuda\trtexec.exe", "payload-base\vsmlrt\vsmlrt-cuda\trtexec-build.json", "payload-base\vsmlrt\vsmlrt-cuda\*builder_resource*.dll")) {
+            if (Test-Path $path) { throw "Runtime payload must not contain build-only tool: $path" }
+          }
+          Write-Host "cuDNN payload DLLs:"
+          Get-ChildItem "payload-cudnn\vsmlrt\vsmlrt-cuda" -Filter "*.dll" |
+            Sort-Object Name |
+            Select-Object Name, Length |
+            Format-Table -AutoSize
+          foreach ($path in @("payload-base\vapoursynth", "payload-cuda\vapoursynth", "payload-cudnn\vapoursynth", "payload-trt-core\vapoursynth", "payload-trt-plugin\vapoursynth", "payload-trt-extra\vapoursynth", "payload-rtx\vapoursynth")) {
+            if (Test-Path $path) {
+              throw "Release payload must be rooted at vsmlrt/, not vapoursynth/: $path"
+            }
+          }
+
+      - name: Package payload
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          # One self-contained archive per tag: the generic plugins, the
+          # TensorRT backends, the CUDA/cuDNN runtime, and the builder helpers
+          # all travel together, and numbered volumes keep every asset below
+          # GitHub's 2 GiB limit. The staging directories are merged into one
+          # tree first: 7-Zip refuses several wildcard sources that each carry
+          # their own top-level vsmlrt/ directory.
+          $staging = @("payload-base", "payload-cuda", "payload-cudnn", "payload-builder")
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            $staging += @("payload-trt-core", "payload-trt-plugin", "payload-trt-extra", "payload-rtx")
+            $staging += (1..3 | ForEach-Object { "payload-builder-resource-$_" })
+          }
+          $merged = "payload-all"
+          Remove-Item -Recurse -Force $merged -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force "$merged\vsmlrt" | Out-Null
+          foreach ($dir in $staging) {
+            Copy-Item -Path "$dir\vsmlrt\*" -Destination "$merged\vsmlrt" -Recurse -Force
+          }
+          7z a -tzip -mx=1 -v1900m "vs-mlrt-windows-x64-${{ matrix.cuda_flavor }}.zip" ".\payload-all\*"
+          Get-ChildItem vs-mlrt-windows-x64-* |
+            Select-Object Name, Length |
+            Format-Table -AutoSize
+          foreach ($asset in Get-ChildItem vs-mlrt-windows-x64-*.zip*) {
+            if ($asset.Length -ge 2147483648) {
+              throw "Release asset exceeds GitHub's 2 GiB limit: $($asset.Name) ($($asset.Length) bytes)"
+            }
+          }
+
+      - name: Set up install verification Python
+        if: steps.select.outputs.should_build == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install verification dependencies
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: python -m pip install "vapoursynth==77" numpy onnx onnxconverter-common pefile
+
+      - name: Install Vulkan runtime for the generic dependency
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.4.321.1/windows/vulkansdk-windows-X64-1.4.321.1.exe?Human=true" -OutFile VulkanSDK.exe
+          $installer = Start-Process -FilePath VulkanSDK.exe -WindowStyle Hidden -Wait -PassThru -ArgumentList "--accept-licenses --default-answer --confirm-command install"
+          if ($installer.ExitCode -ne 0) { throw "Vulkan SDK installation failed: $($installer.ExitCode)" }
+          "C:\VulkanSDK\1.4.321.1\Bin" | Add-Content -LiteralPath $env:GITHUB_PATH -Encoding utf8
+
+      - name: Install and verify this job's exact staged payload
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/verify_staged_payload.py --variant "${{ matrix.cuda_flavor }}" --repo "${{ github.repository }}" --evidence "payload-provenance-${{ matrix.cuda_flavor }}.json"
+
+      - name: Build and smoke variant wheel
+        if: steps.select.outputs.should_build == 'true'
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade build hatchling
+          Invoke-WebRequest -Uri "https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/models/models.zip" -OutFile models.zip
+          $payloads = (Get-ChildItem "vs-mlrt-windows-x64-${{ matrix.cuda_flavor }}.zip*" | Sort-Object Name | ForEach-Object FullName) -join ";"
+          $env:VSMLRT_PREBUILT_PATHS = $payloads
+          $env:VSMLRT_MODELS_PREBUILT_PATH = "$pwd\models.zip"
+          $variant = "${{ matrix.cuda_flavor }}"
+          python -m build "packaging\distributions\$variant" --wheel --no-isolation --outdir dist\wheels
+          $wheel = Get-ChildItem dist\wheels\*.whl | Select-Object -First 1 -ExpandProperty FullName
+          python -m pip install --force-reinstall --no-deps $wheel
+          python tools\smoke_vcs_extras_install.py --variant $variant
+
+      - name: Upload payload artifact
+        if: steps.select.outputs.should_build == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: vs-mlrt-windows-x64-${{ matrix.cuda_flavor }}
+          path: |
+            plugins/vs-mlrt/vs-mlrt-windows-x64-*.zip*
+            plugins/vs-mlrt/payload-provenance-${{ matrix.cuda_flavor }}.json
+            plugins/vs-mlrt/models.zip
+            plugins/vs-mlrt/dist/wheels/*.whl
+          compression-level: 0
+
+      - name: Release payload
+        if: steps.select.outputs.should_build == 'true' && (startsWith(github.ref, 'refs/tags/vs-mlrt-') || (github.event_name == 'workflow_dispatch' && inputs.publish))
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            plugins/vs-mlrt/vs-mlrt-windows-x64-*.zip*
+            plugins/vs-mlrt/payload-provenance-${{ matrix.cuda_flavor }}.json
+            plugins/vs-mlrt/models.zip
+            plugins/vs-mlrt/dist/wheels/*.whl
+          fail_on_unmatched_files: true
+          generate_release_notes: false
+          prerelease: true
+
+      - name: Verify published payload digests
+        if: steps.select.outputs.should_build == 'true' && (startsWith(github.ref, 'refs/tags/vs-mlrt-') || (github.event_name == 'workflow_dispatch' && inputs.publish))
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python tools/verify_staged_payload.py --variant "${{ matrix.cuda_flavor }}" --repo "${{ github.repository }}" --evidence "payload-provenance-${{ matrix.cuda_flavor }}.json" --verify-published-only --release-tag "${{ github.ref_name }}"
+          gh api "repos/$env:GITHUB_REPOSITORY/dispatches" -f event_type=index

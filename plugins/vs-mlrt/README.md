@@ -2,11 +2,9 @@
 
 VapourSynth ML runtime plugins and the `vsmlrt.py` Python wrapper.
 
-This fork is API4-oriented and publishes tested Windows and Linux x86_64 binary
-payloads through GitHub Releases. Users install from one of three VCS refs,
-`generic`, `cu121`, or `cu129`. The CUDA refs install their own TensorRT
-payload plus the `generic` plugin payload automatically, while GitHub Releases
-stay trimmed so `cu121` and `cu129` publish only the TRT-side assets.
+This API4 port publishes tested Windows and Linux x86_64 wheels through the
+combined repository's GitHub Pages index. The three runtime lines are separate
+distribution names rather than VCS refs or version suffixes.
 
 ## Quick Install
 
@@ -20,18 +18,18 @@ Requirements:
 - For `cu121` and `cu129`: an NVIDIA driver compatible with the selected CUDA
   payload.
 
-Install from the tag that matches the payload line you want:
+Install exactly one package matching the runtime line you want:
 
 ```powershell
-pip install "vs-mlrt @ git+https://github.com/RyougiKukoc/vs-mlrt-api4.git@generic"
-pip install "vs-mlrt @ git+https://github.com/RyougiKukoc/vs-mlrt-api4.git@cu121"
-pip install "vs-mlrt @ git+https://github.com/RyougiKukoc/vs-mlrt-api4.git@cu129"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-mlrt-generic
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-mlrt-cu121
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-mlrt-cu129
 ```
 
 Do not install `cu121` and `cu129` into the same environment. Use `cu121` for
 machines limited to CUDA 12.1/12.2-era drivers, and use `cu129` for machines
 with a current enough NVIDIA driver for CUDA 12.9 user-mode libraries.
-`@cu121` installs `vsncnn`, `vsov`, and `vstrt`; `@cu129` installs `vsncnn`,
+`vs-mlrt-cu121` installs `vsncnn`, `vsov`, and `vstrt`; `vs-mlrt-cu129` installs `vsncnn`,
 `vsov`, `vstrt`, and `vstrt_rtx`.
 
 The package keeps the public Python entry point stable:

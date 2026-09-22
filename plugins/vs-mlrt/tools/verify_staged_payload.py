@@ -126,11 +126,11 @@ def verify_installed(archives: list[list[Path]], site: Path, variant: str) -> in
     return count
 
 
-def verify_published(repo: str, variant: str, evidence: Path) -> None:
+def verify_published(repo: str, variant: str, evidence: Path, release_tag: str | None = None) -> None:
     recorded = json.loads(evidence.read_text())
     if not recorded.get("ok") or recorded["variant"] != variant:
         raise RuntimeError("Publication requires successful matching staged installation evidence")
-    assets = {item["name"]: item for item in release(repo, variant)["assets"]}
+    assets = {item["name"]: item for item in release(repo, release_tag or variant)["assets"]}
     for item in recorded["staged_assets"]:
         remote = assets.get(item["name"])
         if remote is None or remote.get("digest") != "sha256:" + item["sha256"]:
@@ -145,9 +145,10 @@ def main() -> None:
     parser.add_argument("--asset-dir", type=Path, default=Path("."))
     parser.add_argument("--evidence", type=Path, required=True)
     parser.add_argument("--verify-published-only", action="store_true")
+    parser.add_argument("--release-tag")
     args = parser.parse_args()
     if args.verify_published_only:
-        verify_published(args.repo, args.variant, args.evidence)
+        verify_published(args.repo, args.variant, args.evidence, args.release_tag)
         return
     project = Path(__file__).resolve().parents[1]
     asset_dir = args.asset_dir.resolve()
