@@ -139,7 +139,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          mkdir -p dist/release-assets-linux
+          mkdir -p plugins/vapoursynth-nnedi3cl/dist/release-assets-linux
           docker run --rm \
             -v "$GITHUB_WORKSPACE/plugins/vapoursynth-nnedi3cl:/source:ro" \
             -v "$GITHUB_WORKSPACE/plugins/vapoursynth-nnedi3cl/dist:/out" \
