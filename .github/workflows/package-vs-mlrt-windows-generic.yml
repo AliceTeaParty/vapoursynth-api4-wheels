@@ -312,7 +312,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python tools/verify_staged_payload.py --variant generic --repo "${{ github.repository }}" --evidence payload-provenance-generic.json
+        run: python tools/verify_staged_payload.py --variant generic --repo "${{ github.repository }}" --dependency-repo RyougiKukoc/vs-mlrt-api4 --evidence payload-provenance-generic.json
 
       - name: Upload generic payload artifact
         uses: actions/upload-artifact@v7

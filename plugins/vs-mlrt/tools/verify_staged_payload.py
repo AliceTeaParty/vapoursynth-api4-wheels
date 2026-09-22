@@ -142,6 +142,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--variant", choices=["generic", "cu121", "cu129"], required=True)
     parser.add_argument("--repo", required=True)
+    parser.add_argument("--dependency-repo")
     parser.add_argument("--asset-dir", type=Path, default=Path("."))
     parser.add_argument("--evidence", type=Path, required=True)
     parser.add_argument("--verify-published-only", action="store_true")
@@ -164,11 +165,12 @@ def main() -> None:
     # model payload. The generic asset the payload embedded is recorded for
     # traceability but deliberately not installed: a payload that forgot to
     # embed it has to fail here.
+    dependency_repo = args.dependency_repo or args.repo
     if args.variant != "generic":
-        _, info = download_dependency(args.repo, "generic", "vs-mlrt-windows-x64-generic.zip", dependencies)
+        _, info = download_dependency(dependency_repo, "generic", "vs-mlrt-windows-x64-generic.zip", dependencies)
         evidence["dependency_assets"].append(info)
     paths = list(volumes)
-    models, info = download_dependency(args.repo, "models", "models.zip", dependencies)
+    models, info = download_dependency(dependency_repo, "models", "models.zip", dependencies)
     paths.append(models)
     evidence["dependency_assets"].append(info)
     env = os.environ.copy()

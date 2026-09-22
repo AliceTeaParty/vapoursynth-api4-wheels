@@ -533,7 +533,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python tools/verify_staged_payload.py --variant "${{ matrix.cuda_flavor }}" --repo "${{ github.repository }}" --evidence "payload-provenance-${{ matrix.cuda_flavor }}.json"
+        run: python tools/verify_staged_payload.py --variant "${{ matrix.cuda_flavor }}" --repo "${{ github.repository }}" --dependency-repo RyougiKukoc/vs-mlrt-api4 --evidence "payload-provenance-${{ matrix.cuda_flavor }}.json"
 
       - name: Build and smoke variant wheel
         if: steps.select.outputs.should_build == 'true'
