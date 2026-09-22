@@ -130,7 +130,7 @@ jobs:
           VARIANT: ${{ matrix.variant }}
         run: |
           set -euxo pipefail
-          python3 -m pip install --break-system-packages --upgrade build hatchling
+          python3 -m pip install --break-system-packages --upgrade build hatchling "vapoursynth==79" numpy onnx onnxconverter-common
           curl -fsSL -o models.zip https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/models/models.zip
           paths=$(find "$PWD" -maxdepth 1 -name "vs-mlrt-linux-x64-$VARIANT.zip*" -type f -printf '%p:' | sed 's/:$//')
           VSMLRT_PAYLOAD_TAG="$VARIANT" \
