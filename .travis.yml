@@ -1,0 +1,30 @@
+sudo: required
+
+language: cpp
+
+services:
+  - docker
+  
+branches:
+  only: 
+  - master
+  
+before_install:
+- docker run -d --name ubuntu-xenial -v $(pwd):/travis ubuntu:xenial tail -f /dev/null
+- docker ps -a
+
+install: 
+- docker exec -t ubuntu-xenial bash -c "
+  apt-get update -qq;
+  apt-get install meson ocl-icd-opencl-dev software-properties-common -y;
+  add-apt-repository ppa:djcj/vapoursynth -y;
+  apt-get update -qq;
+  apt-get install libvapoursynth-dev -y"
+
+script: 
+- docker exec -t ubuntu-xenial bash -c "
+  cd /travis;
+  ninja -v -C build"
+
+notifications:
+  email: false
