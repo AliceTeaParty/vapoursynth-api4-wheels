@@ -16,6 +16,7 @@ import subprocess
 import sys
 import sysconfig
 import time
+import urllib.error
 import urllib.request
 import zipfile
 
@@ -33,6 +34,8 @@ resolve_volumes = _archive.resolve_volumes
 # Release payloads are deflated, but tiny metadata members may legally be
 # stored when deflate cannot shrink them.
 STORED_MEMBER_LIMIT = 4096
+RETRYABLE_HTTP_STATUS = {429, 500, 502, 503, 504}
+REQUEST_ATTEMPTS = 5
 
 
 def digest_stream(stream) -> str:
@@ -52,7 +55,23 @@ def request(url: str):
     token = os.environ.get("GH_TOKEN")
     if token and url.startswith("https://api.github.com/"):
         headers["Authorization"] = f"Bearer {token}"
-    return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120)
+    request = urllib.request.Request(url, headers=headers)
+    for attempt in range(REQUEST_ATTEMPTS):
+        try:
+            return urllib.request.urlopen(request, timeout=120)
+        except urllib.error.HTTPError as exc:
+            if exc.code not in RETRYABLE_HTTP_STATUS or attempt == REQUEST_ATTEMPTS - 1:
+                raise
+            retry_after = exc.headers.get("Retry-After")
+            exc.close()
+            delay = float(retry_after) if retry_after else min(2**attempt, 16)
+        except urllib.error.URLError:
+            if attempt == REQUEST_ATTEMPTS - 1:
+                raise
+            delay = min(2**attempt, 16)
+        print(f"Transient download failure for {url}; retrying in {delay:g}s", file=sys.stderr)
+        time.sleep(delay)
+    raise AssertionError("request retry loop exhausted")
 
 
 def release(repo: str, tag: str) -> dict:

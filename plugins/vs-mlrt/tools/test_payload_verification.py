@@ -8,6 +8,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import urllib.error
 import zipfile
 
 spec = importlib.util.spec_from_file_location("payload_verify", Path(__file__).with_name("verify_staged_payload.py"))
@@ -16,6 +17,40 @@ spec.loader.exec_module(verify)
 
 
 class PayloadTests(unittest.TestCase):
+    def test_request_retries_transient_http_errors(self):
+        transient = urllib.error.HTTPError(
+            "https://example.invalid/asset",
+            500,
+            "Internal Server Error",
+            {},
+            None,
+        )
+        response = object()
+        with (
+            patch.object(verify.urllib.request, "urlopen", side_effect=[transient, response]) as urlopen,
+            patch.object(verify.time, "sleep") as sleep,
+        ):
+            self.assertIs(verify.request("https://example.invalid/asset"), response)
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    def test_request_does_not_retry_permanent_http_errors(self):
+        permanent = urllib.error.HTTPError(
+            "https://example.invalid/missing",
+            404,
+            "Not Found",
+            {},
+            None,
+        )
+        with (
+            patch.object(verify.urllib.request, "urlopen", side_effect=permanent) as urlopen,
+            patch.object(verify.time, "sleep") as sleep,
+            self.assertRaises(urllib.error.HTTPError),
+        ):
+            verify.request("https://example.invalid/missing")
+        urlopen.assert_called_once()
+        sleep.assert_not_called()
+
     def test_staged_archives_follow_the_published_volumes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
