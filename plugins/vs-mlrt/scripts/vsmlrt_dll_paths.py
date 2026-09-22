@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import platform
 from pathlib import Path
 
 
@@ -13,7 +14,10 @@ def _sync_vsmlrt_manifest(plugin_root: Path) -> None:
     if not plugin_root.is_dir():
         return
 
-    plugins = [name for name in _PLUGIN_BASENAMES if (plugin_root / f"{name}.dll").is_file()]
+    suffix = {"Windows": ".dll", "Linux": ".so"}.get(platform.system())
+    if suffix is None:
+        return
+    plugins = [name for name in _PLUGIN_BASENAMES if (plugin_root / f"{name}{suffix}").is_file()]
     contents = "\n".join((_MANIFEST_HEADER, *plugins, ""))
     manifest = plugin_root / "manifest.vs"
     temporary = manifest.with_name(f".{manifest.name}.{os.getpid()}.tmp")
@@ -44,9 +48,6 @@ def _add_dll_directory(path: Path) -> None:
 
 
 def _configure_vsmlrt_dll_paths() -> None:
-    if os.name != "nt":
-        return
-
     site_dir = Path(__file__).resolve().parent
     plugin_roots = [
         site_dir / "vapoursynth" / "plugins" / "vsmlrt",
@@ -55,6 +56,8 @@ def _configure_vsmlrt_dll_paths() -> None:
 
     for plugin_root in plugin_roots:
         _sync_vsmlrt_manifest(plugin_root)
+        if os.name != "nt":
+            continue
         _add_dll_directory(plugin_root)
         for support_name in support_names:
             _add_dll_directory(plugin_root / support_name)

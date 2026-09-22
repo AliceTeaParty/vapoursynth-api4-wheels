@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vs-mlrt-cu129-payload-3"
+version = "16.2.2"
+description = "Internal third payload shard for vs-mlrt CUDA 12.9"
+requires-python = ">=3.12"
+license = "GPL-3.0-or-later"
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"

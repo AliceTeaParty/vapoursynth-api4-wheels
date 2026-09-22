@@ -14,9 +14,8 @@ class CustomBuildHook(BaseBuildHook):
     def initialize(self, version: str, build_data: dict) -> None:
         os.environ["VSMLRT_SOURCE_ROOT"] = str(ROOT)
         os.environ["VSMLRT_PAYLOAD_TAG"] = "cu129"
-        force_include = build_data.setdefault("force_include", {})
-        for name in ("vsmlrt.py", "vsmlrt_dll_paths.py", "vs_mlrt_dll_paths.pth"):
-            force_include[str(ROOT / "scripts" / name)] = name
+        os.environ["VSMLRT_OVERLAY_SHARDS"] = "3"
+        os.environ["VSMLRT_OVERLAY_SHARD"] = "1"
         super().initialize(version, build_data)
 
 

@@ -80,11 +80,14 @@ class CustomBuildHook(BuildHookInterface):
         if not used_prebuilt:
             self._stage_local_build(stage_dir, payload_tag)
 
-        # Models are platform-neutral data. A native force build still needs
-        # them for the public Python wrapper, so acquire them separately.
-        self._stage_models(stage_dir)
         self._prepare_plugin_dir(stage_dir)
-        self._validate_plugin_dir(stage_dir, payload_tag)
+        if payload_tag == GENERIC_TAG:
+            # Models are shared by every variant through vs-mlrt-generic.
+            self._stage_models(stage_dir)
+            self._validate_plugin_dir(stage_dir, payload_tag)
+        else:
+            self._validate_plugin_dir(stage_dir, payload_tag, require_models=False)
+            self._prepare_cuda_overlay(stage_dir)
         force_include[str(stage_dir)] = "vapoursynth/plugins/vsmlrt"
         build_data["tag"] = self._wheel_tag(payload_tag)
         mode = "Release asset" if used_prebuilt else "local native build"
@@ -209,7 +212,13 @@ class CustomBuildHook(BuildHookInterface):
             "\n".join((MANIFEST_HEADER, *plugins, "")), encoding="ascii", newline="\n"
         )
 
-    def _validate_plugin_dir(self, plugin_dir: Path, payload_tag: str) -> None:
+    def _validate_plugin_dir(
+        self,
+        plugin_dir: Path,
+        payload_tag: str,
+        *,
+        require_models: bool = True,
+    ) -> None:
         suffix = self._native_suffix()
         expected = {"vsncnn", "vsov"}
         if payload_tag in CUDA_TAGS:
@@ -221,7 +230,7 @@ class CustomBuildHook(BuildHookInterface):
             raise RuntimeError(
                 f"Selected {payload_tag} payload is missing native {suffix} plugin(s): {', '.join(missing)}."
             )
-        if not (plugin_dir / "models").is_dir():
+        if require_models and not (plugin_dir / "models").is_dir():
             raise RuntimeError("Selected payload is missing models/.")
         if payload_tag in CUDA_TAGS:
             helper_dir = plugin_dir / "vsmlrt-cuda"
@@ -230,6 +239,82 @@ class CustomBuildHook(BuildHookInterface):
                     raise RuntimeError(f"Selected {payload_tag} payload is missing builder helper {helper}.")
         if payload_tag == "cu129" and not self._first_existing(plugin_dir / "vsmlrt-cuda" / "tensorrt_rtx"):
             raise RuntimeError("Selected cu129 payload is missing TensorRT-RTX builder helper.")
+
+    def _prepare_cuda_overlay(self, stage_dir: Path) -> None:
+        generic_dir = self._source_root() / "build" / "vsmlrt_generic_reference"
+        shutil.rmtree(generic_dir, ignore_errors=True)
+        generic_dir.mkdir(parents=True)
+        self._safe_extract_payload(self._resolve_generic_reference(), generic_dir)
+        self._prepare_plugin_dir(generic_dir)
+
+        for reference in sorted(path for path in generic_dir.rglob("*") if path.is_file()):
+            relative = reference.relative_to(generic_dir)
+            (stage_dir / relative).unlink(missing_ok=True)
+
+        shutil.rmtree(stage_dir / "models", ignore_errors=True)
+        (stage_dir / "manifest.vs").unlink(missing_ok=True)
+        self._remove_empty_directories(stage_dir)
+        self._select_overlay_shard(stage_dir)
+
+    def _resolve_generic_reference(self) -> list[Path]:
+        explicit = os.environ.get("VSMLRT_GENERIC_PREBUILT_PATH")
+        if explicit:
+            return resolve_volumes(Path(explicit).expanduser().resolve())
+
+        repo = os.environ.get("VSMLRT_RELEASE_REPO") or self._detect_github_repo()
+        stem = PAYLOAD_STEMS[platform.system()]
+        url = (
+            f"https://github.com/{repo}/releases/download/"
+            f"{self._release_tag(GENERIC_TAG)}/{stem}-{GENERIC_TAG}.zip"
+        )
+        return self._download_urls([url])
+
+    def _select_overlay_shard(self, stage_dir: Path) -> None:
+        shard_count = int(os.environ.get("VSMLRT_OVERLAY_SHARDS", "1"))
+        shard_index = int(os.environ.get("VSMLRT_OVERLAY_SHARD", "1"))
+        if shard_count < 1 or not 1 <= shard_index <= shard_count:
+            raise RuntimeError(
+                f"Invalid overlay shard {shard_index}/{shard_count}; expected 1 <= shard <= count."
+            )
+
+        files = [path for path in stage_dir.rglob("*") if path.is_file()]
+        if not files:
+            raise RuntimeError("CUDA overlay contains no files after removing the generic payload.")
+        if shard_count == 1:
+            return
+
+        buckets: list[list[Path]] = [[] for _ in range(shard_count)]
+        sizes = [0] * shard_count
+        for path in sorted(files, key=lambda item: (-item.stat().st_size, item.relative_to(stage_dir).as_posix())):
+            bucket = min(range(shard_count), key=lambda index: (sizes[index], index))
+            buckets[bucket].append(path)
+            sizes[bucket] += path.stat().st_size
+
+        selected = set(buckets[shard_index - 1])
+        for path in files:
+            if path not in selected:
+                path.unlink()
+        self._remove_empty_directories(stage_dir)
+        if not any(path.is_file() for path in stage_dir.rglob("*")):
+            raise RuntimeError(f"CUDA overlay shard {shard_index}/{shard_count} is empty.")
+        print(
+            f"vs-mlrt: overlay shard {shard_index}/{shard_count} "
+            f"contains {len(selected)} files ({sum(path.stat().st_size for path in selected)} bytes)",
+            file=sys.stderr,
+            flush=True,
+        )
+
+    @staticmethod
+    def _remove_empty_directories(root: Path) -> None:
+        for directory in sorted(
+            (path for path in root.rglob("*") if path.is_dir()),
+            key=lambda path: len(path.parts),
+            reverse=True,
+        ):
+            try:
+                directory.rmdir()
+            except OSError:
+                pass
 
     @staticmethod
     def _first_existing(path: Path) -> Path | None:

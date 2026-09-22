@@ -540,14 +540,26 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install --upgrade build hatchling
-          Invoke-WebRequest -Uri "https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/models/models.zip" -OutFile models.zip
+          Remove-Item -Recurse -Force dist\wheels -ErrorAction SilentlyContinue
           $payloads = (Get-ChildItem "vs-mlrt-windows-x64-${{ matrix.cuda_flavor }}.zip*" | Sort-Object Name | ForEach-Object FullName) -join ";"
           $env:VSMLRT_PREBUILT_PATHS = $payloads
-          $env:VSMLRT_MODELS_PREBUILT_PATH = "$pwd\models.zip"
+          $env:VSMLRT_GENERIC_PREBUILT_PATH = "$env:RUNNER_TEMP\generic.zip"
           $variant = "${{ matrix.cuda_flavor }}"
           python -m build "packaging\distributions\$variant" --wheel --no-isolation --outdir dist\wheels
-          $wheel = Get-ChildItem dist\wheels\*.whl | Select-Object -First 1 -ExpandProperty FullName
-          python -m pip install --force-reinstall --no-deps $wheel
+          if ($variant -eq "cu129") {
+            python -m build packaging\distributions\cu129-payload-2 --wheel --no-isolation --outdir dist\wheels
+            python -m build packaging\distributions\cu129-payload-3 --wheel --no-isolation --outdir dist\wheels
+          }
+          $wheels = @(Get-ChildItem dist\wheels\*.whl | Sort-Object Name)
+          foreach ($wheel in $wheels) {
+            if ($wheel.Length -ge 2147483648) {
+              throw "Wheel exceeds GitHub's 2 GiB release limit: $($wheel.Name) ($($wheel.Length) bytes)"
+            }
+            Write-Host "$($wheel.Name): $($wheel.Length) bytes"
+          }
+          python -m pip uninstall -y vs-mlrt vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129 vs-mlrt-cu129-payload-2 vs-mlrt-cu129-payload-3
+          python -m pip install --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ --only-binary=:all: --no-deps --force-reinstall vs-mlrt-generic==16.2.2
+          python -m pip install --force-reinstall --no-deps $wheels.FullName
           python tools\smoke_vcs_extras_install.py --variant $variant --distribution "vs-mlrt-$variant"
 
       - name: Upload payload artifact
@@ -558,7 +570,6 @@ jobs:
           path: |
             plugins/vs-mlrt/vs-mlrt-windows-x64-*.zip*
             plugins/vs-mlrt/payload-provenance-${{ matrix.cuda_flavor }}.json
-            plugins/vs-mlrt/models.zip
             plugins/vs-mlrt/dist/wheels/*.whl
           compression-level: 0
 
@@ -570,7 +581,6 @@ jobs:
           files: |
             plugins/vs-mlrt/vs-mlrt-windows-x64-*.zip*
             plugins/vs-mlrt/payload-provenance-${{ matrix.cuda_flavor }}.json
-            plugins/vs-mlrt/models.zip
             plugins/vs-mlrt/dist/wheels/*.whl
           fail_on_unmatched_files: true
           generate_release_notes: false

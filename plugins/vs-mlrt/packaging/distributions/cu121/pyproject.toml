@@ -8,7 +8,7 @@ version = "16.2.2"
 description = "VapourSynth ML runtime tools with CUDA 12.1 backends"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
-dependencies = ["vapoursynth>=75", "numpy", "onnx", "onnxconverter-common"]
+dependencies = ["vs-mlrt-generic==16.2.2"]
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-mlrt"

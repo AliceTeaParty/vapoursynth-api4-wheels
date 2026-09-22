@@ -13,9 +13,9 @@ from vsmlrt_build import CustomBuildHook as BaseBuildHook
 class CustomBuildHook(BaseBuildHook):
     def initialize(self, version: str, build_data: dict) -> None:
         os.environ["VSMLRT_SOURCE_ROOT"] = str(ROOT)
-        os.environ["VSMLRT_PAYLOAD_TAG"] = "cu121"
-        os.environ["VSMLRT_OVERLAY_SHARDS"] = "1"
-        os.environ["VSMLRT_OVERLAY_SHARD"] = "1"
+        os.environ["VSMLRT_PAYLOAD_TAG"] = "cu129"
+        os.environ["VSMLRT_OVERLAY_SHARDS"] = "3"
+        os.environ["VSMLRT_OVERLAY_SHARD"] = "3"
         super().initialize(version, build_data)
 
 

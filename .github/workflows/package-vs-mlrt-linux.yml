@@ -132,11 +132,43 @@ jobs:
           set -euxo pipefail
           python3 -m pip install --break-system-packages --upgrade build hatchling "vapoursynth==79" numpy onnx onnxconverter-common
           curl -fsSL -o models.zip https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/models/models.zip
+          rm -rf dist/wheels
           paths=$(find "$PWD" -maxdepth 1 -name "vs-mlrt-linux-x64-$VARIANT.zip*" -type f -printf '%p:' | sed 's/:$//')
+          generic_path=
+          if [[ "$VARIANT" != generic ]]; then
+            curl -fsSL -o generic.zip \
+              https://github.com/${{ github.repository }}/releases/download/vs-mlrt-generic-v16.2.2/vs-mlrt-linux-x64-generic.zip
+            generic_path="$PWD/generic.zip"
+          fi
           VSMLRT_PAYLOAD_TAG="$VARIANT" \
           VSMLRT_PREBUILT_PATHS="$paths" \
           VSMLRT_MODELS_PREBUILT_PATH="$PWD/models.zip" \
+          VSMLRT_GENERIC_PREBUILT_PATH="$generic_path" \
             python3 -m build "packaging/distributions/$VARIANT" --wheel --no-isolation --outdir dist/wheels
+          if [[ "$VARIANT" == cu129 ]]; then
+            for shard in 2 3; do
+              VSMLRT_PAYLOAD_TAG="$VARIANT" \
+              VSMLRT_PREBUILT_PATHS="$paths" \
+              VSMLRT_GENERIC_PREBUILT_PATH="$generic_path" \
+                python3 -m build "packaging/distributions/cu129-payload-$shard" --wheel --no-isolation --outdir dist/wheels
+            done
+          fi
+          for wheel in dist/wheels/*.whl; do
+            size=$(stat -c%s "$wheel")
+            if (( size >= 2147483648 )); then
+              echo "Wheel exceeds GitHub's 2 GiB release limit: $wheel ($size bytes)" >&2
+              exit 1
+            fi
+            echo "$wheel: $size bytes"
+          done
+          if [[ "$VARIANT" != generic ]]; then
+            python3 -m pip uninstall --break-system-packages -y \
+              vs-mlrt vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129 \
+              vs-mlrt-cu129-payload-2 vs-mlrt-cu129-payload-3
+            python3 -m pip install --break-system-packages \
+              --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ \
+              --only-binary=:all: --no-deps --force-reinstall vs-mlrt-generic==16.2.2
+          fi
           python3 -m pip install --break-system-packages --force-reinstall --no-deps dist/wheels/*.whl
           python3 tools/smoke_linux_vcs_install.py --variant "$VARIANT"
 
@@ -148,6 +180,9 @@ jobs:
         run: |
           set -euxo pipefail
           python3 -m pip install --break-system-packages "vapoursynth==79" numpy onnx onnxconverter-common
+          python3 -m pip uninstall --break-system-packages -y \
+            vs-mlrt vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129 \
+            vs-mlrt-cu129-payload-2 vs-mlrt-cu129-payload-3 || true
           # A whole archive or any one of its volumes resolves to the volumes.
           paths="$PWD/vs-mlrt-linux-x64-$VARIANT.zip"
           VSMLRT_PAYLOAD_TAG="$VARIANT" VSMLRT_PREBUILT_PATHS="$paths" VSMLRT_MODELS_PREBUILT_PATH="$PWD/models.zip" \
