@@ -20,7 +20,7 @@ from packaging import tags
 
 ROOT = Path(__file__).resolve().parent
 PLUGIN_NAME = "vs_cfl"
-DEFAULT_REPOSITORY = "RyougiKukoc/vs-cfl-vcs"
+DEFAULT_REPOSITORY = "AliceTeaParty/vapoursynth-api4-wheels"
 WINDOWS_PREBUILT_ASSET = "vs-cfl-msys2-ucrt64.zip"
 LINUX_PREBUILT_ASSET = "vs-cfl-linux-x86_64.zip"
 
@@ -60,7 +60,7 @@ def _default_prebuilt_asset() -> str:
 
 def _default_prebuilt_url(version: str) -> str:
     repository = os.environ.get("VS_CFL_PREBUILT_REPOSITORY") or os.environ.get("GITHUB_REPOSITORY") or DEFAULT_REPOSITORY
-    tag = os.environ.get("VS_CFL_PREBUILT_TAG") or f"v{version}"
+    tag = os.environ.get("VS_CFL_PREBUILT_TAG") or f"vs-cfl-v{version}"
     asset = os.environ.get("VS_CFL_PREBUILT_ASSET_NAME") or _default_prebuilt_asset()
     return f"https://github.com/{repository}/releases/download/{tag}/{asset}"
 

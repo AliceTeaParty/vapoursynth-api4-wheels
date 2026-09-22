@@ -14,8 +14,8 @@ authors = [{ name = "vs-cfl contributors" }]
 dependencies = ["VapourSynth>=77"]
 
 [project.urls]
-"Source Code" = "https://github.com/RyougiKukoc/vs-cfl-vcs"
-"Releases" = "https://github.com/RyougiKukoc/vs-cfl-vcs/releases"
+"Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-cfl"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases"
 
 [tool.hatch.build.targets.sdist]
 include = [
