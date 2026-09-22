@@ -12,7 +12,7 @@ a time.
 | --- | --- | --- |
 | `RyougiKukoc/vs-nlq` | `vs-nlq` | `1.2.0` |
 | `RyougiKukoc/VapourSynth-NNEDI3CL-api4` | `vapoursynth-nnedi3cl` | `8.1` |
-| `RyougiKukoc/vapoursynth-smoothuv-api4` | `vapoursynth-smoothuv` | Pending |
+| `RyougiKukoc/vapoursynth-smoothuv-api4` | `vapoursynth-smoothuv` | `3.1` |
 | `RyougiKukoc/VapourSynth-DFTTest-api4` | `vapoursynth-dfttest` | Pending |
 | `RyougiKukoc/VapourSynth-KNLMeansCL-api4` | `vapoursynth-knlm` | Pending |
 | `RyougiKukoc/VapourSynth-Retinex-api4` | `vapoursynth-retinex` | Pending |
