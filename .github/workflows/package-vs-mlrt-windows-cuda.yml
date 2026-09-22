@@ -548,7 +548,7 @@ jobs:
           python -m build "packaging\distributions\$variant" --wheel --no-isolation --outdir dist\wheels
           $wheel = Get-ChildItem dist\wheels\*.whl | Select-Object -First 1 -ExpandProperty FullName
           python -m pip install --force-reinstall --no-deps $wheel
-          python tools\smoke_vcs_extras_install.py --variant $variant
+          python tools\smoke_vcs_extras_install.py --variant $variant --distribution "vs-mlrt-$variant"
 
       - name: Upload payload artifact
         if: steps.select.outputs.should_build == 'true'

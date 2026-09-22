@@ -205,14 +205,14 @@ def import_vsmlrt() -> object:
     return vsmlrt
 
 
-def verify_distribution_version() -> None:
-    installed_version = importlib.metadata.version("vs-mlrt")
+def verify_distribution_version(distribution: str) -> None:
+    installed_version = importlib.metadata.version(distribution)
     if installed_version != EXPECTED_DISTRIBUTION_VERSION:
         raise SystemExit(
-            f"Installed vs-mlrt version {installed_version!r} "
+            f"Installed {distribution} version {installed_version!r} "
             f"!= {EXPECTED_DISTRIBUTION_VERSION!r}"
         )
-    print(f"vs-mlrt distribution version: {installed_version}")
+    print(f"{distribution} distribution version: {installed_version}")
 
 
 def check_vsmlrt_paths(
@@ -504,6 +504,11 @@ if {flavor == "cu129"!r}:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--variant", required=True, help="Tag-selected VCS install variant: generic, cu121, or cu129.")
+    parser.add_argument(
+        "--distribution",
+        default="vs-mlrt",
+        help="Installed distribution whose version should be verified.",
+    )
     parser.add_argument("--layout-only", action="store_true", help="Only verify installed files and wrapper paths.")
     args = parser.parse_args()
 
@@ -612,7 +617,7 @@ def main() -> None:
             "Generic-only install unexpectedly contains CUDA payload",
         )
 
-    verify_distribution_version()
+    verify_distribution_version(args.distribution)
     vsmlrt = import_vsmlrt()
     check_vsmlrt_paths(vsmlrt, expected_models, expected_trtexec, expected_tensorrt_rtx)
     verify_manifest(roots, plugin_prefix, variant)
