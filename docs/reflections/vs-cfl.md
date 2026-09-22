@@ -14,7 +14,7 @@ Completed: 2026-09-23
 ## Verification
 
 - Branch run `35751502111`, tag run `35751842078`, and Pages run
-  `35751917299` passed Windows UCRT64, Linux manylinux, release-payload,
+  `35752149940` passed Windows UCRT64, Linux manylinux, release-payload,
   installed-wheel, prebuilt source-install, and native fallback gates.
 - Windows WinPython first removed its existing `vs-cfl==1.0.2`, then downloaded
   the `win_amd64` wheel from the Pages-only index with
