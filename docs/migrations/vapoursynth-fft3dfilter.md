@@ -1,6 +1,6 @@
 # vapoursynth-fft3dfilter migration record
 
-Status: prepared for CI; not yet published or consumer-verified.
+Status: published and consumer-verified on Windows and Linux.
 
 ## Aligned revisions
 
@@ -41,3 +41,15 @@ wheel autoload, deterministic frame smoke, and isolated native fallback
 commands are copied from the fork's verified `build-msys2.yml`. Only monorepo
 working paths, package-specific artifact/tag handling, and Release/Pages
 publication are adapted.
+
+## Publication evidence
+
+- Branch run `35751827125`, tag run `35752217114`, and Pages run
+  `35752527322` passed.
+- Release `vapoursynth-fft3dfilter-v2.1` contains exactly the Windows and
+  Linux native zips plus their two platform wheels.
+- WinPython and `vpy:generic` both removed the existing distribution, then
+  installed `2.1` from the Pages index as a binary wheel with dependencies
+  disabled. Both environments autoloaded and exercised the filter.
+- The full reusable record is in
+  [the plugin reflection](../reflections/vapoursynth-fft3dfilter.md).

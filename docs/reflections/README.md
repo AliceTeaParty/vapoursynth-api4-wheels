@@ -24,3 +24,4 @@ Completed reflections:
 - [vapoursynth-tcomb](vapoursynth-tcomb.md)
 - [vapoursynth-tcanny](vapoursynth-tcanny.md)
 - [vapoursynth-misc](vapoursynth-misc.md)
+- [vapoursynth-fft3dfilter](vapoursynth-fft3dfilter.md)
