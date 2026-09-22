@@ -18,3 +18,7 @@ class CustomBuildHook(BaseBuildHook):
         for name in ("vsmlrt.py", "vsmlrt_dll_paths.py", "vs_mlrt_dll_paths.pth"):
             force_include[str(ROOT / "scripts" / name)] = name
         super().initialize(version, build_data)
+
+
+def get_build_hook():
+    return CustomBuildHook
