@@ -2,6 +2,8 @@ name: Build (Linux-TRT)
 
 on:
   push:
+    branches:
+      - '**'
     paths:
       - 'vstrt/**'
       - '.github/workflows/linux-trt.yml'
@@ -26,7 +28,7 @@ jobs:
 
     - name: Download VapourSynth headers
       run: |
-        wget -q -O vs.zip https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R57.zip
+        wget -q -O vs.zip https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R77.zip
         unzip -q vs.zip
         mv vapoursynth*/ vapoursynth
 

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vs-mlrt"
+version = "16.2.2"
+description = "VapourSynth ML runtime tools with release-backed Windows and Linux payloads"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "AmusementClub" }]
+dependencies = [
+    "vapoursynth>=75",
+    "numpy",
+    "onnx",
+    "onnxconverter-common",
+]
+
+[project.urls]
+"Source Code" = "https://github.com/RyougiKukoc/vs-mlrt-api4"
+"Bug Tracker" = "https://github.com/RyougiKukoc/vs-mlrt-api4/issues"
+
+[tool.hatch.build.targets.wheel]
+only-include = [
+    "scripts/vsmlrt.py",
+    "scripts/vsmlrt_dll_paths.py",
+    "scripts/vs_mlrt_dll_paths.pth",
+]
+
+[tool.hatch.build.targets.wheel.sources]
+"scripts" = ""
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.hooks.custom]
+path = "packaging/vsmlrt_build.py"

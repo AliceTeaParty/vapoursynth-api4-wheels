@@ -81,15 +81,15 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Compress scirpts.7z
       run: |
         cd scripts
-        7za a -t7z -bb3 -mx=9 ../scripts.${{ github.event.inputs.tag }}.7z .
+        7za a -t7z -bb3 -mx=0 ../scripts.${{ github.event.inputs.tag }}.7z .
 
     - name: Upload scripts release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: Scripts
         path: scripts
@@ -129,10 +129,10 @@ jobs:
         popd
         ls -lR
         du -sh
-        7za a -t7z -bb3 -mx=9 ../models.7z .
+        7za a -t7z -bb3 -mx=0 ../models.7z .
 
     - name: Upload model release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: Models
         path: release
@@ -162,10 +162,10 @@ jobs:
         popd
         ls -lR
         du -sh
-        7za a -t7z -bb3 -mx=9 ../ext-models.7z .
+        7za a -t7z -bb3 -mx=0 ../ext-models.7z .
 
     - name: Upload external model release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: false
       with:
         name: External-Models
@@ -195,10 +195,10 @@ jobs:
         popd
         ls -lR
         du -sh
-        7za a -t7z -bb3 -mx=9 ../contrib-models.7z .
+        7za a -t7z -bb3 -mx=0 ../contrib-models.7z .
 
     - name: Upload contrib model release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: Contrib-Models
         path: release
@@ -227,7 +227,7 @@ jobs:
         popd
         ls -lR
         du -sh
-        7za a -t7z -bb3 -mx=9 ../contrib-models.7z .
+        7za a -t7z -bb3 -mx=0 ../contrib-models.7z .
 
     - name: Rename release asset
       run: |
@@ -255,61 +255,61 @@ jobs:
 
     steps:
     - name: Download artifact for scripts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: Scripts
         path: scripts-release
 
     - name: Download artifact for models
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: Models
         path: models-release
 
     - name: Download artifact for vsov
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: VSOV-Windows-x64
         path: vsov-release
 
     - name: Download artifact for vsort
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: VSORT-Windows-x64
         path: vsort-release
 
     - name: Download artifact for vstrt
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: VSTRT-Windows-x64
         path: vstrt-release
 
     - name: Download artifact for vsmigx
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: VSMIGX-Windows-x64
         path: vsmigx-release
 
     - name: Download artifact for vsncnn
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: VSNCNN-GPU-Windows-x64
         path: vsncnn-release
 
     - name: Download artifact for vstrt_rtx
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: VSTRT-RTX-Windows-x64
         path: vstrt-rtx-release
 
     - name: Download artifact for cuda dependencies
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: vsmlrt-cuda
         path: cuda-release
 
     - name: Download artifact for hip dependencies
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: vsmlrt-hip
         path: hip-release
@@ -325,10 +325,10 @@ jobs:
         cp scripts-release/*.py release-cpu/
         cd release-cpu
         ls -lR
-        7za a -t7z -bb3 -mx=9 ../vsmlrt-windows-x64-cpu.7z .
+        7za a -t7z -bb3 -mx=0 ../vsmlrt-windows-x64-cpu.7z .
 
     - name: Upload CPU-only release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: false
       with:
         name: vsmlrt-cpu-release
@@ -360,10 +360,10 @@ jobs:
         cp scripts-release/*.py release-generic-gpu/
         cd release-generic-gpu
         ls -lR
-        7za a -t7z -bb3 -mx=9 ../vsmlrt-windows-x64-generic-gpu.7z .
+        7za a -t7z -bb3 -mx=0 ../vsmlrt-windows-x64-generic-gpu.7z .
 
     - name: Upload generic GPU release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: false
       with:
         name: vsmlrt-generic-gpu-release
@@ -403,10 +403,10 @@ jobs:
         cp scripts-release/*.py release-cuda/
         cd release-cuda
         ls -lR
-        7za a -t7z -bb3 -mx=9 -v2147483647b ../vsmlrt-windows-x64-cuda.7z .
+        7za a -t7z -bb3 -mx=0 -v2147483647b ../vsmlrt-windows-x64-cuda.7z .
 
     - name: Upload CUDA release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: false
       with:
         name: vsmlrt-cuda-release
@@ -436,10 +436,10 @@ jobs:
         rm --verbose cublas*.dll cudnn*.dll cufft*.dll cupti*.dll nvblas*.dll
         cd ..
         rm --verbose vsort/onnxruntime_providers_*.dll
-        7za a -t7z -bb3 -mx=9 -v2147483647b ../vsmlrt-windows-x64-tensorrt.7z .
+        7za a -t7z -bb3 -mx=0 -v2147483647b ../vsmlrt-windows-x64-tensorrt.7z .
 
     - name: Upload TensorRT release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: false
       with:
         name: vsmlrt-tensorrt-release
@@ -480,10 +480,10 @@ jobs:
         cp scripts-release/*.py release-hip/
         cd release-hip
         ls -lR
-        7za a -t7z -bb3 -mx=9 ../vsmlrt-windows-x64-migraphx.7z .
+        7za a -t7z -bb3 -mx=0 ../vsmlrt-windows-x64-migraphx.7z .
 
     - name: Upload MIGraphX release
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: false
       with:
         name: vsmlrt-migraphx-release
@@ -506,7 +506,7 @@ jobs:
     # Update nightly tag.
     - name: Checkout repo
       if: github.event.inputs.tag == 'nightly'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Overwrite tag

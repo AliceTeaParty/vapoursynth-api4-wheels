@@ -1,0 +1,335 @@
+name: Build Windows VCS generic package
+
+on:
+  pull_request:
+    paths:
+      - "vsncnn/**"
+      - "vsov/**"
+      - "common/**"
+      - "packaging/**"
+      - "scripts/**"
+      - "tools/**"
+      - "pyproject.toml"
+      - ".github/workflows/windows-vcs-generic.yml"
+  push:
+    tags:
+      - generic
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Upload payload to the generic GitHub Release
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Set up verification Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Ninja
+        shell: pwsh
+        run: python -m pip install ninja
+
+      - name: Download VapourSynth R77 headers
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force _deps | Out-Null
+          curl.exe -fsSL -o _deps\vs.zip https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R77.zip
+          Expand-Archive -LiteralPath _deps\vs.zip -DestinationPath _deps -Force
+          Move-Item -Path (Get-ChildItem -Path _deps -Directory -Filter "vapoursynth-*" | Select-Object -First 1).FullName -Destination _deps\vapoursynth
+          "VS_INCLUDE=$pwd\_deps\vapoursynth\include" | Add-Content -LiteralPath $env:GITHUB_ENV -Encoding utf8
+
+      - name: Cache ncnn ONNX
+        id: cache-onnx-ncnn
+        uses: actions/cache@v6
+        with:
+          path: vsncnn/onnx/install
+          key: ${{ runner.os }}-vsmlrt-generic-onnx-ncnn-v1
+
+      - name: Checkout ncnn ONNX
+        if: steps.cache-onnx-ncnn.outputs.cache-hit != 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: onnx/onnx
+          ref: v1.19.0
+          path: vsncnn/onnx
+
+      - name: Build ncnn ONNX
+        if: steps.cache-onnx-ncnn.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          cmake -S vsncnn\onnx -B vsncnn\onnx\build -G Ninja -LA `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D ONNX_USE_LITE_PROTO=ON `
+            -D ONNX_USE_PROTOBUF_SHARED_LIBS=OFF `
+            -D ONNX_GEN_PB_TYPE_STUBS=OFF `
+            -D ONNX_ML=0 `
+            -D ONNX_USE_MSVC_STATIC_RUNTIME=1 `
+            -D ONNX_BUILD_CUSTOM_PROTOBUF=ON
+          cmake --build vsncnn\onnx\build --verbose
+          cmake --install vsncnn\onnx\build --prefix vsncnn\onnx\install
+
+      - name: Download ncnn
+        shell: pwsh
+        run: |
+          curl.exe -fsSL -o vsncnn\ncnn.zip https://github.com/AmusementClub/ncnn/releases/download/250919-1038-g86efe80/ncnn-gpu-x64-windows.zip
+          7z x -y vsncnn\ncnn.zip "-ovsncnn"
+
+      - name: Setup Vulkan SDK
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.4.321.1/windows/vulkansdk-windows-X64-1.4.321.1.exe?Human=true" -OutFile VulkanSDK.exe
+          $installer = Start-Process -FilePath VulkanSDK.exe -WindowStyle Hidden -Wait -PassThru -ArgumentList "--accept-licenses --default-answer --confirm-command install"
+          $installer.WaitForExit()
+          "VULKAN_SDK=C:\VulkanSDK\1.4.321.1" | Add-Content -LiteralPath $env:GITHUB_ENV -Encoding utf8
+          "C:\VulkanSDK\1.4.321.1\Bin" | Add-Content -LiteralPath $env:GITHUB_PATH -Encoding utf8
+
+      - name: Configure vsncnn
+        shell: pwsh
+        run: |
+          cmake -S vsncnn -B vsncnn\build -G Ninja -LA `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D CMAKE_PREFIX_PATH="$pwd\vsncnn\onnx\install" `
+            -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+            -D VAPOURSYNTH_INCLUDE_DIRECTORY="$env:VS_INCLUDE" `
+            -D ncnn_DIR="$pwd\vsncnn\ncnn\lib\cmake\ncnn" `
+            -D CMAKE_CXX_STANDARD=20
+
+      - name: Build vsncnn
+        shell: pwsh
+        run: |
+          cmake --build vsncnn\build --verbose
+          cmake --install vsncnn\build --prefix vsncnn\install
+
+      - name: Cache OpenVINO protobuf
+        id: cache-protobuf-ov
+        uses: actions/cache@v6
+        with:
+          path: vsov/protobuf/install
+          key: ${{ runner.os }}-vsmlrt-generic-protobuf-ov-v1
+
+      - name: Checkout OpenVINO protobuf
+        if: steps.cache-protobuf-ov.outputs.cache-hit != 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: protocolbuffers/protobuf
+          ref: f0dc78d7e6e331b8c6bb2d5283e06aa26883ca7c
+          fetch-depth: 1
+          path: vsov/protobuf
+
+      - name: Build OpenVINO protobuf
+        if: steps.cache-protobuf-ov.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          cmake -S vsov\protobuf -B vsov\protobuf\build_rel -G Ninja -LA `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D protobuf_BUILD_SHARED_LIBS=OFF `
+            -D protobuf_BUILD_TESTS=OFF
+          cmake --build vsov\protobuf\build_rel --verbose
+          cmake --install vsov\protobuf\build_rel --prefix vsov\protobuf\install
+
+      - name: Cache OpenVINO ONNX
+        id: cache-onnx-ov
+        uses: actions/cache@v6
+        with:
+          path: vsov/onnx/install
+          key: ${{ runner.os }}-vsmlrt-generic-onnx-ov-v1
+
+      - name: Checkout OpenVINO ONNX
+        if: steps.cache-onnx-ov.outputs.cache-hit != 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: onnx/onnx
+          ref: b8baa8446686496da4cc8fda09f2b6fe65c2a02c
+          fetch-depth: 1
+          path: vsov/onnx
+
+      - name: Build OpenVINO ONNX
+        if: steps.cache-onnx-ov.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          cmake -S vsov\onnx -B vsov\onnx\build -G Ninja -LA `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D Protobuf_PROTOC_EXECUTABLE="$pwd\vsov\protobuf\install\bin\protoc.exe" `
+            -D Protobuf_LITE_LIBRARY="$pwd\vsov\protobuf\install\lib" `
+            -D Protobuf_LIBRARIES="$pwd\vsov\protobuf\install\lib" `
+            -D ONNX_USE_LITE_PROTO=ON `
+            -D ONNX_USE_PROTOBUF_SHARED_LIBS=OFF `
+            -D ONNX_GEN_PB_TYPE_STUBS=OFF `
+            -D ONNX_ML=0 `
+            -D ONNX_USE_MSVC_STATIC_RUNTIME=1
+          cmake --build vsov\onnx\build --verbose
+          cmake --install vsov\onnx\build --prefix vsov\onnx\install
+
+      - name: Download OpenVINO
+        shell: pwsh
+        run: |
+          curl.exe -fsSL -o vsov\openvino.zip https://github.com/AmusementClub/openvino/releases/download/2020.2-15171-g4655dd6ce3-2058-g5833781ddb/openvino-gpu-win64.zip
+          7z x -y vsov\openvino.zip "-ovsov"
+
+      - name: Configure vsov
+        shell: pwsh
+        run: |
+          cmake -S vsov -B vsov\build -G Ninja -LA `
+            -D CMAKE_BUILD_TYPE=Release `
+            -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON `
+            -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+            -D OpenVINO_DIR="$pwd\vsov\openvino\runtime\cmake" `
+            -D VAPOURSYNTH_INCLUDE_DIRECTORY="$env:VS_INCLUDE" `
+            -D ENABLE_VISUALIZATION=ON `
+            -D WIN32_SHARED_OPENVINO=ON `
+            -D protobuf_DIR="$pwd\vsov\protobuf\install\cmake" `
+            -D ONNX_DIR="$pwd\vsov\onnx\install\lib\cmake\ONNX"
+
+      - name: Build vsov
+        shell: pwsh
+        run: |
+          cmake --build vsov\build --verbose
+          cmake --install vsov\build --prefix vsov\install
+
+      - name: Assemble generic payload
+        shell: pwsh
+        run: |
+          $payloadDir = "payload-generic\vsmlrt"
+          New-Item -ItemType Directory -Force $payloadDir | Out-Null
+
+          Copy-Item vsncnn\install\bin\vsncnn.dll $payloadDir
+          Copy-Item vsov\install\bin\vsov.dll $payloadDir
+
+          Copy-Item vsov\openvino\runtime\3rdparty\tbb\bin\tbb12.dll $payloadDir
+          Copy-Item vsov\openvino\runtime\bin\intel64\Release\* $payloadDir -Recurse -Force
+          @(
+            "[VapourSynth Manifest V1]",
+            "vsncnn",
+            "vsov"
+          ) | Set-Content -LiteralPath "$payloadDir\manifest.vs" -Encoding ascii
+
+      - name: Inspect generic payload
+        shell: pwsh
+        run: |
+          $required = @(
+            "payload-generic\vsmlrt\vsncnn.dll",
+            "payload-generic\vsmlrt\vsov.dll",
+            "payload-generic\vsmlrt\manifest.vs",
+            "payload-generic\vsmlrt\cache.json",
+            "payload-generic\vsmlrt\openvino.dll",
+            "payload-generic\vsmlrt\tbb12.dll"
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Missing generic payload item: $path"
+            }
+          }
+          if (Test-Path "payload-generic\vapoursynth") {
+            throw "Release payload must be rooted at vsmlrt/, not vapoursynth/"
+          }
+          if (Test-Path "payload-generic\vsmlrt\models") {
+            throw "Generic payload must reuse the shared models release instead of bundling models."
+          }
+          if (Test-Path "payload-generic\vsmlrt\vstrt.dll") {
+            throw "Generic payload must not contain TensorRT plugins."
+          }
+          if (Test-Path "payload-generic\vsmlrt\vsmlrt-cuda") {
+            throw "Generic payload must not contain CUDA runtime files."
+          }
+          if (Test-Path "payload-generic\vsmlrt\vsov") {
+            throw "OpenVINO runtime files must be stored once at the plugin root, not duplicated under vsov/."
+          }
+          $manifest = Get-Content "payload-generic\vsmlrt\manifest.vs"
+          $expectedManifest = @("[VapourSynth Manifest V1]", "vsncnn", "vsov")
+          if (Compare-Object $expectedManifest $manifest) {
+            throw "Generic manifest.vs does not list exactly vsncnn and vsov."
+          }
+          foreach ($path in @(
+            "payload-generic\vsmlrt\vsort.dll",
+            "payload-generic\vsmlrt\vsort",
+            "payload-generic\vsmlrt\onnxruntime.dll",
+            "payload-generic\vsmlrt\DirectML.dll"
+          )) {
+            if (Test-Path -LiteralPath $path) {
+              throw "Generic payload must not contain ORT/DirectML files: $path"
+            }
+          }
+          Get-ChildItem -Path payload-generic\vsmlrt -Recurse |
+            Sort-Object FullName |
+            Select-Object FullName, Length |
+            Format-Table -AutoSize
+
+      - name: Verify native API4 callbacks and comparison gate
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "vapoursynth==77" numpy onnx onnxconverter-common pefile
+          if ($LASTEXITCODE) { throw "Verification dependencies failed to install" }
+          python tools/test_compare_vsmlrt.py
+          if ($LASTEXITCODE) { throw "Comparison gate regression failed" }
+          python tools/test_payload_verification.py
+          if ($LASTEXITCODE) { throw "Payload provenance regression failed" }
+          python tools/regression_native_api4.py --plugin payload-generic/vsmlrt/vsncnn.dll --namespace ncnn --output verification-native-ncnn.json
+          if ($LASTEXITCODE) { throw "NCNN callback regression failed" }
+          python tools/regression_native_api4.py --plugin payload-generic/vsmlrt/vsov.dll --namespace ov --output verification-native-ov.json
+          if ($LASTEXITCODE) { throw "OpenVINO callback regression failed" }
+
+      - name: Package generic payload
+        shell: pwsh
+        run: |
+          7z a -tzip -mx=1 "vs-mlrt-windows-x64-generic.zip" .\payload-generic\*
+          $asset = Get-Item "vs-mlrt-windows-x64-generic.zip"
+          if ($asset.Length -ge 2147483648) {
+            throw "Release asset exceeds GitHub's 2 GiB limit: $($asset.Name) ($($asset.Length) bytes)"
+          }
+          Get-Item "vs-mlrt-windows-x64-generic.zip" |
+            Select-Object Name, Length |
+            Format-Table -AutoSize
+
+      - name: Install and verify this job's exact staged payload
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/verify_staged_payload.py --variant generic --repo "${{ github.repository }}" --evidence payload-provenance-generic.json
+
+      - name: Upload generic payload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: vs-mlrt-windows-x64-generic
+          path: |
+            vs-mlrt-windows-x64-generic.zip
+            payload-provenance-generic.json
+            verification-native-*.json
+          compression-level: 0
+
+      - name: Release generic payload
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: generic
+          files: |
+            vs-mlrt-windows-x64-generic.zip
+            payload-provenance-generic.json
+          fail_on_unmatched_files: true
+          generate_release_notes: false
+          prerelease: true
+
+      - name: Verify published payload digests
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/verify_staged_payload.py --variant generic --repo "${{ github.repository }}" --evidence payload-provenance-generic.json --verify-published-only

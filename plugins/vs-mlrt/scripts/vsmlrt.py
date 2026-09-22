@@ -24,6 +24,7 @@ import math
 import os
 import os.path
 import platform
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -32,28 +33,235 @@ import typing
 import warnings
 import zlib
 
+try:
+    import vsmlrt_dll_paths  # noqa: F401
+except Exception:
+    pass
 import vapoursynth as vs
 from vapoursynth import core
 
 
+def _map_data_to_str(value: object) -> str:
+    if isinstance(value, os.PathLike):
+        value = os.fspath(value)
+    if isinstance(value, bytes):
+        return value.decode()
+    return str(value)
+
+
+def _map_data_to_str_set(value: object) -> typing.Set[str]:
+    if isinstance(value, (str, bytes, os.PathLike)):
+        return {_map_data_to_str(value)}
+    try:
+        return {_map_data_to_str(item) for item in typing.cast(typing.Iterable[object], value)}
+    except TypeError:
+        return {_map_data_to_str(value)}
+
+
+def _version_tuple(value: object, width: int = 3) -> typing.Tuple[int, ...]:
+    text = _map_data_to_str(value).split("-", 1)[0]
+    numbers = []
+    for part in text.split("."):
+        digits = ""
+        for char in part:
+            if not char.isdigit():
+                break
+            digits += char
+        if not digits:
+            break
+        numbers.append(int(digits))
+    if len(numbers) < width:
+        numbers.extend([0] * (width - len(numbers)))
+    return tuple(numbers[:width])
+
+
+def _plugin_version_tuple(plugin_name: str, key: str, default: str = "0.0.0") -> typing.Tuple[int, ...]:
+    try:
+        value = getattr(core, plugin_name).Version().get(key, default)
+    except AttributeError:
+        value = default
+    return _version_tuple(value)
+
+
+_NATIVE_PLUGIN_BASENAMES = ("vsncnn", "vsov", "vsort", "vstrt", "vstrt_rtx", "vsmigx")
+
+
 def get_plugins_path() -> str:
+    package_plugins_root = os.path.join(os.path.dirname(__file__), "vapoursynth", "plugins")
+    package_plugins_path = os.path.join(package_plugins_root, "vsmlrt")
+    native_suffix = {"Windows": ".dll", "Linux": ".so", "Darwin": ".dylib"}.get(platform.system(), ".so")
+    known_plugin_files = tuple(f"{name}{native_suffix}" for name in _NATIVE_PLUGIN_BASENAMES)
+    if (
+        os.path.isfile(os.path.join(package_plugins_path, "manifest.vs"))
+        or any(os.path.isfile(os.path.join(package_plugins_path, name)) for name in known_plugin_files)
+        or os.path.isdir(os.path.join(package_plugins_path, "models"))
+    ):
+        return package_plugins_path
+
     plugin_names = ("ov", "ort", "ncnn", "trt", "trt_rtx", "migx")
 
     for plugin_name in plugin_names:
         try:
             path = getattr(core, plugin_name).Version()["path"]
-            return os.path.dirname(path).decode()
+            return os.path.dirname(_map_data_to_str(path))
         except AttributeError:
             continue
 
-    raise RuntimeError("vsmlrt: cannot load any filters")
+    return package_plugins_path
+
+
+def _get_plugin_path(plugin_name: str) -> typing.Optional[str]:
+    try:
+        path = getattr(core, plugin_name).Version()["path"]
+        return os.path.dirname(_map_data_to_str(path))
+    except AttributeError:
+        return None
+
+
+def _path_variants(path: str) -> typing.Iterator[str]:
+    if platform.system() == "Windows" and not os.path.splitext(path)[1]:
+        yield f"{path}.exe"
+    yield path
+
+
+def _first_existing_file(path: str) -> typing.Optional[str]:
+    for variant in _path_variants(path):
+        if os.path.isfile(variant):
+            return variant
+    return None
+
+
+def _environment_tool_path(variable: str) -> typing.Optional[str]:
+    configured = os.environ.get(variable)
+    if not configured:
+        return None
+    return _first_existing_file(configured) or next(_path_variants(configured))
+
+
+def _path_tool_path(name: str) -> typing.Optional[str]:
+    for variant in _path_variants(name):
+        found = shutil.which(variant)
+        if found:
+            return found
+    return None
+
+
+def _get_payload_path(
+    plugin_names: typing.Sequence[str],
+    *parts: str,
+    environment_variable: str,
+) -> str:
+    configured = _environment_tool_path(environment_variable)
+    if configured is not None:
+        return configured
+
+    for plugin_name in plugin_names:
+        plugin_path = _get_plugin_path(plugin_name)
+        if plugin_path is None:
+            continue
+        candidate = os.path.join(plugin_path, *parts)
+        found = _first_existing_file(candidate)
+        if found is not None:
+            return found
+
+    package_plugins_root = os.path.join(os.path.dirname(__file__), "vapoursynth", "plugins")
+    candidate = os.path.join(package_plugins_root, "vsmlrt", *parts)
+    found = _first_existing_file(candidate)
+    if found is not None:
+        return found
+
+    fallback = os.path.join(plugins_path, *parts)
+    found = _first_existing_file(fallback)
+    if found is not None:
+        return found
+
+    found = _path_tool_path(parts[-1])
+    if found is not None:
+        return found
+    return next(_path_variants(fallback))
+
+
+def _tool_library_paths(executable: str) -> typing.List[str]:
+    tool_dir = os.path.abspath(os.path.dirname(executable))
+    plugin_dir = os.path.abspath(plugins_path)
+    try:
+        packaged_tool = (
+            os.path.commonpath((os.path.normcase(tool_dir), os.path.normcase(plugin_dir)))
+            == os.path.normcase(plugin_dir)
+        )
+    except ValueError:
+        packaged_tool = False
+    if packaged_tool:
+        return [tool_dir, plugin_dir]
+
+    tool_root = os.path.dirname(tool_dir)
+    return [tool_dir, os.path.join(tool_root, "lib")]
+
+
+def _prepend_environment_path(env: typing.Dict[str, str], key: str, paths: typing.Iterable[str]) -> None:
+    actual_key = next((name for name in env if name.upper() == key.upper()), key)
+    entries = []
+    for path in paths:
+        if path and path not in entries:
+            entries.append(path)
+    existing = env.get(actual_key)
+    if existing:
+        entries.extend(path for path in existing.split(os.pathsep) if path not in entries)
+    env[actual_key] = os.pathsep.join(entries)
+
+
+def _tool_environment(
+    executable: str,
+    custom_env: typing.Mapping[str, str],
+    *,
+    cuda: bool,
+) -> typing.Dict[str, str]:
+    env = os.environ.copy()
+    env.update(custom_env)
+    library_paths = _tool_library_paths(executable)
+    _prepend_environment_path(env, "PATH", library_paths)
+    if platform.system() == "Windows":
+        pass
+    elif platform.system() == "Darwin":
+        _prepend_environment_path(env, "DYLD_LIBRARY_PATH", library_paths)
+    else:
+        _prepend_environment_path(env, "LD_LIBRARY_PATH", library_paths)
+    if cuda:
+        env.setdefault("CUDA_MODULE_LOADING", "LAZY")
+    return env
+
+
+def _require_tool(path: str, tool_name: str, environment_variable: str) -> None:
+    if not os.path.isfile(path):
+        raise FileNotFoundError(
+            f"{tool_name} was not found at {path!r}. Set {environment_variable} to an executable path "
+            f"or add {tool_name} to PATH."
+        )
+    if platform.system() != "Windows" and not os.access(path, os.X_OK):
+        raise PermissionError(f"{tool_name} is not executable: {path!r}")
+
+
+def get_models_path() -> str:
+    candidates = [
+        os.path.join(plugins_path, "models"),
+    ]
+    for candidate in candidates:
+        if os.path.isdir(candidate):
+            return candidate
+    return candidates[0]
 
 
 plugins_path: str = get_plugins_path()
-trtexec_path: str = os.path.join(plugins_path, "vsmlrt-cuda", "trtexec")
-migraphx_driver_path: str = os.path.join(plugins_path, "vsmlrt-hip", "migraphx-driver")
-tensorrt_rtx_path: str = os.path.join(plugins_path, "vsmlrt-cuda", "tensorrt_rtx")
-models_path: str = os.path.join(plugins_path, "models")
+trtexec_path: str = _get_payload_path(
+    ("trt", "trt_rtx"), "vsmlrt-cuda", "trtexec", environment_variable="VSMLRT_TRTEXEC_PATH"
+)
+migraphx_driver_path: str = _get_payload_path(
+    ("migx",), "vsmlrt-hip", "migraphx-driver", environment_variable="VSMLRT_MIGRAPHX_DRIVER_PATH"
+)
+tensorrt_rtx_path: str = _get_payload_path(
+    ("trt_rtx", "trt"), "vsmlrt-cuda", "tensorrt_rtx", environment_variable="VSMLRT_TENSORRT_RTX_PATH"
+)
+models_path: str = get_models_path()
 
 
 class Backend:
@@ -888,11 +1096,13 @@ def get_rife_input(clip: vs.VideoNode) -> typing.List[vs.VideoNode]:
     gray_format = vs.GRAYS if clip.format.bits_per_sample == 32 else vs.GRAYH
 
 
-    if (hasattr(core, 'akarin') and
-        b"width" in core.akarin.Version()["expr_features"] and
-        b"height" in core.akarin.Version()["expr_features"]
-    ):
-        if b"fp16" in core.akarin.Version()["expr_features"]:
+    akarin_expr_features = (
+        _map_data_to_str_set(core.akarin.Version().get("expr_features", []))
+        if hasattr(core, 'akarin')
+        else set()
+    )
+    if "width" in akarin_expr_features and "height" in akarin_expr_features:
+        if "fp16" in akarin_expr_features:
             empty = clip.std.BlankClip(format=gray_format, length=1)
         else:
             empty = clip.std.BlankClip(format=vs.GRAYS, length=1)
@@ -1356,11 +1566,11 @@ def RIFE(
         else:
             if not hasattr(core, 'akarin') or \
                 not hasattr(core.akarin, 'PropExpr') or \
-                not hasattr(core.akarin, 'PickFrames'):
+                not hasattr(core.akarin, 'Select'):
                 raise RuntimeError(
                     'fractional multi requires plugin akarin '
                     '(https://github.com/AkarinVS/vapoursynth-plugin/releases)'
-                    ', version v0.96g or later.')
+                    ', version v0.96e or later.')
 
             left_indices = []
             right_indices = []
@@ -1384,8 +1594,23 @@ def RIFE(
                     tp = (current_time - left_time) / src_duration
                     timepoints.append(tp)
 
-            left_clip = core.akarin.PickFrames(clip, left_indices)
-            right_clip = core.akarin.PickFrames(clip, right_indices)
+            if not timepoints:
+                res = clip.std.SelectEvery(
+                    cycle=max(2, clip.num_frames), offsets=output_indices, modify_duration=False
+                )
+                if clip.fps_num != 0 and clip.fps_den != 0:
+                    return res.std.AssumeFPS(
+                        fpsnum=dst_fps.numerator, fpsden=dst_fps.denominator
+                    )
+                return res
+
+            select_cycle = max(2, clip.num_frames)
+            left_clip = clip.std.SelectEvery(
+                cycle=select_cycle, offsets=left_indices, modify_duration=False
+            )
+            right_clip = clip.std.SelectEvery(
+                cycle=select_cycle, offsets=right_indices, modify_duration=False
+            )
             tp_clip = core.std.BlankClip(clip, format=gray_format, length=len(timepoints))
             tp_clip = tp_clip.akarin.PropExpr(lambda: dict(_tp=timepoints)).akarin.Expr('x._tp')
 
@@ -1399,7 +1624,10 @@ def RIFE(
             clip0 = bits_as(clip, output0)
             left0 = bits_as(left_clip, output0)
             output = core.akarin.Select([output0, left0], left0, 'x._SceneChangeNext 1 0 ?')
-            res = core.akarin.PickFrames(clip0 + output, output_indices)
+            selected = clip0 + output
+            res = selected.std.SelectEvery(
+                cycle=max(2, selected.num_frames), offsets=output_indices, modify_duration=False
+            )
 
         if clip.fps_num != 0 and clip.fps_den != 0:
             return res.std.AssumeFPS(fpsnum = dst_fps.numerator, fpsden = dst_fps.denominator)
@@ -2025,7 +2253,7 @@ def trtexec(
         bf16 = False
 
     try:
-        device_name = core.trt.DeviceProperties(device_id)["name"].decode()
+        device_name = _map_data_to_str(core.trt.DeviceProperties(device_id)["name"])
         device_name = device_name.replace(' ', '-')
     except AttributeError:
         device_name = f"device{device_id}"
@@ -2093,6 +2321,8 @@ def trtexec(
             output_format=output_format,
         )
         network_path = target_network_path
+
+    _require_tool(trtexec_path, "trtexec", "VSMLRT_TRTEXEC_PATH")
 
     args = [
         trtexec_path,
@@ -2221,14 +2451,14 @@ def trtexec(
 
     args.extend(custom_args)
 
+    env = _tool_environment(trtexec_path, custom_env, cuda=True)
+
     if log:
         env_key = "TRTEXEC_LOG_FILE"
-        prev_env_value = os.environ.get(env_key)
+        prev_env_value = env.get(env_key)
 
         if prev_env_value is not None and len(prev_env_value) > 0:
             # env_key has been set, no extra action
-            env = {env_key: prev_env_value, "CUDA_MODULE_LOADING": "LAZY"}
-            env.update(**custom_env)
             subprocess.run(args, env=env, check=True, stdout=sys.stderr)
         else:
             time_str = time.strftime('%y%m%d_%H%M%S', time.localtime())
@@ -2238,8 +2468,7 @@ def trtexec(
                 f"trtexec_{time_str}.log"
             )
 
-            env = {env_key: log_filename, "CUDA_MODULE_LOADING": "LAZY"}
-            env.update(**custom_env)
+            env[env_key] = log_filename
 
             completed_process = subprocess.run(args, env=env, check=False, stdout=sys.stderr)
 
@@ -2255,8 +2484,6 @@ def trtexec(
                 else:
                     raise RuntimeError(f"trtexec execution fails but no log is found")
     else:
-        env = {"CUDA_MODULE_LOADING": "LAZY"}
-        env.update(**custom_env)
         subprocess.run(args, env=env, check=True, stdout=sys.stderr)
 
     return engine_path
@@ -2276,10 +2503,10 @@ def get_mxr_path(
     with open(network_path, "rb") as file:
         checksum = zlib.adler32(file.read())
 
-    migx_version = core.migx.Version()["migraphx_version_build"].decode()
+    migx_version = _map_data_to_str(core.migx.Version()["migraphx_version_build"])
 
     try:
-        device_name = core.migx.DeviceProperties(device_id)["name"].decode()
+        device_name = _map_data_to_str(core.migx.DeviceProperties(device_id)["name"])
         device_name = device_name.replace(' ', '-')
     except AttributeError:
         device_name = f"device{device_id}"
@@ -2360,6 +2587,8 @@ def migraphx_driver(
     if device_id != 0:
         raise ValueError('"device_id" must be 0')
 
+    _require_tool(migraphx_driver_path, "migraphx-driver", "VSMLRT_MIGRAPHX_DRIVER_PATH")
+
     args = [
         migraphx_driver_path,
         "compile",
@@ -2388,7 +2617,12 @@ def migraphx_driver(
 
     args.extend(custom_args)
 
-    subprocess.run(args, env=custom_env, check=True, stdout=sys.stderr)
+    subprocess.run(
+        args,
+        env=_tool_environment(migraphx_driver_path, custom_env, cuda=False),
+        check=True,
+        stdout=sys.stderr,
+    )
 
     return mxr_path
 
@@ -2447,7 +2681,7 @@ def tensorrt_rtx(
         raise ValueError('tensorrt_rtx: "fp16" must be True.')
 
     try:
-        device_name = core.trt_rtx.DeviceProperties(device_id)["name"].decode()
+        device_name = _map_data_to_str(core.trt_rtx.DeviceProperties(device_id)["name"])
         device_name = device_name.replace(' ', '-')
     except AttributeError:
         device_name = f"device{device_id}"
@@ -2504,6 +2738,8 @@ def tensorrt_rtx(
         else:
             # do not consider alternative path when the engine_folder is given
             raise PermissionError(f"{engine_path} is not writable")
+
+    _require_tool(tensorrt_rtx_path, "tensorrt_rtx", "VSMLRT_TENSORRT_RTX_PATH")
 
     args = [
         tensorrt_rtx_path,
@@ -2567,8 +2803,7 @@ def tensorrt_rtx(
 
     args.extend(custom_args)
 
-    env = {"CUDA_MODULE_LOADING": "LAZY"}
-    env.update(**custom_env)
+    env = _tool_environment(tensorrt_rtx_path, custom_env, cuda=True)
     subprocess.run(args, env=env, check=True, stdout=sys.stderr)
 
     return engine_path
@@ -2761,11 +2996,7 @@ def _inference(
         kwargs["flexible_output_prop"] = flexible_output_prop
 
     if isinstance(backend, (Backend.ORT_CPU, Backend.ORT_DML, Backend.ORT_COREML, Backend.ORT_CUDA)):
-        version_list = core.ort.Version().get("onnxruntime_version", b"0.0.0").split(b'.')
-        if len(version_list) != 3:
-            version = (0, 0, 0)
-        else:
-            version = tuple(map(int, version_list))
+        version = _plugin_version_tuple("ort", "onnxruntime_version")
 
         if version >= (1, 18, 0):
             kwargs["output_format"] = backend.output_format
@@ -2810,11 +3041,7 @@ def _inference(
             **kwargs
         )
     elif isinstance(backend, Backend.ORT_CUDA):
-        version_list = core.ort.Version().get("onnxruntime_version", b"0.0.0").split(b'.')
-        if len(version_list) != 3:
-            version = (0, 0, 0)
-        else:
-            version = tuple(map(int, version_list))
+        version = _plugin_version_tuple("ort", "onnxruntime_version")
 
         if version >= (1, 18, 0):
             kwargs["prefer_nhwc"] = backend.prefer_nhwc
@@ -2834,7 +3061,7 @@ def _inference(
             **kwargs
         )
     elif isinstance(backend, Backend.OV_CPU):
-        version = tuple(map(int, core.ov.Version().get("openvino_version", b"0.0.0").split(b'-')[0].split(b'.')))
+        version = _plugin_version_tuple("ov", "openvino_version")
 
         if version >= (2024, 0, 0):
             config_dict = dict(
@@ -2868,7 +3095,7 @@ def _inference(
             **kwargs
         )
     elif isinstance(backend, Backend.OV_GPU):
-        version = tuple(map(int, core.ov.Version().get("openvino_version", b"0.0.0").split(b'-')[0].split(b'.')))
+        version = _plugin_version_tuple("ov", "openvino_version")
 
         if version >= (2024, 0, 0):
             config_dict = dict(
