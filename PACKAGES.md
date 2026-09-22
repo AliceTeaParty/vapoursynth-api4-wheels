@@ -14,7 +14,7 @@ a time.
 | `RyougiKukoc/VapourSynth-NNEDI3CL-api4` | `vapoursynth-nnedi3cl` | `8.1` |
 | `RyougiKukoc/vapoursynth-smoothuv-api4` | `vapoursynth-smoothuv` | `3.1` |
 | `RyougiKukoc/VapourSynth-DFTTest-api4` | `vapoursynth-dfttest` | `1.1` |
-| `RyougiKukoc/VapourSynth-KNLMeansCL-api4` | `vapoursynth-knlm` | Pending |
+| `RyougiKukoc/VapourSynth-KNLMeansCL-api4` | `vapoursynth-knlm` | `1.1.2` |
 | `RyougiKukoc/VapourSynth-Retinex-api4` | `vapoursynth-retinex` | Pending |
 | `RyougiKukoc/vapoursynth-tcomb-api4` | `vapoursynth-tcomb` | Pending |
 | `RyougiKukoc/VapourSynth-TCanny-vcs` | `vapoursynth-tcanny` | Pending |

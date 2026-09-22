@@ -1,10 +1,13 @@
 project('KNLMeansCL',
         'cpp',
-        default_options : ['cpp_std=gnu++11', 'buildtype=release'],
+        default_options : ['cpp_std=c++11', 'buildtype=release'],
         license : 'GPL-3',
-        version : '1.1.1')
+        version : '1.1.2')
+
+add_project_arguments('-DCL_TARGET_OPENCL_VERSION=120', language : 'cpp')
 
 vapoursynth = dependency('vapoursynth')
+install_dir = join_paths(vapoursynth.get_pkgconfig_variable('libdir'), 'vapoursynth')
 deps = [vapoursynth]
 
 opencl_dep = dependency('OpenCL', required : false)
@@ -13,6 +16,13 @@ if not opencl_dep.found()
 endif
 boost_dep = dependency('boost', modules : ['filesystem', 'system'])
 deps += [opencl_dep, boost_dep]
+
+link_args = []
+if host_machine.system() == 'linux'
+    # Linux release zips carry their non-system runtime libraries beside the
+    # plugin, so the loader must resolve them from the plugin directory.
+    link_args += ['-Wl,-rpath,$ORIGIN']
+endif
 
 src = [
     'KNLMeansCL/NLMAvisynth.h',
@@ -33,5 +43,7 @@ library(
     'knlmeanscl',
     src,
     dependencies : deps,
-    install_dir : join_paths(get_option('prefix'), get_option('libdir'), 'vapoursynth'),
+    link_args : link_args,
+    include_directories : include_directories('KNLMeansCL/avisynth'),
+    install_dir : install_dir,
     install : true)
