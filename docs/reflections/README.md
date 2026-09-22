@@ -23,3 +23,4 @@ Completed reflections:
 - [vapoursynth-retinex](vapoursynth-retinex.md)
 - [vapoursynth-tcomb](vapoursynth-tcomb.md)
 - [vapoursynth-tcanny](vapoursynth-tcanny.md)
+- [vs-cfl](vs-cfl.md)
