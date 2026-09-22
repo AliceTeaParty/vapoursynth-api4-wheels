@@ -1,6 +1,6 @@
 # vapoursynth-dfttest migration record
 
-Status: implementation in progress; publication and consumer verification are pending.
+Status: published and verified on Windows and Linux x86_64.
 
 ## Aligned revisions
 
@@ -28,3 +28,8 @@ plugin patch from `vs-wheels` is included.
 
 All build and smoke commands come from the fork's verified
 `.github/workflows/build-and-release.yml`; only paths and publication differ.
+
+## Published result
+
+- Release: `vapoursynth-dfttest-v1.1`
+- Windows/Linux: R80 online wheel installs rendered identical deterministic frames
