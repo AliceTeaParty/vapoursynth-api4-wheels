@@ -16,3 +16,4 @@ allowed Windows and Linux verification environments.
 Completed reflections:
 
 - [vs-nlq](vs-nlq.md)
+- [vapoursynth-nnedi3cl](vapoursynth-nnedi3cl.md)

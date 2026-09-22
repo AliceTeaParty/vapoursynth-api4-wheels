@@ -16,10 +16,8 @@ a time.
 | `RyougiKukoc/VapourSynth-DFTTest-api4` | `vapoursynth-dfttest` | Pending |
 | `RyougiKukoc/VapourSynth-KNLMeansCL-api4` | `vapoursynth-knlm` | Pending |
 | `RyougiKukoc/VapourSynth-Retinex-api4` | `vapoursynth-retinex` | Pending |
-| `RyougiKukoc/vapoursynth-tivtc-api4` | `vapoursynth-tivtc` | Pending |
 | `RyougiKukoc/vapoursynth-tcomb-api4` | `vapoursynth-tcomb` | Pending |
 | `RyougiKukoc/VapourSynth-TCanny-vcs` | `vapoursynth-tcanny` | Pending |
-| `RyougiKukoc/vapoursynth-bifrost-vcs` | `vapoursynth-bifrost` | Pending |
 | `RyougiKukoc/vs-miscfilters-obsolete-vcs` | `vapoursynth-misc` | Pending |
 | `RyougiKukoc/VapourSynth-FFT3DFilter-vcs` | `vapoursynth-fft3dfilter` | Pending |
 | `RyougiKukoc/vs-cfl-vcs` | `vs-cfl` | Pending |

@@ -1,7 +1,6 @@
 # vapoursynth-nnedi3cl migration record
 
-Status: implementation in progress; publication and consumer verification are
-pending.
+Status: published and verified on Windows and Linux x86_64.
 
 ## Aligned revisions
 
@@ -41,3 +40,10 @@ All Windows UCRT64, Linux manylinux, installed-wheel, release-zip, and forced
 source fallback commands come from the former fork's verified
 `.github/workflows/build-msys2.yml`; only monorepo paths and publication are
 adapted.
+
+## Published result
+
+- Release: `vapoursynth-nnedi3cl-v8.1`
+- Index: `https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/`
+- Windows: WinPython with VapourSynth R80 and RTX 3090 Ti frame smoke passed
+- Linux: `vpy:generic` with VapourSynth R80 registration/error smoke passed
