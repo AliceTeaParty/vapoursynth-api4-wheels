@@ -52,3 +52,34 @@ meson build
 ninja -C build
 ninja -C build install
 ```
+
+## pip install
+This package installs a native plugin into VapourSynth's autoload directory:
+
+```powershell
+pip install vapoursynth-tcanny
+```
+
+On Windows x86_64, the wheel build preserves the established path: it downloads
+and verifies upstream `TCanny-r14-win64.7z`. On Linux x86_64, source builds use
+the verified `v14.1` payload `tcanny-linux-x86_64.zip`; the monorepo release
+workflow explicitly selects its newly published package-specific Release.
+`TCANNY_FORCE_BUILD=1` forces Meson to build locally against the installed
+VapourSynth SDK. A Linux source build discovers the wheel's
+`vapoursynth/pkgconfig` metadata and prepends it to, rather than replacing,
+`PKG_CONFIG_PATH`. Other operating systems and architectures are unsupported.
+
+The installed layout is platform-native:
+
+```text
+vapoursynth/plugins/tcanny/
+  manifest.vs
+  tcanny.dll or tcanny.so
+  LICENSE
+```
+
+The Linux Release wheel is tagged `manylinux_2_27_x86_64`, matching the
+VapourSynth R79 runtime baseline. This does not claim a lower end-to-end glibc
+floor than VapourSynth itself.
+
+The package-specific release tag is `vapoursynth-tcanny-v14.1`.
