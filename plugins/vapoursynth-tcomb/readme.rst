@@ -68,6 +68,59 @@ Parameters:
       change on the luma plane.
 
 
+Installation
+============
+
+Windows and Linux x86_64 users can install the package from the project index:
+
+::
+
+   pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-tcomb
+
+The source-install wheel build first tries to download the matching GitHub
+Release asset for its platform:
+
+::
+
+   https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-tcomb-v4.2/tcomb-msys2-ucrt64.zip
+   https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-tcomb-v4.2/tcomb-linux-x86_64.zip
+
+If the matching asset is unavailable, the build hook falls back to a local
+Meson build. Set ``TCOMB_FORCE_BUILD=1`` to select that path deliberately.
+
+To force a local build:
+
+::
+
+   set TCOMB_FORCE_BUILD=1
+   pip install "vapoursynth-tcomb @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git@main#subdirectory=plugins/vapoursynth-tcomb"
+
+To test a local or custom prebuilt zip:
+
+::
+
+   set TCOMB_PREBUILT_URL=C:\path\to\tcomb-msys2-ucrt64.zip
+   pip install --force-reinstall --no-deps --no-build-isolation .
+
+The wheel installs the plugin under ``vapoursynth/plugins/tcomb/`` with a
+``manifest.vs`` file so VapourSynth can autoload the platform-native plugin.
+
+Linux releases are built in a manylinux2014 container. TComb itself therefore
+does not require a newer glibc than the current VapourSynth runtime wheel;
+VapourSynth R79 currently requires glibc 2.27 or newer. To build locally,
+install a C compiler and ``pkg-config``; the installed VapourSynth pip wheel
+supplies the API4 headers and pkg-config metadata automatically:
+
+::
+
+   sudo apt-get install build-essential pkg-config
+   pip install "vapoursynth-tcomb @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git@main#subdirectory=plugins/vapoursynth-tcomb"
+
+The published Linux wheel is tagged ``manylinux_2_27_x86_64`` to match that
+VapourSynth runtime baseline. ``TCOMB_FORCE_BUILD=1`` remains available for
+users who provide their own compatible VapourSynth SDK/runtime.
+
+
 Compilation
 ===========
 
