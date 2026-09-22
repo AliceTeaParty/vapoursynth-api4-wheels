@@ -1,0 +1,2 @@
+option('static-runtime', type : 'boolean', value : false,
+  description : 'Statically link libgcc and libstdc++ for portable Linux release payloads')

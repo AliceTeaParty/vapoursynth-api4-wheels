@@ -35,7 +35,10 @@ the project index is supplied with `--extra-index-url`.
 | [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu121` | `16.2.2` | Windows/Linux x86_64 | Variant migration prepared |
 | [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu129` | `16.2.2` | Windows/Linux x86_64 | Variant migration prepared |
 | [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` | `4.2` | Windows/Linux x86_64 | Published and verified |
+| [VFR-maniac/VapourSynth-FFT3DFilter](https://github.com/VFR-maniac/VapourSynth-FFT3DFilter) | `vapoursynth-fft3dfilter` | `2.1` | Windows/Linux x86_64 | Published and verified |
+| [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | `vs-cfl` | `1.0.2` | Windows/Linux x86_64 | Published and verified |
 | [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | `vapoursynth-tcanny` | `14.1` | Windows/Linux x86_64 | Published and verified |
+| [vapoursynth/vs-miscfilters-obsolete](https://github.com/vapoursynth/vs-miscfilters-obsolete) | `vapoursynth-misc` | `2.1` | Windows/Linux x86_64 | Published and verified |
 
 See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
 

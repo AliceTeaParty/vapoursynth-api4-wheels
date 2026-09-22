@@ -1,0 +1,196 @@
+name: Build and release
+
+on:
+  push:
+    branches: [master]
+    tags: ["R*", "v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows UCRT64
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up CPython
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python tools
+        shell: cmd
+        run: >-
+          "%pythonLocation%\python.exe" -m pip install --upgrade pip build hatchling packaging meson ninja
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-python
+            mingw-w64-ucrt-x86_64-meson
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-fftw
+      - name: Prepare VapourSynth R77 wheel
+        shell: cmd
+        run: >-
+          "%pythonLocation%\python.exe" tools\ci_prepare_msys2.py
+      - name: Build plugin
+        run: /ucrt64/bin/python tools/ci_build_msys2.py --clean
+      - name: Smoke-load artifact
+        shell: cmd
+        run: >-
+          "%pythonLocation%\python.exe" tools\smoke_load_artifact.py
+          --vapoursynth-root _deps\vapoursynth-wheel-R77
+          --artifact-dir dist\msys2-ucrt64
+          --exercise-filter
+      - name: Smoke-load artifact through manifest autoload
+        shell: cmd
+        run: >-
+          "%pythonLocation%\python.exe" tools\smoke_load_artifact.py
+          --vapoursynth-root _deps\vapoursynth-wheel-R77
+          --artifact-dir dist\msys2-ucrt64
+          --autoload
+          --exercise-filter
+      - name: Pack and check release zip
+        shell: cmd
+        run: |
+          "%pythonLocation%\python.exe" tools\package_plugin_zip.py --input-dir dist\msys2-ucrt64 --output dist\fft3dfilter-msys2-ucrt64.zip
+          "%pythonLocation%\python.exe" tools\check_package_layout.py dist\fft3dfilter-msys2-ucrt64.zip --plugin-dll fft3dfilter.dll --require-manifest --require-top-level-dir --forbid-vapoursynth-prefix
+      - name: Build wheel from local prebuilt package
+        shell: cmd
+        env:
+          FFT3DFILTER_PREBUILT_URL: ${{ github.workspace }}\dist\fft3dfilter-msys2-ucrt64.zip
+        run: >-
+          "%pythonLocation%\python.exe" -m build --wheel --no-isolation --skip-dependency-check --outdir dist\wheels
+      - name: Install and smoke-test wheel
+        shell: cmd
+        run: |
+          for %%I in (dist\wheels\*.whl) do "%pythonLocation%\python.exe" -m pip install --force-reinstall "%%~fI"
+          "%pythonLocation%\python.exe" tools\smoke_installed_wheel.py --exercise-filter
+      - name: Upload Windows release zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: dist/fft3dfilter-msys2-ucrt64.zip
+      - name: Upload Windows wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-wheel
+          path: dist/wheels/*.whl
+
+  build-linux:
+    name: Build Linux x86_64 release payload
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build in conservative glibc environment
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src quay.io/pypa/manylinux2014_x86_64 bash -lc '
+            set -euxo pipefail
+            py=/opt/python/cp313-cp313/bin/python
+            "$py" -m pip install --upgrade pip meson ninja
+            mkdir -p /tmp/vs-wheel /tmp/vs-root
+            curl -fsSL https://files.pythonhosted.org/packages/c2/82/a4f5e879ff0bb6722ecbecf01482b0783ed05d42aefa7717e6a6f4f77180/vapoursynth-79-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl -o /tmp/vs-wheel/vapoursynth-79.whl
+            echo "6f1e37f0ed8eb73e61c3c231fd7f7a0f7acfa893e98d026686e9c81e52c9ce06  /tmp/vs-wheel/vapoursynth-79.whl" | sha256sum -c -
+            unzip -q /tmp/vs-wheel/vapoursynth-79.whl -d /tmp/vs-root
+            mkdir -p /tmp/fftw-src
+            curl -fsSL https://fftw.org/fftw-3.3.10.tar.gz | tar -xz -C /tmp/fftw-src --strip-components=1
+            cd /tmp/fftw-src
+            ./configure --prefix=/tmp/fftw --disable-shared --enable-static --enable-float --enable-threads --disable-fortran --with-pic
+            make -j"$(nproc)"
+            make install
+            cd /src
+            "$py" tools/build_linux_release.py --vapoursynth-root /tmp/vs-root --fftw-prefix /tmp/fftw --static-runtime
+            "$py" tools/package_plugin_zip.py --input-dir dist/linux-x86_64 --output dist/fft3dfilter-linux-x86_64.zip --plugin-file fft3dfilter.so
+            "$py" tools/check_package_layout.py dist/fft3dfilter-linux-x86_64.zip --plugin-dll fft3dfilter.so --require-manifest --require-top-level-dir --forbid-vapoursynth-prefix
+            readelf --version-info dist/linux-x86_64/fft3dfilter/fft3dfilter.so | tee dist/linux-readelf-version-info.txt
+          '
+      - name: Upload Linux release zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: |
+            dist/fft3dfilter-linux-x86_64.zip
+            dist/linux-readelf-version-info.txt
+
+  verify-linux:
+    name: Verify Linux payload and VCS fallback
+    needs: build-linux
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-release
+          path: dist
+      - name: Build the R79 validation image
+        run: docker build -t fft3dfilter-vs79-validation -f tools/linux-validation.Dockerfile .
+      - name: Build manylinux-tagged wheel from release payload
+        run: |
+          python -m pip install --upgrade build
+          FFT3DFILTER_PREBUILT_URL="$PWD/dist/fft3dfilter-linux-x86_64.zip" FFT3DFILTER_WHEEL_PLATFORM_TAG=manylinux_2_27_x86_64 python -m build --wheel --outdir dist/wheels
+          unzip -l dist/wheels/*.whl
+      - name: Explicitly load Linux Release payload
+        run: |
+          docker run --rm -v "$PWD:/workspace:ro" fft3dfilter-vs79-validation bash -lc 'python /workspace/tools/smoke_linux_package.py --artifact-zip /workspace/dist/fft3dfilter-linux-x86_64.zip'
+      - name: Install Release-backed wheel and test manifest autoload
+        run: |
+          docker run --rm -v "$PWD:/workspace:ro" fft3dfilter-vs79-validation bash -lc 'python -m pip install --no-deps /workspace/dist/wheels/*.whl && python /workspace/tools/smoke_linux_package.py --installed-wheel'
+      - name: Force an isolated native fallback with unrelated pkg-config metadata
+        run: |
+          docker run --rm -v "$PWD:/workspace:ro" fft3dfilter-vs79-validation bash -lc '
+            set -euxo pipefail
+            apt-get update
+            apt-get install -y libfftw3-dev
+            cp -a /workspace /src
+            mkdir -p /tmp/unrelated-pkgconfig
+            FFT3DFILTER_FORCE_BUILD=1 PKG_CONFIG_PATH=/tmp/unrelated-pkgconfig python -m pip install --no-deps --force-reinstall -v /src
+            python /src/tools/smoke_linux_package.py --installed-wheel
+          '
+      - name: Upload Linux wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-wheel
+          path: dist/wheels/*.whl
+
+  publish:
+    name: Publish one coordinated Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build-windows, verify-linux]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*-release"
+          path: dist
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*-wheel"
+          path: dist/wheels
+          merge-multiple: true
+      - name: Create and populate GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euxo pipefail
+          test -f dist/fft3dfilter-msys2-ucrt64.zip
+          test -f dist/fft3dfilter-linux-x86_64.zip
+          test -n "$(find dist/wheels -name '*win_amd64.whl' -print -quit)"
+          test -n "$(find dist/wheels -name '*manylinux_2_27_x86_64.whl' -print -quit)"
+          gh release create "$RELEASE_TAG" --repo "$REPOSITORY" --title "$RELEASE_TAG" --notes "Windows UCRT64 and Linux x86_64 release payloads." || gh release upload "$RELEASE_TAG" --repo "$REPOSITORY" --clobber dist/fft3dfilter-msys2-ucrt64.zip dist/fft3dfilter-linux-x86_64.zip dist/wheels/*.whl
+          gh release upload "$RELEASE_TAG" --repo "$REPOSITORY" --clobber dist/fft3dfilter-msys2-ucrt64.zip dist/fft3dfilter-linux-x86_64.zip dist/wheels/*.whl
