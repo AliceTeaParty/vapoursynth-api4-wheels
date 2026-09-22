@@ -20,7 +20,7 @@ a time.
 | `RyougiKukoc/VapourSynth-TCanny-vcs` | `vapoursynth-tcanny` | `14.1` |
 | `RyougiKukoc/vs-miscfilters-obsolete-vcs` | `vapoursynth-misc` | `2.1` |
 | `RyougiKukoc/VapourSynth-FFT3DFilter-vcs` | `vapoursynth-fft3dfilter` | Pending |
-| `RyougiKukoc/vs-cfl-vcs` | `vs-cfl` | Pending |
+| `RyougiKukoc/vs-cfl-vcs` | `vs-cfl` | `1.0.2` |
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cpu`) | `vapoursynth-bm3dcpu` | Pending |
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu121`) | `vapoursynth-bm3dcuda-cu121` | Pending |
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu129`) | `vapoursynth-bm3dcuda-cu129` | Pending |
