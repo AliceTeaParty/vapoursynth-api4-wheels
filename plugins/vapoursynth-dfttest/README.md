@@ -1,11 +1,50 @@
 Description
 ===========
 
-2D/3D frequency domain denoiser.
+2D/3D frequency domain denoiser for VapourSynth R79 and later.
 
-Requires libfftw3f-3.dll to be in the search path. http://www.fftw.org/install/windows.html
+Windows release packages include their required MSYS2 runtime DLLs. Linux
+release packages statically link FFTW3f and its threads support, so their
+runtime dependency is the installed VapourSynth R79-compatible wheel rather
+than a system FFTW shared library.
 
 Ported from AviSynth plugin http://bengal.missouri.edu/~kes25c/
+
+
+Installation
+============
+
+On Windows or Linux x86_64, the preferred install path is pip:
+
+    pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest
+
+The Python package installs the native plugin under
+`vapoursynth/plugins/dfttest/` with a `manifest.vs`, so current VapourSynth
+autoloads it as `core.dfttest.DFTTest`.
+
+The VCS build hook maps `project.version = 1.1` to the default GitHub Release
+tag `vapoursynth-dfttest-v1.1` and first reuses the tested native package asset for the current
+platform:
+
+    Windows: dfttest-msys2-ucrt64.zip
+    Linux x86_64: dfttest-linux-x86_64.zip
+
+The Linux release wheel is tagged `manylinux_2_27_x86_64`, matching the
+VapourSynth R79 Linux runtime baseline. The package installs under
+`vapoursynth/plugins/dfttest/` with a `manifest.vs`, so current VapourSynth
+autoloads it as `core.dfttest.DFTTest`.
+
+If no same-platform Release payload exists, the build hook runs the local
+Meson build rather than trying another platform's binary. This is also the
+explicit source-build escape hatch:
+
+    DFTTEST_FORCE_BUILD=1 pip install "vapoursynth-dfttest @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-dfttest"
+
+Linux source builds require a C++17 compiler, Meson, Ninja,
+pkg-config, `fftw3f` plus its thread library, and VapourSynth headers. On
+Linux the hook prepends the installed wheel's `vapoursynth/pkgconfig` directory
+to `PKG_CONFIG_PATH` while retaining user-supplied entries. Windows source
+builds require MSYS2 UCRT64 GCC, Meson, Ninja, pkgconf, and FFTW.
 
 
 Usage

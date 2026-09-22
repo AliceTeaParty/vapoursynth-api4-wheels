@@ -28,6 +28,7 @@ the project index is supplied with `--extra-index-url`.
 | [quietvoid/vs-nlq](https://github.com/quietvoid/vs-nlq) | `vs-nlq` | `1.2.0` | Windows/Linux x86_64 | Published and verified |
 | [HomeOfVapourSynthEvolution/VapourSynth-NNEDI3CL](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-NNEDI3CL) | `vapoursynth-nnedi3cl` | `8.1` | Windows/Linux x86_64 | Published and verified |
 | [dubhatervapoursynth/vapoursynth-smoothuv](https://github.com/dubhatervapoursynth/vapoursynth-smoothuv) | `vapoursynth-smoothuv` | `3.1` | Windows/Linux x86_64 | Published and verified |
+| [HomeOfVapourSynthEvolution/VapourSynth-DFTTest](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-DFTTest) | `vapoursynth-dfttest` | `1.1` | Windows/Linux x86_64 | Migration in progress |
 
 See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
 
