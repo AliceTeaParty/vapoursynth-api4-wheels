@@ -1,7 +1,6 @@
 # vapoursynth-smoothuv migration record
 
-Status: implementation in progress; publication and consumer verification are
-pending.
+Status: published and verified on Windows and Linux x86_64.
 
 ## Aligned revisions
 
@@ -34,3 +33,9 @@ patch from `vs-wheels` is included.
 
 All compilation and smoke commands come directly from the fork's verified
 `.github/workflows/build-windows.yml`; only paths and publication are adapted.
+
+## Published result
+
+- Release: `vapoursynth-smoothuv-v3.1`
+- Index: `https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/`
+- Windows and Linux: R80 wheel installation and deterministic frame smoke passed
