@@ -1,6 +1,6 @@
 # vapoursynth-misc migration record
 
-Status: branch validation pending.
+Status: published and verified on Windows and Linux x86_64.
 
 ## Aligned revisions
 
@@ -37,3 +37,11 @@ plugin patch from `vs-wheels` is included.
 All compilation and smoke commands come directly from the fork's verified
 `.github/workflows/build-msys2.yml`; only monorepo paths, platform scope,
 package-specific tag/release handling, and Pages dispatch are adapted.
+
+## Published result
+
+- Release: `vapoursynth-misc-v2.1`
+- Index: `https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/`
+- Windows WinPython and Linux `vpy:generic`: Pages-only binary wheel installs
+  autoloaded `core.misc`; `AverageFrames`, `SCDetect`, and `Hysteresis` all
+  rendered frames successfully under VapourSynth R80.
