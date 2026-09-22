@@ -54,12 +54,12 @@ class CustomBuildHook(BuildHookInterface):
 
         payload_tag = self._detect_payload_tag()
         force_include = build_data.setdefault("force_include", {})
-        stage_dir = Path(self.root) / "build" / "vsmlrt_payload"
+        stage_dir = self._source_root() / "build" / "vsmlrt_payload"
         shutil.rmtree(stage_dir, ignore_errors=True)
         stage_dir.mkdir(parents=True)
 
         if self._skip_prebuilt():
-            force_include[str(Path(self.root) / "packaging" / "manifest.vs")] = (
+            force_include[str(self._source_root() / "packaging" / "manifest.vs")] = (
                 "vapoursynth/plugins/vsmlrt/manifest.vs"
             )
             return
@@ -92,7 +92,7 @@ class CustomBuildHook(BuildHookInterface):
 
     def finalize(self, version: str, build_data: dict, artifact_path: str) -> None:
         del version, build_data, artifact_path
-        shutil.rmtree(Path(self.root) / "build" / "vsmlrt_payload", ignore_errors=True)
+        shutil.rmtree(self._source_root() / "build" / "vsmlrt_payload", ignore_errors=True)
 
     def _skip_prebuilt(self) -> bool:
         return self._truthy(os.environ.get("VSMLRT_SKIP_PREBUILT"))
@@ -127,7 +127,7 @@ class CustomBuildHook(BuildHookInterface):
                 )
             return explicit
 
-        marker = Path(self.root) / "packaging" / "payload-tag.txt"
+        marker = self._source_root() / "packaging" / "payload-tag.txt"
         if marker.is_file():
             selected = marker.read_text(encoding="ascii").strip()
             if selected in PAYLOAD_TAGS:
@@ -152,7 +152,7 @@ class CustomBuildHook(BuildHookInterface):
 
     def _stage_models(self, stage_dir: Path) -> None:
         models = self._resolve_models_payload()
-        extracted = Path(self.root) / "build" / "vsmlrt_models"
+        extracted = self._source_root() / "build" / "vsmlrt_models"
         shutil.rmtree(extracted, ignore_errors=True)
         extracted.mkdir(parents=True)
         self._safe_extract_payload([models], extracted)
@@ -165,7 +165,7 @@ class CustomBuildHook(BuildHookInterface):
     def _stage_local_build(self, stage_dir: Path, payload_tag: str) -> None:
         command = [
             sys.executable,
-            str(Path(self.root) / "packaging" / "linux_native_build.py"),
+            str(self._source_root() / "packaging" / "linux_native_build.py"),
             "--variant",
             payload_tag,
             "--stage-dir",
@@ -173,7 +173,7 @@ class CustomBuildHook(BuildHookInterface):
         ]
         env = os.environ.copy()
         env["VSMLRT_PAYLOAD_TAG"] = payload_tag
-        subprocess.run(command, cwd=self.root, env=env, check=True)
+        subprocess.run(command, cwd=self._source_root(), env=env, check=True)
 
     def _prepare_plugin_dir(self, plugin_dir: Path) -> None:
         # The legacy Windows payload stores OpenVINO support files in vsov/.
@@ -312,7 +312,7 @@ class CustomBuildHook(BuildHookInterface):
         return [self._download_urls([url])]
 
     def _download_urls(self, urls: list[str]) -> list[Path]:
-        download_dir = Path(self.root) / "build" / "vsmlrt_downloads"
+        download_dir = self._source_root() / "build" / "vsmlrt_downloads"
         download_dir.mkdir(parents=True, exist_ok=True)
         result = []
         for url in dict.fromkeys(urls):
@@ -393,7 +393,7 @@ class CustomBuildHook(BuildHookInterface):
     def _detect_github_repo(self) -> str:
         try:
             remote = subprocess.check_output(
-                ["git", "remote", "get-url", "origin"], cwd=self.root, text=True, stderr=subprocess.DEVNULL
+                ["git", "remote", "get-url", "origin"], cwd=self._source_root(), text=True, stderr=subprocess.DEVNULL
             ).strip()
         except Exception:
             remote = ""
@@ -405,3 +405,7 @@ class CustomBuildHook(BuildHookInterface):
         if override:
             return override
         return f"vs-mlrt-{payload_tag}-v{self._distribution_version}"
+
+    def _source_root(self) -> Path:
+        override = os.environ.get("VSMLRT_SOURCE_ROOT")
+        return Path(override).resolve() if override else Path(self.root)

@@ -12,7 +12,7 @@ from vsmlrt_build import CustomBuildHook as BaseBuildHook
 
 class CustomBuildHook(BaseBuildHook):
     def initialize(self, version: str, build_data: dict) -> None:
-        self.root = str(ROOT)
+        os.environ["VSMLRT_SOURCE_ROOT"] = str(ROOT)
         os.environ["VSMLRT_PAYLOAD_TAG"] = "generic"
         force_include = build_data.setdefault("force_include", {})
         for name in ("vsmlrt.py", "vsmlrt_dll_paths.py", "vs_mlrt_dll_paths.pth"):
