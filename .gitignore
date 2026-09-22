@@ -1,2 +1,6 @@
 my-fork-repo-list.txt
 task.md
+_site/
+dist/
+__pycache__/
+*.pyc
