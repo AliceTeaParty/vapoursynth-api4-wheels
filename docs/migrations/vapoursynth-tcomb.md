@@ -1,6 +1,6 @@
 # vapoursynth-tcomb migration record
 
-Status: branch validation pending.
+Status: published and verified on Windows and Linux x86_64.
 
 ## Aligned revisions
 
@@ -33,3 +33,10 @@ patch from `vs-wheels` is included.
 All compilation and smoke commands come directly from the fork's verified
 `.github/workflows/build-windows.yml`; only monorepo paths, package-specific
 tag/release handling, and Pages dispatch are adapted.
+
+## Published result
+
+- Release: `vapoursynth-tcomb-v4.2`
+- Index: `https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/`
+- Windows and Linux: Pages-only binary wheel installs autoloaded `core.tcomb`
+  and produced identical output dimensions and PlaneStats.
