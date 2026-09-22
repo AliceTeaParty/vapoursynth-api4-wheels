@@ -171,10 +171,10 @@ def main() -> None:
         evidence["dependency_assets"].append(info)
     paths = list(volumes)
     models, info = download_dependency(dependency_repo, "models", "models.zip", dependencies)
-    paths.append(models)
     evidence["dependency_assets"].append(info)
     env = os.environ.copy()
     env["VSMLRT_PREBUILT_PATHS"] = os.pathsep.join(str(p) for p in paths)
+    env["VSMLRT_MODELS_PREBUILT_PATH"] = str(models)
     env["VSMLRT_PAYLOAD_TAG"] = args.variant
     subprocess.run([sys.executable, "-m", "pip", "install", "--no-deps", "--force-reinstall", "--no-cache-dir", str(project)], env=env, check=True)
     evidence["installed_file_count"] = verify_installed(archives, Path(sysconfig.get_path("purelib")), args.variant)
