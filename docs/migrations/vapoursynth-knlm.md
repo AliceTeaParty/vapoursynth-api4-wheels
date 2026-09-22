@@ -1,6 +1,6 @@
 # vapoursynth-knlm migration record
 
-Status: implementation in progress; publication and consumer verification are pending.
+Status: published and verified on Windows and Linux x86_64.
 
 ## Aligned revisions
 
@@ -28,3 +28,9 @@ runtime closure, and smoke tests. No `vs-wheels` plugin patch is included.
 
 Build and verification commands are copied from the fork's `build.yaml`; only
 monorepo paths and publication are adapted.
+
+## Published result
+
+- Release: `vapoursynth-knlm-v1.1.2`
+- Windows: R80 and RTX 3090 Ti OpenCL frame smoke passed
+- Linux: R80 load/error smoke passed; generic container reported no OpenCL platform

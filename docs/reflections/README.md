@@ -19,3 +19,4 @@ Completed reflections:
 - [vapoursynth-nnedi3cl](vapoursynth-nnedi3cl.md)
 - [vapoursynth-smoothuv](vapoursynth-smoothuv.md)
 - [vapoursynth-dfttest](vapoursynth-dfttest.md)
+- [vapoursynth-knlm](vapoursynth-knlm.md)

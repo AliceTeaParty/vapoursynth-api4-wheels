@@ -29,7 +29,7 @@ the project index is supplied with `--extra-index-url`.
 | [HomeOfVapourSynthEvolution/VapourSynth-NNEDI3CL](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-NNEDI3CL) | `vapoursynth-nnedi3cl` | `8.1` | Windows/Linux x86_64 | Published and verified |
 | [dubhatervapoursynth/vapoursynth-smoothuv](https://github.com/dubhatervapoursynth/vapoursynth-smoothuv) | `vapoursynth-smoothuv` | `3.1` | Windows/Linux x86_64 | Published and verified |
 | [HomeOfVapourSynthEvolution/VapourSynth-DFTTest](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-DFTTest) | `vapoursynth-dfttest` | `1.1` | Windows/Linux x86_64 | Published and verified |
-| [Khanattila/KNLMeansCL](https://github.com/Khanattila/KNLMeansCL) | `vapoursynth-knlm` | `1.1.2` | Windows/Linux x86_64 | Migration in progress |
+| [Khanattila/KNLMeansCL](https://github.com/Khanattila/KNLMeansCL) | `vapoursynth-knlm` | `1.1.2` | Windows/Linux x86_64 | Published and verified |
 
 See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
 
