@@ -44,9 +44,13 @@ class CustomBuildHook(BuildHookInterface):
     """Attach a tested native plugin payload to a VCS-built wheel."""
 
     def initialize(self, version: str, build_data: dict) -> None:
-        del version
         if self.target_name != "wheel":
             return
+
+        if not self._has_platform_release_payload():
+            raise RuntimeError("vs-mlrt wheels support only Windows and Linux x86_64")
+
+        self._distribution_version = version
 
         payload_tag = self._detect_payload_tag()
         force_include = build_data.setdefault("force_include", {})
@@ -282,7 +286,7 @@ class CustomBuildHook(BuildHookInterface):
         if explicit_url:
             return self._download_urls([explicit_url])[0]
         repo = os.environ.get("VSMLRT_MODELS_RELEASE_REPO") or self._detect_github_repo()
-        tag = os.environ.get("VSMLRT_MODELS_TAG") or MODELS_TAG
+        tag = os.environ.get("VSMLRT_MODELS_TAG") or self._release_tag(self._detect_payload_tag())
         return self._download_urls([f"https://github.com/{repo}/releases/download/{tag}/{MODELS_ASSET}"])[0]
 
     def _download_release_payloads(self, payload_tag: str) -> list[list[Path]]:
@@ -299,7 +303,7 @@ class CustomBuildHook(BuildHookInterface):
         if stem is None:
             raise RuntimeError(f"No tested release payload exists for {platform.system()} {platform.machine()}.")
         asset = f"{stem}-{GENERIC_TAG}.zip" if payload_tag == GENERIC_TAG else f"{stem}-{payload_tag}.zip"
-        url = f"https://github.com/{repo}/releases/download/{payload_tag}/{asset}"
+        url = f"https://github.com/{repo}/releases/download/{self._release_tag(payload_tag)}/{asset}"
         if not self._url_exists(url):
             volumes = self._volume_urls(f"{url}.001")
             if len(volumes) == 1 and volumes[0] == f"{url}.001" and not self._url_exists(f"{url}.001"):
@@ -394,4 +398,10 @@ class CustomBuildHook(BuildHookInterface):
         except Exception:
             remote = ""
         match = re.search(r"github\\.com[:/](?P<repo>[^/]+/[^/.]+)(?:\\.git)?$", remote)
-        return match.group("repo") if match else "RyougiKukoc/vs-mlrt-api4"
+        return match.group("repo") if match else "AliceTeaParty/vapoursynth-api4-wheels"
+
+    def _release_tag(self, payload_tag: str) -> str:
+        override = os.environ.get("VSMLRT_RELEASE_TAG")
+        if override:
+            return override
+        return f"vs-mlrt-{payload_tag}-v{self._distribution_version}"

@@ -1,0 +1,43 @@
+name: Package - vs-mlrt variants
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        required: true
+        type: choice
+        options: [generic, cu121, cu129]
+  push:
+    branches: [main]
+    paths:
+      - plugins/vs-mlrt/**
+      - .github/workflows/package-vs-mlrt.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate-packaging:
+    name: Validate - vs-mlrt package variants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate variant metadata and shared source
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import tomllib
+          root = Path("plugins/vs-mlrt/packaging/distributions")
+          expected = {"generic": "vs-mlrt-generic", "cu121": "vs-mlrt-cu121", "cu129": "vs-mlrt-cu129"}
+          for variant, name in expected.items():
+              data = tomllib.loads((root / variant / "pyproject.toml").read_text())
+              assert data["project"]["name"] == name
+              assert data["project"]["version"] == "16.2.2"
+          assert (Path("plugins/vs-mlrt/vstrt/vs_tensorrt.cpp")).is_file()
+          print("validated", ", ".join(expected.values()))
+          PY

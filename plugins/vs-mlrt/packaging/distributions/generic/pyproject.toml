@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vs-mlrt-generic"
+version = "16.2.2"
+description = "VapourSynth ML runtime tools with generic CPU/GPU backends"
+requires-python = ">=3.12"
+license = "GPL-3.0-or-later"
+dependencies = ["vapoursynth>=75", "numpy", "onnx", "onnxconverter-common"]
+
+[project.urls]
+"Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-mlrt"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-mlrt-generic-v16.2.2"
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"

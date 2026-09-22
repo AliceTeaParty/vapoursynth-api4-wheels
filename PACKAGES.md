@@ -27,9 +27,9 @@ a time.
 | `RyougiKukoc/vs-dfttest2-api4` (`cpu`) | `vapoursynth-dfttest2-generic` | Pending |
 | `RyougiKukoc/vs-dfttest2-api4` (`cu121`) | `vapoursynth-dfttest2-cu121` | Pending |
 | `RyougiKukoc/vs-dfttest2-api4` (`cu129`) | `vapoursynth-dfttest2-cu129` | Pending |
-| `RyougiKukoc/vs-mlrt-api4` (`generic`) | `vs-mlrt-generic` | Pending |
-| `RyougiKukoc/vs-mlrt-api4` (`cu121`) | `vs-mlrt-cu121` | Pending |
-| `RyougiKukoc/vs-mlrt-api4` (`cu129`) | `vs-mlrt-cu129` | Pending |
+| `RyougiKukoc/vs-mlrt-api4` (`generic`) | `vs-mlrt-generic` | `16.2.2` |
+| `RyougiKukoc/vs-mlrt-api4` (`cu121`) | `vs-mlrt-cu121` | `16.2.2` |
+| `RyougiKukoc/vs-mlrt-api4` (`cu129`) | `vs-mlrt-cu129` | `16.2.2` |
 
 ## Version rules
 
