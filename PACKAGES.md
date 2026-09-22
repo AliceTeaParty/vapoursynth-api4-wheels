@@ -15,7 +15,7 @@ a time.
 | `RyougiKukoc/vapoursynth-smoothuv-api4` | `vapoursynth-smoothuv` | `3.1` |
 | `RyougiKukoc/VapourSynth-DFTTest-api4` | `vapoursynth-dfttest` | `1.1` |
 | `RyougiKukoc/VapourSynth-KNLMeansCL-api4` | `vapoursynth-knlm` | `1.1.2` |
-| `RyougiKukoc/VapourSynth-Retinex-api4` | `vapoursynth-retinex` | Pending |
+| `RyougiKukoc/VapourSynth-Retinex-api4` | `vapoursynth-retinex` | `4.1` |
 | `RyougiKukoc/vapoursynth-tcomb-api4` | `vapoursynth-tcomb` | Pending |
 | `RyougiKukoc/VapourSynth-TCanny-vcs` | `vapoursynth-tcanny` | Pending |
 | `RyougiKukoc/vs-miscfilters-obsolete-vcs` | `vapoursynth-misc` | Pending |

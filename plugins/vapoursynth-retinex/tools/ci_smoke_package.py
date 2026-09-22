@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""Explicitly load a packaged Retinex plugin and render deterministic frames."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import shutil
+import sys
+import tempfile
+import zipfile
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PLUGIN_NAME = "retinex"
+
+
+def plugin_suffix() -> str:
+    if sys.platform == "win32":
+        return ".dll"
+    if sys.platform == "darwin":
+        return ".dylib"
+    return ".so"
+
+
+def frame_hash(frame: Any) -> str:
+    digest = hashlib.sha256()
+    for plane in range(frame.format.num_planes):
+        digest.update(bytes(frame[plane]))
+    return digest.hexdigest()
+
+
+class IsolatedEnvironmentPolicy:
+    """Create one VapourSynth core with plugin autoloading disabled."""
+
+    def __init__(self, flags: int) -> None:
+        self._api: Any = None
+        self._environment: Any = None
+        self._flags = flags
+
+    def on_policy_registered(self, api: Any) -> None:
+        self._api = api
+        self._environment = api.create_environment(self._flags)
+
+    def on_policy_cleared(self) -> None:
+        self._api = None
+        self._environment = None
+
+    def get_current_environment(self) -> Any:
+        return self._environment
+
+    def set_environment(self, environment: Any) -> Any:
+        previous = self._environment
+        if environment is not None:
+            self._environment = environment
+        return previous
+
+    def is_alive(self, environment: Any) -> bool:
+        return environment is self._environment
+
+    def close(self) -> None:
+        if self._api is not None and self._environment is not None:
+            self._api.destroy_environment(self._environment)
+            self._environment = None
+
+
+def install_isolated_policy(vs_module: Any) -> IsolatedEnvironmentPolicy | None:
+    if not hasattr(vs_module, "register_policy") or vs_module.has_policy():
+        return None
+    policy = IsolatedEnvironmentPolicy(int(vs_module.DISABLE_AUTO_LOADING))
+    vs_module.register_policy(policy)
+    return policy
+
+
+def resolve_artifact_dir(artifact_dir_arg: str | None, artifact_zip_arg: str | None) -> tuple[Path, Path | None]:
+    if artifact_zip_arg:
+        archive = Path(artifact_zip_arg).resolve()
+        if not archive.exists():
+            raise FileNotFoundError(f"missing artifact zip: {archive}")
+        temp_dir = Path(tempfile.mkdtemp(prefix="retinex-package-"))
+        with zipfile.ZipFile(archive) as zf:
+            zf.extractall(temp_dir)
+        candidates = [path for path in temp_dir.iterdir() if path.is_dir()]
+        if len(candidates) != 1:
+            raise RuntimeError(f"expected one top-level package directory in {archive}, found {len(candidates)}")
+        return candidates[0], temp_dir
+    return Path(artifact_dir_arg or ROOT / "dist" / "msys2-ucrt64" / PLUGIN_NAME).resolve(), None
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(description="Smoke test a packaged Retinex plugin.")
+    parser.add_argument("--artifact-dir")
+    parser.add_argument("--artifact-zip")
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args(argv)
+
+    artifact_dir, temp_dir = resolve_artifact_dir(args.artifact_dir, args.artifact_zip)
+    plugin = artifact_dir / f"{PLUGIN_NAME}{plugin_suffix()}"
+    manifest = artifact_dir / "manifest.vs"
+    if not plugin.is_file() or not manifest.is_file():
+        raise FileNotFoundError(f"expected {plugin} and {manifest}")
+
+    handles = []
+    add_dll_directory = getattr(os, "add_dll_directory", None)
+    if add_dll_directory is not None:
+        handles.append(add_dll_directory(str(artifact_dir)))
+
+    import vapoursynth as vs
+
+    policy = install_isolated_policy(vs)
+    try:
+        core = vs.core
+        core.std.LoadPlugin(str(plugin))
+        src = core.std.BlankClip(width=64, height=48, format=vs.YUV444P8, length=12, color=[96, 128, 128])
+        out = core.retinex.MSRCP(src)
+        frames = {number: out.get_frame(number) for number in (0, 3, 11)}
+        frame = frames[3]
+        hashes = {number: frame_hash(value) for number, value in frames.items()}
+        if len(set(hashes.values())) != 1:
+            raise RuntimeError(f"static Retinex input produced inconsistent frame hashes: {hashes}")
+        stats = dict(core.std.PlaneStats(out).get_frame(3).props)
+        invalid_input_rejected = False
+        try:
+            core.retinex.MSRCP(core.std.BlankClip(width=64, height=48, format=vs.YUV420P8, length=1))
+        except vs.Error:
+            invalid_input_rejected = True
+        if not invalid_input_rejected:
+            raise RuntimeError("MSRCP accepted unsupported subsampled YUV input")
+        result = {
+            "plugin": str(plugin),
+            "manifest": str(manifest),
+            "width": frame.width,
+            "height": frame.height,
+            "format": frame.format.name,
+            "frames": out.num_frames,
+            "frame_hashes": hashes,
+            "invalid_input_rejected": invalid_input_rejected,
+            "plane_stats_average": float(stats["PlaneStatsAverage"]),
+            "plane_stats_min": float(stats["PlaneStatsMin"]),
+            "plane_stats_max": float(stats["PlaneStatsMax"]),
+        }
+        print(json.dumps(result, indent=2, sort_keys=True) if args.json else "\n".join(f"{key}={value}" for key, value in result.items()))
+        return 0
+    finally:
+        for handle in handles:
+            handle.close()
+        if policy is not None:
+            policy.close()
+        if temp_dir is not None:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

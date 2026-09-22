@@ -26,7 +26,7 @@ MSRCP(Multi Scale Retinex with Chromaticity Preservation) is based on MSR. It ap
 
 As MSRCP preserves chromaticity, it is excellent for dynamic range compression and local contrast enhancement, while it doesn't eliminate color cast. To implement the full color constancy feature of Retinex, it is recommended to use MSRCR(Multi Scale Retinex with Color Restoration) instead.
 
-This function accept 8-16bit integer Gray/YUV/RGB/YCoCg input. Sub-sampled format is not supported. If you want to process YUV420/YUV422 clip, convert it to YUV444 or RGB first.
+This function accept 8-16bit integer Gray/YUV/RGB input. Sub-sampled format is not supported. If you want to process YUV420/YUV422 clip, convert it to YUV444 or RGB first.
 
 For processing in YUV444 and RGB, the filtering results are different. The intensity channel on which MSR is applied, is Y for YUV444 input and (R+G+B)/3 for RGB input. Since Y is a weighted average of R, G, B, processing in YUV444 may produce imbalanced chromaticity preservation. Also when chroma_protect is larger than 1 (default 1.2), the saturation of YUV444 processing result will be different from that of RGB processing result.
 
@@ -57,7 +57,7 @@ retinex.MSRCP(clip input, float[] sigma=[25,80,250], float lower_thr=0.001, floa
     Valid range is [0,1), and the sum of lower_thr and upper_thr should be less than 1.<br />
     Increase it if there are some extreme bright parts in the Retinex output which makes the whole image too dark.
 
-- fulls: (Default: True for RGB/YCoCg input, False for YUV/Gray input)<br />
+- fulls: (Default: True for RGB input, False for YUV/Gray input)<br />
     Determine the value range of input clip. True means full range/PC range, and False means limited range/TV range.
 
 - fulld: (Default: fulls)<br />
@@ -67,7 +67,7 @@ retinex.MSRCP(clip input, float[] sigma=[25,80,250], float lower_thr=0.001, floa
 - chroma_protect: (Default: 1.2)<br />
     The base of log function to attenuate chroma adjustment. It could avoid extreme chroma amplifying, while the saturation of the result is changed.<br />
     Available range is [1, +inf), 1 means no attenuation.<br />
-    It is only available for YUV/YCoCg input.
+    It is only available for YUV input.
 
 ### Example
 
@@ -167,3 +167,62 @@ i = core.retinex.MSRCR(i)
 meson build
 ninja -C build
 ```
+
+## Release Package Build
+
+The MSYS2/UCRT64 CI path builds a VapourSynth R77 API4 package directory:
+
+```text
+retinex/
+  manifest.vs
+  retinex.dll
+  libgcc_s_seh-1.dll
+  libstdc++-6.dll
+  libwinpthread-1.dll
+```
+
+Local reproduction from a prepared MSYS2/UCRT64 environment:
+
+```powershell
+python tools\ci_prepare_msys2.py
+python tools\ci_build_msys2.py --clean
+python tools\smoke_load_artifact.py --vapoursynth-root _deps\vapoursynth-wheel-R77 --artifact-dir dist\msys2-ucrt64 --exercise-filter
+python tools\smoke_load_artifact.py --vapoursynth-root _deps\vapoursynth-wheel-R77 --artifact-dir dist\msys2-ucrt64 --autoload --exercise-filter
+python tools\package_plugin_zip.py --input-dir dist\msys2-ucrt64 --output dist\retinex-msys2-ucrt64.zip
+```
+
+The Linux x86_64 release payload has the same top-level directory shape, using
+`retinex.so`. It is compiled in a manylinux2014 container and is published with
+a `manylinux_2_27_x86_64` wheel tag because VapourSynth R79 sets the effective
+runtime baseline. Retinex has no additional Linux runtime libraries.
+
+## pip / Git Install
+
+The Windows and Linux x86_64 release workflows build wheels that install the
+plugin under `site-packages/vapoursynth/plugins/retinex/`.
+
+After the matching GitHub Release assets are published, users can install from
+the repository with:
+
+```text
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-retinex
+```
+
+The package version is `4.1`, so the default source-install lookup expects the
+matching platform payload at tag `vapoursynth-retinex-v4.1`:
+
+```text
+Windows: https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-retinex-v4.1/retinex-msys2-ucrt64.zip
+Linux x86_64: https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-retinex-v4.1/retinex-linux-x86_64.zip
+```
+
+During a Windows or Linux x86_64 source install, `hatch_build.py` first tries
+to reuse the matching tested release zip. When an asset is unavailable on a
+supported platform, it executes a native build. Linux never runs the MSYS2
+preparation scripts. macOS, ARM, and other platforms are unsupported. The isolated PEP 517 build environment
+includes a VapourSynth R79-compatible SDK wheel and prepends its
+`vapoursynth/pkgconfig` directory to an existing `PKG_CONFIG_PATH`.
+
+For local testing or custom mirrors, set `RETINEX_PREBUILT_URL` to a release
+zip path or URL. Set `RETINEX_FORCE_BUILD=1` to skip the prebuilt asset and
+force a local build with a compatible SDK and toolchain.

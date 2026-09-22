@@ -14,9 +14,15 @@
 x64/
 x86/
 build/
+build-*/
+build-ci-*/
 bld/
 [Bb]in/
 [Oo]bj/
+_deps/
+dist/
+vapoursynth/
+verification*/
 
 # Roslyn cache directories
 *.ide/
