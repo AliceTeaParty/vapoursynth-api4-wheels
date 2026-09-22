@@ -20,7 +20,7 @@ from packaging import tags
 ROOT = Path(__file__).resolve().parent
 PLUGIN_NAME = "tcanny"
 UPSTREAM_DLL = "TCanny.dll"
-DEFAULT_REPOSITORY = "RyougiKukoc/VapourSynth-TCanny-vcs"
+DEFAULT_REPOSITORY = "AliceTeaParty/vapoursynth-api4-wheels"
 WINDOWS_PREBUILT_URL = (
     "https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny/"
     "releases/download/r14/TCanny-r14-win64.7z"
@@ -84,7 +84,7 @@ def _default_prebuilt_url(version: str) -> str:
     if sys.platform == "win32":
         return WINDOWS_PREBUILT_URL
     repository = os.environ.get("TCANNY_PREBUILT_REPOSITORY") or os.environ.get("GITHUB_REPOSITORY") or DEFAULT_REPOSITORY
-    tag = os.environ.get("TCANNY_PREBUILT_TAG") or f"v{version}"
+    tag = os.environ.get("TCANNY_PREBUILT_TAG") or f"vapoursynth-tcanny-v{version}"
     return f"https://github.com/{repository}/releases/download/{tag}/{LINUX_PREBUILT_ASSET}"
 
 

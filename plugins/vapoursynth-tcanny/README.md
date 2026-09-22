@@ -57,7 +57,9 @@ ninja -C build install
 This package installs a native plugin into VapourSynth's autoload directory:
 
 ```powershell
-pip install vapoursynth-tcanny
+pip install --extra-index-url `
+  https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ `
+  vapoursynth-tcanny
 ```
 
 On Windows x86_64, the wheel build preserves the established path: it downloads
@@ -82,4 +84,9 @@ The Linux Release wheel is tagged `manylinux_2_27_x86_64`, matching the
 VapourSynth R79 runtime baseline. This does not claim a lower end-to-end glibc
 floor than VapourSynth itself.
 
-The package-specific release tag is `vapoursynth-tcanny-v14.1`.
+The package-specific release tag is `vapoursynth-tcanny-v14.1`; Linux source
+installs therefore default to:
+
+```text
+https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-tcanny-v14.1/tcanny-linux-x86_64.zip
+```

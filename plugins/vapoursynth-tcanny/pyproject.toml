@@ -14,9 +14,9 @@ authors = [{ name = "TCanny contributors" }]
 dependencies = ["VapourSynth>=77"]
 
 [project.urls]
-"Source Code" = "https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny"
-"Packaging Fork" = "https://github.com/RyougiKukoc/VapourSynth-TCanny-vcs"
-"Upstream Releases" = "https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny/releases"
+"Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-tcanny"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-tcanny-v14.1"
+"Upstream" = "https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny"
 
 [tool.hatch.build.targets.sdist]
 include = [
