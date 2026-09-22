@@ -33,6 +33,7 @@ the project index is supplied with `--extra-index-url`.
 | [HomeOfVapourSynthEvolution/VapourSynth-Retinex](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex) | `vapoursynth-retinex` | `4.1` | Windows/Linux x86_64 | Published and verified |
 | [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` | `4.2` | Windows/Linux x86_64 | Published and verified |
 | [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | `vs-cfl` | `1.0.2` | Windows/Linux x86_64 | Migration prepared |
+| [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | `vapoursynth-tcanny` | `14.1` | Windows/Linux x86_64 | Published and verified |
 
 See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
 

@@ -1,0 +1,208 @@
+name: Build and publish TCanny
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows-x86_64:
+    name: Package Windows x86_64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install package tools and runtime
+        shell: powershell
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "VapourSynth==79" build hatchling packaging py7zr
+      - name: Build the Windows Release-backed wheel
+        shell: powershell
+        run: |
+          python -m build --wheel --outdir dist/wheels-win
+          $wheel = Get-ChildItem dist\wheels-win\*.whl | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $wheel) { throw 'TCanny Windows wheel was not produced' }
+          python -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall('dist/windows-wheel')" $wheel
+          New-Item -ItemType Directory -Force dist\windows-x86_64 | Out-Null
+          Move-Item dist\windows-wheel\vapoursynth\plugins\tcanny dist\windows-x86_64\tcanny
+      - name: Explicitly smoke test package output
+        shell: powershell
+        run: python tools\ci_smoke_package.py --artifact-dir dist\windows-x86_64\tcanny --json
+      - name: Create and smoke test Windows Release zip
+        shell: powershell
+        run: |
+          python tools\ci_make_release_assets.py --package-dir dist\windows-x86_64\tcanny --wheel-dir dist\wheels-win --out-dir dist\release-assets-win --zip-name tcanny-windows-x86_64.zip --clean
+          python tools\ci_smoke_package.py --artifact-zip dist\release-assets-win\tcanny-windows-x86_64.zip --json
+      - name: Smoke test installed Windows wheel autoload
+        shell: powershell
+        run: |
+          $wheel = Get-ChildItem dist\wheels-win\*.whl | Select-Object -First 1 -ExpandProperty FullName
+          python -m pip install --force-reinstall --no-deps $wheel
+          python tools\ci_smoke_installed_wheel.py --json
+      - name: Smoke test source install through established Windows payload
+        shell: powershell
+        run: |
+          python -m pip uninstall -y vapoursynth-tcanny
+          python -m pip install --force-reinstall --no-deps -v .
+          python tools\ci_smoke_installed_wheel.py --json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tcanny-release-assets-windows
+          path: dist/release-assets-win
+          if-no-files-found: error
+
+  linux-x86_64:
+    name: Build Linux x86_64 payload
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build against extracted R79 headers in manylinux
+        shell: bash
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" -w /workspace \
+            quay.io/pypa/manylinux2014_x86_64 bash -lc '
+              set -exo pipefail
+              py=/opt/python/cp312-cp312/bin/python
+              source /opt/rh/devtoolset-10/enable
+              set -u
+              export PATH="/opt/python/cp312-cp312/bin:$PATH"
+              "$py" -m pip install --upgrade pip
+              "$py" -m pip install build hatchling packaging meson ninja py7zr
+              mkdir -p _deps/vapoursynth-wheel dist/wheels-linux dist/linux-x86_64 /tmp/unrelated-pkgconfig
+              "$py" -m pip download --only-binary=:all: --no-deps \
+                --platform manylinux_2_27_x86_64 --implementation cp --python-version 312 --abi abi3 \
+                "VapourSynth==79" -d _deps/vapoursynth-wheel
+              unzip -q _deps/vapoursynth-wheel/*.whl -d _deps/vapoursynth-wheel/extracted
+              export TCANNY_VAPOURSYNTH_ROOT=/workspace/_deps/vapoursynth-wheel/extracted/vapoursynth
+              export PKG_CONFIG_PATH=/tmp/unrelated-pkgconfig
+              export TCANNY_FORCE_BUILD=1
+              export TCANNY_PLATFORM_TAG=manylinux_2_27_x86_64
+              "$py" -m build --wheel --no-isolation --skip-dependency-check --outdir dist/wheels-linux
+              wheel=$(find dist/wheels-linux -name "*.whl" -print -quit)
+              test -n "$wheel"
+              [[ "$wheel" == *manylinux_2_27_x86_64.whl ]]
+              unzip -q "$wheel" "vapoursynth/plugins/tcanny/*" -d dist/linux-x86_64/extracted
+              mv dist/linux-x86_64/extracted/vapoursynth/plugins/tcanny dist/linux-x86_64/tcanny
+              "$py" tools/ci_make_release_assets.py --package-dir dist/linux-x86_64/tcanny --wheel-dir dist/wheels-linux --out-dir dist/release-assets-linux --zip-name tcanny-linux-x86_64.zip --clean
+              if readelf --version-info dist/linux-x86_64/tcanny/tcanny.so | grep -Eq "GLIBC_(2\\.(1[89]|[2-9][0-9])|[3-9][0-9]*\\.)"; then
+                echo "TCanny exceeds the conservative GLIBC 2.17 plugin ABI ceiling"
+                exit 1
+              fi
+            '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tcanny-release-assets-linux
+          path: dist/release-assets-linux
+          if-no-files-found: error
+
+  linux-runtime-smoke:
+    name: Smoke Linux Release payload
+    needs: linux-x86_64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: tcanny-release-assets-linux
+          path: dist/release-assets-linux
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install R79 runtime
+        shell: bash
+        run: python -m pip install --upgrade pip "VapourSynth==79"
+      - name: Smoke installed Linux wheel autoload
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip install --force-reinstall --no-deps dist/release-assets-linux/*.whl
+          python tools/ci_smoke_installed_wheel.py --json
+      - name: Explicitly smoke test Linux Release zip
+        shell: bash
+        run: python tools/ci_smoke_package.py --artifact-zip dist/release-assets-linux/tcanny-linux-x86_64.zip --json
+      - name: Test isolated source install through the Linux Release asset
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip uninstall -y vapoursynth-tcanny
+          export TCANNY_PREBUILT_URL="$GITHUB_WORKSPACE/dist/release-assets-linux/tcanny-linux-x86_64.zip"
+          python -m pip install --force-reinstall --no-deps -v . 2>&1 | tee pip-release.log
+          grep -F 'TCanny wheel build: using prebuilt release asset' pip-release.log
+          python tools/ci_smoke_installed_wheel.py --json
+      - name: Test isolated source fallback with unrelated PKG_CONFIG_PATH
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m pip uninstall -y vapoursynth-tcanny
+          mkdir -p .ci-unrelated-pkgconfig
+          export TCANNY_FORCE_BUILD=1
+          export PKG_CONFIG_PATH="$GITHUB_WORKSPACE/.ci-unrelated-pkgconfig"
+          python -m pip install --force-reinstall --no-deps -v .
+          python tools/ci_smoke_installed_wheel.py --json
+
+  macos-fallback:
+    name: Smoke macOS native fallback
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install native build tools and R79 runtime
+        shell: bash
+        run: |
+          brew install meson ninja pkg-config
+          python -m pip install --upgrade pip "VapourSynth==79"
+      - name: Test ordinary no-asset source fallback
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .ci-unrelated-pkgconfig
+          export PKG_CONFIG_PATH="$GITHUB_WORKSPACE/.ci-unrelated-pkgconfig"
+          python -m pip install --force-reinstall --no-deps -v .
+          python tools/ci_smoke_installed_wheel.py --json
+
+  publish-release:
+    name: Publish and remotely smoke Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows-x86_64, linux-runtime-smoke, macos-fallback]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tcanny-release-assets-*
+          path: release-assets
+          merge-multiple: true
+      - name: Publish all verified assets once
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release-assets/* --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$GITHUB_REF_NAME" release-assets/* --title "$GITHUB_REF_NAME" --notes "Automated Release payload for $GITHUB_REF_NAME." --repo "$GITHUB_REPOSITORY"
+          fi
+      - name: Smoke fresh named remote VCS install from the published Linux asset
+        shell: bash
+        run: |
+          set -euxo pipefail
+          docker run --rm -e TCANNY_TAG="$GITHUB_REF_NAME" -v "$GITHUB_WORKSPACE:/workspace:ro" -w /workspace python:3.13-bookworm bash -lc '
+            set -euxo pipefail
+            apt-get update
+            apt-get install -y --no-install-recommends git
+            python -m pip install --upgrade pip "VapourSynth==79"
+            python -m pip install -v "vapoursynth-tcanny @ git+https://github.com/RyougiKukoc/VapourSynth-TCanny-vcs.git@${TCANNY_TAG}" 2>&1 | tee /tmp/pip-vcs.log
+            grep -F "TCanny wheel build: using prebuilt release asset" /tmp/pip-vcs.log
+            python tools/ci_smoke_installed_wheel.py --json
+          '
