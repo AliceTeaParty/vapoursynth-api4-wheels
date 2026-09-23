@@ -1,8 +1,8 @@
 # vapoursynth-dfttest2 migration record
 
 Status: the three intended distributions are published and verified on
-Windows and Linux x86_64. Cleanup of one mistakenly named intermediate
-Release is pending explicit deletion approval.
+Windows and Linux x86_64. One mistakenly named intermediate Release is now a
+draft and excluded from Pages; permanent deletion is pending explicit approval.
 
 ## Aligned revisions
 
@@ -52,6 +52,7 @@ inventories, and dispatch the Pages index.
 - `https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-dfttest2-cu129-v10.2`
 
 The intermediate `vapoursynth-dfttest2-generic-v10.2` Release and tag were
-created before the user corrected the intended CPU package name. They remain
-pending explicit approval for destructive cleanup and are not part of the
-supported mapping.
+created before the user corrected the intended CPU package name. The Release
+was changed to a reversible draft, and Pages run `35814057724` proved the
+generic project is no longer exposed. The draft and tag remain pending explicit
+approval for destructive cleanup and are not part of the supported mapping.

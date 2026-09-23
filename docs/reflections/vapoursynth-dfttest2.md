@@ -1,6 +1,7 @@
 # vapoursynth-dfttest2 reflection
 
-Status: verification complete; erroneous intermediate-name cleanup pending.
+Status: verification complete; erroneous intermediate Release isolated as a
+draft, with permanent cleanup pending.
 
 ## Provenance and packaging
 
@@ -50,6 +51,8 @@ Status: verification complete; erroneous intermediate-name cleanup pending.
 
 ## Pending cleanup
 
-The unsupported `vapoursynth-dfttest2-generic-v10.2` Release, remote tag, local
-tag, and Pages entry must be removed after explicit destructive-action approval.
-Only then should this reflection be added to the completed-reflections index.
+The unsupported `vapoursynth-dfttest2-generic-v10.2` Release is a draft and its
+Pages entry was removed by successful index run `35814057724`. The draft,
+remote tag, and local tag must be removed after explicit destructive-action
+approval. Only then should this reflection be added to the completed-reflections
+index.
