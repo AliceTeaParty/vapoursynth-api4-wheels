@@ -8,7 +8,7 @@ requires = [
 build-backend = "hatchling.build"
 
 [project]
-name = "vapoursynth-bm3dcuda"
+name = "vapoursynth-bm3dcpu"
 version = "2.16"
 description = "BM3D CPU and CUDA RTC plugins for VapourSynth"
 readme = "README.md"
@@ -19,8 +19,8 @@ authors = [{ name = "VapourSynth-BM3DCUDA contributors" }]
 dependencies = ["VapourSynth>=77"]
 
 [project.urls]
-"Source Code" = "https://github.com/RyougiKukoc/VapourSynth-BM3DCUDA-api4"
-"Releases" = "https://github.com/RyougiKukoc/VapourSynth-BM3DCUDA-api4/releases"
+"Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-bm3dcuda"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases"
 
 [tool.hatch.build.targets.sdist]
 include = [

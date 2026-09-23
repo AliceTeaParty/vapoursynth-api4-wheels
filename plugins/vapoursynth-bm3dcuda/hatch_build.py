@@ -18,9 +18,14 @@ from packaging import tags
 
 ROOT = Path(__file__).resolve().parent
 PLUGIN_PACKAGE = "bm3dcuda"
-DEFAULT_REPOSITORY = "RyougiKukoc/VapourSynth-BM3DCUDA-api4"
+DEFAULT_REPOSITORY = "AliceTeaParty/vapoursynth-api4-wheels"
 CUDA_VARIANTS = {"cu121", "cu129"}
 SUPPORTED_VARIANTS = {"cpu", *CUDA_VARIANTS}
+RELEASE_TAGS = {
+    "cpu": "vapoursynth-bm3dcpu-v2.16",
+    "cu121": "vapoursynth-bm3dcuda-cu121-v2.16",
+    "cu129": "vapoursynth-bm3dcuda-cu129-v2.16",
+}
 VARIANT_MARKER = ROOT / "bm3dcuda_variant.txt"
 
 
@@ -130,10 +135,14 @@ def _asset_name(variant: str) -> str:
 def _default_prebuilt_url(variant: str, *, component: str) -> str:
     repository = _default_repository()
     if component == "cpu":
-        tag = os.environ.get("BM3DCUDA_CPU_PREBUILT_TAG") or "cpu"
+        tag = os.environ.get("BM3DCUDA_CPU_PREBUILT_TAG") or RELEASE_TAGS["cpu"]
         asset = os.environ.get("BM3DCUDA_CPU_PREBUILT_ASSET_NAME") or _asset_name("cpu")
     else:
-        tag = os.environ.get("BM3DCUDA_CUDA_PREBUILT_TAG") or os.environ.get("BM3DCUDA_PREBUILT_TAG") or variant
+        tag = (
+            os.environ.get("BM3DCUDA_CUDA_PREBUILT_TAG")
+            or os.environ.get("BM3DCUDA_PREBUILT_TAG")
+            or RELEASE_TAGS[variant]
+        )
         asset = os.environ.get("BM3DCUDA_CUDA_PREBUILT_ASSET_NAME") or os.environ.get("BM3DCUDA_PREBUILT_ASSET_NAME") or _asset_name(variant)
     return f"https://github.com/{repository}/releases/download/{tag}/{asset}"
 

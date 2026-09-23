@@ -2,8 +2,8 @@
 
 Copyright© 2021 WolframRhodium
 
-BM3D denoising filter for VapourSynth API4. Every documented ref publishes a
-Release-backed VCS package on Windows and Linux x86_64.
+BM3D denoising filter for VapourSynth API4. This source is published from the
+AliceTeaParty API4 wheel index for Windows and Linux x86_64.
 
 Current package version: `2.16`.
 
@@ -20,34 +20,33 @@ backends.
 
 ## Published Variants
 
-The repository has three user-facing install tags:
+The repository publishes three user-facing distributions:
 
-| Tag | Intended user | Installed plugins | Release assets used |
+| Distribution | Intended user | Installed plugins | Release assets used |
 | --- | --- | --- | --- |
-| `cpu` | Machines without an NVIDIA GPU, or users who only want the CPU backend. | `bm3dcpu.dll` on Windows; `bm3dcpu.so` on Linux x86_64 | `cpu` release: `bm3dcuda-cpu-win64.zip` or `bm3dcuda-cpu-linux-x86_64.zip` |
-| `cu121` | NVIDIA users whose driver supports CUDA 12.1. | CPU and CUDA 12.1 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | Windows: `cpu` Release plus `cu121` `bm3dcuda-cu121-win64.zip`; Linux: complete `cu121` `bm3dcuda-cu121-linux-x86_64.zip` |
-| `cu129` | NVIDIA users whose driver supports CUDA 12.9. | CPU and CUDA 12.9 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | Windows: `cpu` Release plus `cu129` `bm3dcuda-cu129-win64.zip`; Linux: complete `cu129` `bm3dcuda-cu129-linux-x86_64.zip` |
+| `vapoursynth-bm3dcpu` | Machines without an NVIDIA GPU, or users who only want the CPU backend. | `bm3dcpu.dll` on Windows; `bm3dcpu.so` on Linux x86_64 | `vapoursynth-bm3dcpu-v2.16` release |
+| `vapoursynth-bm3dcuda-cu121` | NVIDIA users whose driver supports CUDA 12.1. | CPU and CUDA 12.1 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | `vapoursynth-bm3dcuda-cu121-v2.16` release |
+| `vapoursynth-bm3dcuda-cu129` | NVIDIA users whose driver supports CUDA 12.9. | CPU and CUDA 12.9 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | `vapoursynth-bm3dcuda-cu129-v2.16` release |
 
 The CUDA variants deliberately include the CPU backend as well, so scripts can
 use `core.bm3dcpu` and `core.bm3dcuda_rtc` from the same installation. Users
-without an NVIDIA GPU should install the `cpu` tag.
+without an NVIDIA GPU should install `vapoursynth-bm3dcpu`.
 
 ## Installation
 
-Install from an explicit tag. The default branch is not the user-facing
-installation target.
+Install from the project package index:
 
 ```powershell
-pip install "vapoursynth-bm3dcuda @ git+https://github.com/RyougiKukoc/VapourSynth-BM3DCUDA-api4.git@cpu"
-pip install "vapoursynth-bm3dcuda @ git+https://github.com/RyougiKukoc/VapourSynth-BM3DCUDA-api4.git@cu121"
-pip install "vapoursynth-bm3dcuda @ git+https://github.com/RyougiKukoc/VapourSynth-BM3DCUDA-api4.git@cu129"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcpu
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcuda-cu121
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcuda-cu129
 ```
 
-If you switch between variants, force a reinstall so pip replaces the existing
-wheel:
+The variants install the same native plugin filenames. Uninstall the current
+variant before switching:
 
 ```powershell
-pip install --force-reinstall "vapoursynth-bm3dcuda @ git+https://github.com/RyougiKukoc/VapourSynth-BM3DCUDA-api4.git@cu121"
+pip uninstall vapoursynth-bm3dcpu vapoursynth-bm3dcuda-cu121 vapoursynth-bm3dcuda-cu129
 ```
 
 The build hook downloads the matching GitHub Release asset and places the
