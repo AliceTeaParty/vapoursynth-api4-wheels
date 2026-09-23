@@ -142,19 +142,8 @@ jobs:
           fi
           gh release upload "$RELEASE_TAG" release-wheelhouse/* \
             --repo "$GITHUB_REPOSITORY" --clobber
-          python - <<'PY'
-          import hashlib, json, os, subprocess
-          from pathlib import Path
-
-          expected = json.loads(Path("release-wheelhouse/vs-mlrt-release-inventory.json").read_text())
-          remote = json.loads(subprocess.check_output([
-              "gh", "api", f"repos/{os.environ['GITHUB_REPOSITORY']}/releases/tags/{os.environ['RELEASE_TAG']}"
-          ]))
-          assets = {item["name"]: item for item in remote["assets"]}
-          for item in expected["wheels"]:
-              asset = assets.get(item["name"])
-              if asset is None or asset.get("digest") != "sha256:" + item["sha256"]:
-                  raise SystemExit(f"Remote release digest mismatch: {item['name']}")
-          print(f"Verified {len(expected['wheels'])} remote wheel digests")
-          PY
+          python plugins/vs-mlrt/tools/verify_release_assets.py \
+            --inventory release-wheelhouse/vs-mlrt-release-inventory.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --tag "$RELEASE_TAG"
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
