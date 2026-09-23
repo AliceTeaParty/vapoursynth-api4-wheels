@@ -26,3 +26,4 @@ Completed reflections:
 - [vs-cfl](vs-cfl.md)
 - [vapoursynth-misc](vapoursynth-misc.md)
 - [vapoursynth-fft3dfilter](vapoursynth-fft3dfilter.md)
+- [vapoursynth-bm3dcuda](vapoursynth-bm3dcuda.md)

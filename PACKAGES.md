@@ -21,9 +21,9 @@ a time.
 | `RyougiKukoc/vs-miscfilters-obsolete-vcs` | `vapoursynth-misc` | `2.1` |
 | `RyougiKukoc/VapourSynth-FFT3DFilter-vcs` | `vapoursynth-fft3dfilter` | `2.1` |
 | `RyougiKukoc/vs-cfl-vcs` | `vs-cfl` | `1.0.2` |
-| `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cpu`) | `vapoursynth-bm3dcpu` | Pending |
-| `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu121`) | `vapoursynth-bm3dcuda-cu121` | Pending |
-| `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu129`) | `vapoursynth-bm3dcuda-cu129` | Pending |
+| `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cpu`) | `vapoursynth-bm3dcpu` | `2.16` |
+| `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu121`) | `vapoursynth-bm3dcuda-cu121` | `2.16` |
+| `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu129`) | `vapoursynth-bm3dcuda-cu129` | `2.16` |
 | `RyougiKukoc/vs-dfttest2-api4` (`cpu`) | `vapoursynth-dfttest2-generic` | Pending |
 | `RyougiKukoc/vs-dfttest2-api4` (`cu121`) | `vapoursynth-dfttest2-cu121` | Pending |
 | `RyougiKukoc/vs-dfttest2-api4` (`cu129`) | `vapoursynth-dfttest2-cu129` | Pending |
