@@ -81,3 +81,19 @@ The next publication implementation must choose a user-facing install and
 uninstall model, keep every Release asset below 2 GiB, repair the CUDA overlay
 manifest/install behavior, publish all three distribution names, and repeat
 Pages-only WinPython and Linux GPU consumer tests.
+
+Commit `4f3494ee8f8e69d33c30f820bd7d08de0201c0d0` validated the handoff guards:
+
+- Windows generic run `35815812926` passed; both `TODO(publishing)` steps were
+  skipped.
+- Windows CUDA run `35815813121` again completed native compilation, custom
+  `trtexec`, payload assembly, inspection, and packaging for cu121 and cu129.
+  Both jobs stopped at the known staged-install 404, and all publication steps
+  were skipped.
+- Linux run `35815813204` passed generic completely and completed cu129 native
+  build plus staged verification before the known wheel-manifest failure. Its
+  cu121 matrix job was cancelled by fail-fast; run `35776373243` provides the
+  successful cu121 native-build evidence for the same source and packaging
+  implementation. All Linux publication and Pages steps were skipped.
+
+No vs-mlrt GitHub Release or release tag exists after this validation.
