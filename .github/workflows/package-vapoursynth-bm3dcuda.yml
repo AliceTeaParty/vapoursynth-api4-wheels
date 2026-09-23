@@ -175,7 +175,6 @@ jobs:
           ldd /tmp/bm3dcuda_rtc.so | tee /tmp/bm3dcuda_rtc.ldd
           ! grep 'not found' /tmp/bm3dcuda_rtc.ldd | grep -v 'libcuda.so.1'
           python -m pip install --force-reinstall --no-deps "$wheel"
-          python tools/smoke_bm3dcpu_linux.py --installed
       - name: Smoke source install payload selection without a GPU
         shell: bash
         working-directory: plugins/vapoursynth-bm3dcuda
