@@ -27,3 +27,4 @@ Completed reflections:
 - [vapoursynth-misc](vapoursynth-misc.md)
 - [vapoursynth-fft3dfilter](vapoursynth-fft3dfilter.md)
 - [vapoursynth-bm3dcuda](vapoursynth-bm3dcuda.md)
+- [vapoursynth-dfttest2](vapoursynth-dfttest2.md)

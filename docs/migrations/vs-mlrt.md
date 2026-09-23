@@ -1,7 +1,7 @@
 # vs-mlrt migration record
 
-Status: source and distribution split prepared; native payload publication is
-pending dedicated CUDA/generic CI verification.
+Status: API4 source and native payload builds are verified. Publication is an
+explicit handoff TODO; all vs-mlrt prereleases and release tags were removed.
 
 ## Alignment
 
@@ -29,8 +29,55 @@ MIGX sources, plus extensive runtime payload verification. This migration does
 not use `vsmlrt-api4-port` and does not copy any plugin changes from
 `vs-wheels`.
 
-## Remaining work
+## Native build evidence
 
-The payload workflows are large and CUDA-specific. They must be adapted and
-verified on Windows/Linux before publishing the three package releases and
-their Pages entries. No local compilation is performed in this worktree.
+The original complete-wheel layout passed all three main-branch workflows at
+`d68dba1fa39cd39394f5b250f5d796a1bbc29ae5`:
+
+- Windows generic: run `35765442197`
+- Windows CUDA 12.1/12.9 matrix: run `35765442225`
+- Linux generic/CUDA 12.1/CUDA 12.9 matrix: run `35765442370`
+
+Those runs compiled the native backends, assembled payloads, built wheels, and
+passed their staged install smoke. The cu121 tag runs `35771541586` (Windows)
+and `35771541531` (Linux) again completed native compilation and packaging;
+they failed only when uploading a monolithic wheel beyond GitHub's 2 GiB
+single-asset limit.
+
+Commit `bf4f35ffc89e4e8c185f1638af140b64a6270918` tried a compositional package
+layout. Its latest runs give a precise handoff boundary:
+
+- Windows generic run `35776373307` passed completely.
+- Windows CUDA run `35776373267` compiled `vstrt`, `vstrt_rtx`, and custom
+  `trtexec`, verified the helper executables, assembled, inspected, and
+  compressed both CUDA payloads. It then failed in the staged install check
+  because the source-install hook requested an unpublished asset and received
+  HTTP 404.
+- Linux run `35776373243` built and verified native payloads for generic,
+  cu121, and cu129. The cu121 compositional wheel was successfully built at
+  1,912,900,980 bytes and installed, then failed because the resulting
+  manifest still listed only `vsncnn` and `vsov`. The cu129 native payload was
+  also built and verified before its wheel job was cancelled by matrix failure.
+
+This evidence proves that compilation and native artifact assembly work. The
+remaining failures are distribution composition and publication semantics, not
+source compilation failures. No compilation was performed in the local
+WinPython or Docker consumer environments.
+
+## Publication handoff
+
+Publication is intentionally disabled and visibly labeled
+`TODO(publishing)` in:
+
+- `.github/workflows/package-vs-mlrt-windows-generic.yml`
+- `.github/workflows/package-vs-mlrt-windows-cuda.yml`
+- `.github/workflows/package-vs-mlrt-linux.yml`
+
+The disabled blocks cover GitHub Release upload, published-digest checks, and
+Pages dispatch. Native build, staged payload verification, wheel experiments,
+and Actions artifact upload remain enabled for the next agent.
+
+The next publication implementation must choose a user-facing install and
+uninstall model, keep every Release asset below 2 GiB, repair the CUDA overlay
+manifest/install behavior, publish all three distribution names, and repeat
+Pages-only WinPython and Linux GPU consumer tests.

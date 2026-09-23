@@ -1,5 +1,10 @@
 name: Package - vs-mlrt CUDA - Windows
 
+# cu121/cu129 native compilation, staging, compression, and artifact upload are
+# verified independently of publication. TODO(vs-mlrt-publishing): repair the
+# compositional wheel install smoke, choose the final asset layout, then
+# re-enable the disabled Release/digest/index steps below.
+
 on:
   push:
     branches: [main]
@@ -21,7 +26,7 @@ on:
           - cu121
           - cu129
       publish:
-        description: Upload payload to the matching GitHub Release
+        description: "TODO(publishing): disabled until the release strategy is finalized"
         type: boolean
         required: false
         default: false
@@ -573,8 +578,8 @@ jobs:
             plugins/vs-mlrt/dist/wheels/*.whl
           compression-level: 0
 
-      - name: Release payload
-        if: steps.select.outputs.should_build == 'true' && (startsWith(github.ref, 'refs/tags/vs-mlrt-') || (github.event_name == 'workflow_dispatch' && inputs.publish))
+      - name: TODO(publishing) - Release CUDA payload
+        if: ${{ false }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
@@ -586,8 +591,8 @@ jobs:
           generate_release_notes: false
           prerelease: true
 
-      - name: Verify published payload digests
-        if: steps.select.outputs.should_build == 'true' && (startsWith(github.ref, 'refs/tags/vs-mlrt-') || (github.event_name == 'workflow_dispatch' && inputs.publish))
+      - name: TODO(publishing) - Verify published payload digests and refresh index
+        if: ${{ false }}
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}

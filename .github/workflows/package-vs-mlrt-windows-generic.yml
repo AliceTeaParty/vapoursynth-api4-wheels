@@ -1,5 +1,9 @@
 name: Package - vs-mlrt-generic - Windows
 
+# Native compilation, staging, wheel smoke, and artifact upload are verified.
+# TODO(vs-mlrt-publishing): re-enable the disabled Release/digest/index steps
+# only after the replacement publication strategy is selected and validated.
+
 on:
   push:
     branches: [main]
@@ -11,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Upload payload to the generic GitHub Release
+        description: "TODO(publishing): disabled until the release strategy is finalized"
         type: boolean
         required: false
         default: false
@@ -326,8 +330,8 @@ jobs:
             plugins/vs-mlrt/dist/wheels/*.whl
           compression-level: 0
 
-      - name: Release generic payload
-        if: startsWith(github.ref, 'refs/tags/vs-mlrt-generic-v') || (github.event_name == 'workflow_dispatch' && inputs.publish)
+      - name: TODO(publishing) - Release generic payload
+        if: ${{ false }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
@@ -340,8 +344,8 @@ jobs:
           generate_release_notes: false
           prerelease: true
 
-      - name: Verify published payload digests
-        if: startsWith(github.ref, 'refs/tags/vs-mlrt-generic-v') || (github.event_name == 'workflow_dispatch' && inputs.publish)
+      - name: TODO(publishing) - Verify published payload digests and refresh index
+        if: ${{ false }}
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}

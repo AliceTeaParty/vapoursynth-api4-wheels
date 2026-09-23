@@ -1,7 +1,6 @@
 # vapoursynth-dfttest2 reflection
 
-Status: verification complete; erroneous intermediate Release isolated as a
-draft, with permanent cleanup pending.
+Completed: 2026-09-23
 
 ## Provenance and packaging
 
@@ -49,10 +48,9 @@ draft, with permanent cleanup pending.
 5. Run GPU consumer smoke from outside the source checkout so `import dfttest2`
    proves the helper came from the installed wheel rather than the working tree.
 
-## Pending cleanup
+## Cleanup result
 
-The unsupported `vapoursynth-dfttest2-generic-v10.2` Release is a draft and its
-Pages entry was removed by successful index run `35814057724`. The draft,
-remote tag, and local tag must be removed after explicit destructive-action
-approval. Only then should this reflection be added to the completed-reflections
-index.
+The unsupported `vapoursynth-dfttest2-generic-v10.2` Release was changed to a
+draft and its Pages entry was removed by successful index run `35814057724`.
+After explicit approval, the draft and its remote/local tags were permanently
+deleted. Only the intended CPU, cu121, and cu129 names remain public.

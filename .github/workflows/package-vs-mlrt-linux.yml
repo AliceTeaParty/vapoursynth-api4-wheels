@@ -1,4 +1,9 @@
 name: Package - vs-mlrt variants - Linux
+
+# generic/cu121/cu129 native compilation, staging, and payload verification are
+# verified independently of publication. TODO(vs-mlrt-publishing): repair the
+# compositional CUDA wheel manifest/install smoke, choose the final asset
+# layout, then re-enable the disabled Release and Pages steps below.
 on:
   push:
     branches: [main]
@@ -14,6 +19,7 @@ on:
         type: choice
         options: [generic, cu121, cu129]
       publish:
+        description: "TODO(publishing): disabled until the release strategy is finalized"
         required: false
         default: false
         type: boolean
@@ -200,8 +206,8 @@ jobs:
             plugins/vs-mlrt/dist/wheels/*.whl
           compression-level: 0
 
-      - name: Publish Linux assets
-        if: steps.select.outputs.build == 'true' && (startsWith(github.ref, 'refs/tags/vs-mlrt-') || (github.event_name == 'workflow_dispatch' && inputs.publish))
+      - name: TODO(publishing) - Publish Linux assets
+        if: ${{ false }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
@@ -211,8 +217,8 @@ jobs:
             plugins/vs-mlrt/dist/wheels/*.whl
           prerelease: true
 
-      - name: Trigger package index
-        if: steps.select.outputs.build == 'true' && startsWith(github.ref, 'refs/tags/vs-mlrt-')
+      - name: TODO(publishing) - Trigger package index
+        if: ${{ false }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

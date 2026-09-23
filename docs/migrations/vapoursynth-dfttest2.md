@@ -1,8 +1,8 @@
 # vapoursynth-dfttest2 migration record
 
 Status: the three intended distributions are published and verified on
-Windows and Linux x86_64. One mistakenly named intermediate Release is now a
-draft and excluded from Pages; permanent deletion is pending explicit approval.
+Windows and Linux x86_64. The mistakenly named intermediate Release and tag
+were deleted, and the package remains absent from Pages.
 
 ## Aligned revisions
 
@@ -53,6 +53,6 @@ inventories, and dispatch the Pages index.
 
 The intermediate `vapoursynth-dfttest2-generic-v10.2` Release and tag were
 created before the user corrected the intended CPU package name. The Release
-was changed to a reversible draft, and Pages run `35814057724` proved the
-generic project is no longer exposed. The draft and tag remain pending explicit
-approval for destructive cleanup and are not part of the supported mapping.
+was first changed to a reversible draft; Pages run `35814057724` proved the
+generic project was no longer exposed. After explicit approval, the draft and
+its remote/local tags were permanently deleted.
