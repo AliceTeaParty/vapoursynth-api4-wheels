@@ -24,7 +24,7 @@ a time.
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cpu`) | `vapoursynth-bm3dcpu` | `2.16` |
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu121`) | `vapoursynth-bm3dcuda-cu121` | `2.16` |
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu129`) | `vapoursynth-bm3dcuda-cu129` | `2.16` |
-| `RyougiKukoc/vs-dfttest2-api4` (`cpu`) | `vapoursynth-dfttest2-generic` | Pending |
+| `RyougiKukoc/vs-dfttest2-api4` (`cpu`) | `vapoursynth-dfttest2-cpu` | Pending |
 | `RyougiKukoc/vs-dfttest2-api4` (`cu121`) | `vapoursynth-dfttest2-cu121` | Pending |
 | `RyougiKukoc/vs-dfttest2-api4` (`cu129`) | `vapoursynth-dfttest2-cu129` | Pending |
 | `RyougiKukoc/vs-mlrt-api4` (`generic`) | `vs-mlrt-generic` | `16.2.2` |

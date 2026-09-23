@@ -10,12 +10,12 @@ repository, but they are not part of the default Windows package.
 Install the matching Windows or Linux x86_64 wheel from the project index:
 
 ```powershell
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-generic
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-cpu
 pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-cu121
 pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-cu129
 ```
 
-`vapoursynth-dfttest2-generic` installs only the CPU plugin. The `cu121`
+`vapoursynth-dfttest2-cpu` installs only the CPU plugin. The `cu121`
 distribution installs the CPU plugin plus CUDA
 12.1 builds of the NVRTC and cuFFT backends. `cu129` does the same with CUDA
 12.9. Linux CUDA packages include the matching cuFFT/cudart runtime beside the

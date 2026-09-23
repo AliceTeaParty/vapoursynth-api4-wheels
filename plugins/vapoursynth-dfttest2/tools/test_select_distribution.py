@@ -12,7 +12,7 @@ class SelectDistributionTests(unittest.TestCase):
         self.assertEqual(
             select_distribution.PACKAGES,
             {
-                "cpu": "vapoursynth-dfttest2-generic",
+                "cpu": "vapoursynth-dfttest2-cpu",
                 "cu121": "vapoursynth-dfttest2-cu121",
                 "cu129": "vapoursynth-dfttest2-cu129",
             },
@@ -22,7 +22,7 @@ class SelectDistributionTests(unittest.TestCase):
         with TemporaryDirectory() as temp_dir:
             pyproject = Path(temp_dir) / "pyproject.toml"
             marker = Path(temp_dir) / "variant"
-            pyproject.write_text('[project]\nname = "vapoursynth-dfttest2-generic"\n', encoding="utf-8")
+            pyproject.write_text('[project]\nname = "vapoursynth-dfttest2-cpu"\n', encoding="utf-8")
             result = select_distribution.select_distribution(
                 "cu121", pyproject=pyproject, variant_marker=marker
             )

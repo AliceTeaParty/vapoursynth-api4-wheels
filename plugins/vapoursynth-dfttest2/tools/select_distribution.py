@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT = ROOT / "pyproject.toml"
 VARIANT_MARKER = ROOT / ".dfttest2-variant"
 PACKAGES = {
-    "cpu": "vapoursynth-dfttest2-generic",
+    "cpu": "vapoursynth-dfttest2-cpu",
     "cu121": "vapoursynth-dfttest2-cu121",
     "cu129": "vapoursynth-dfttest2-cu129",
 }

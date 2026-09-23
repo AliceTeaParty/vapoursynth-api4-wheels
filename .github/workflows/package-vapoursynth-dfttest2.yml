@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     tags:
-      - "vapoursynth-dfttest2-generic-v*"
+      - "vapoursynth-dfttest2-cpu-v*"
       - "vapoursynth-dfttest2-cu121-v*"
       - "vapoursynth-dfttest2-cu129-v*"
     paths:
@@ -166,7 +166,7 @@ jobs:
         env:
           DFTTEST2_PREBUILT_URL: ${{ github.workspace }}\plugins\vapoursynth-dfttest2\dist\dfttest2-${{ matrix.variant }}-win64.zip
         run: |
-          "%pythonLocation%\python.exe" -m pip uninstall -y vapoursynth-dfttest2 vapoursynth-dfttest2-generic vapoursynth-dfttest2-cu121 vapoursynth-dfttest2-cu129
+          "%pythonLocation%\python.exe" -m pip uninstall -y vapoursynth-dfttest2 vapoursynth-dfttest2-cpu vapoursynth-dfttest2-generic vapoursynth-dfttest2-cu121 vapoursynth-dfttest2-cu129
           "%pythonLocation%\python.exe" -m pip install --force-reinstall --no-deps --no-build-isolation -v .
           "%pythonLocation%\python.exe" tools\smoke_installed_wheel.py --exercise-cpu-filter
       - name: Upload package directory
@@ -329,7 +329,7 @@ jobs:
         run: |
           set -euxo pipefail
           case "$GITHUB_REF_NAME" in
-            vapoursynth-dfttest2-generic-v*) variant=cpu ;;
+            vapoursynth-dfttest2-cpu-v*) variant=cpu ;;
             vapoursynth-dfttest2-cu121-v*) variant=cu121 ;;
             vapoursynth-dfttest2-cu129-v*) variant=cu129 ;;
             *) exit 1 ;;
