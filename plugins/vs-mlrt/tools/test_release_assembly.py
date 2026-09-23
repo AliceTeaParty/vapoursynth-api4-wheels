@@ -81,6 +81,13 @@ class ReleaseAssemblyTests(unittest.TestCase):
         )
         for wheel in ("vs_mlrt_models", "vs_mlrt_generic", "vs_mlrt_cu121", "vs_mlrt_cu129"):
             self.assertIn(f"'{wheel}-*-any.whl'", workflow)
+        for wheel, platform_tag in (
+            ("vs_ncnn", "win_amd64"),
+            ("vs_ov", "win_amd64"),
+            ("vs_ncnn", "manylinux_*"),
+            ("vs_ov", "manylinux_*"),
+        ):
+            self.assertIn(f"'{wheel}-*-{platform_tag}.whl'", workflow)
 
 
 if __name__ == "__main__":

@@ -15,8 +15,11 @@ had selected a canonical copy only for the generic build. The assembler
 correctly rejected the differing `vs_mlrt_cu121-16.2.2-py3-none-any.whl`
 files instead of silently choosing one. The remaining gates are a corrected
 finalizer run, atomic draft release upload, published digest verification, and
-Pages-index consumer installs. Publication remains disabled until those
-remote gates pass.
+Pages-index consumer installs. A second `publish=false` run (`35871122166`)
+proved the four platform-independent selections worked, then exposed the same
+ownership requirement for the generic native `vs-ncnn` and `vs-ov` wheels
+rebuilt by each CUDA variant. Publication remains disabled until all remote
+gates pass.
 
 ## 1. Scope and fixed baseline
 
@@ -353,6 +356,13 @@ It must still validate every original artifact against all six component
 inventories. A same-name wheel conflict without an explicitly selected
 authoritative shared copy is a hard failure; filename-order or first-seen
 deduplication is forbidden.
+
+`vs-ncnn` and `vs-ov` are shared by all three dependency closures but remain
+platform-specific native wheels. The finalizer must select the Windows generic
+build and Linux generic build as their authoritative copies for the respective
+platform. CUDA variant builds may rebuild these wheels for their isolated
+installation smoke tests, but those duplicate outputs are evidence checked by
+their inventories, not additional release assets.
 
 Build and verify in this order:
 
