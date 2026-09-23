@@ -29,7 +29,12 @@ must instead be queried through `gh release view --json assets`; the existing
 draft remained private until all 34 remote digests were verified. That audit
 passed, `vs-mlrt-v16.2.2` was published on 2026-09-23, and Pages index run
 `35881526259` deployed the three entry projects successfully from `main`.
-Published-index consumer installs remain the final release gate.
+The first published-index consumer run (`35883332207`) passed install,
+layout, complete uninstall, and reinstall for all three Windows entries. All
+three Linux installs also resolved successfully, but the workflow invoked the
+Windows-only verifier and therefore looked for `.dll` files on Linux. The
+consumer workflow must select `smoke_linux_vcs_install.py` on Linux before the
+final gate is repeated.
 
 ## 1. Scope and fixed baseline
 

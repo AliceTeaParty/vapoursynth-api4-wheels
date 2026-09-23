@@ -42,11 +42,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          args=(--variant "${{ matrix.variant }}" --distribution "vs-mlrt-${{ matrix.variant }}")
-          if [[ "${{ matrix.variant }}" != generic ]]; then
-            args+=(--layout-only)
+          if [[ "${{ runner.os }}" == Linux ]]; then
+            python plugins/vs-mlrt/tools/smoke_linux_vcs_install.py \
+              --variant "${{ matrix.variant }}"
+          else
+            args=(--variant "${{ matrix.variant }}" --distribution "vs-mlrt-${{ matrix.variant }}")
+            if [[ "${{ matrix.variant }}" != generic ]]; then
+              args+=(--layout-only)
+            fi
+            python plugins/vs-mlrt/tools/smoke_vcs_extras_install.py "${args[@]}"
           fi
-          python plugins/vs-mlrt/tools/smoke_vcs_extras_install.py "${args[@]}"
 
       - name: Verify complete uninstall and reinstall eligibility
         shell: bash
@@ -61,7 +66,12 @@ jobs:
           python -m pip install \
             --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ \
             "vs-mlrt-${{ matrix.variant }}==${{ inputs.version }}"
-          python plugins/vs-mlrt/tools/smoke_vcs_extras_install.py \
-            --variant "${{ matrix.variant }}" \
-            --distribution "vs-mlrt-${{ matrix.variant }}" \
-            --layout-only
+          if [[ "${{ runner.os }}" == Linux ]]; then
+            python plugins/vs-mlrt/tools/smoke_linux_vcs_install.py \
+              --variant "${{ matrix.variant }}"
+          else
+            python plugins/vs-mlrt/tools/smoke_vcs_extras_install.py \
+              --variant "${{ matrix.variant }}" \
+              --distribution "vs-mlrt-${{ matrix.variant }}" \
+              --layout-only
+          fi

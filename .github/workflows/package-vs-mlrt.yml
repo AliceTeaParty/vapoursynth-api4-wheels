@@ -10,6 +10,7 @@ on:
       - '!plugins/vs-mlrt/tools/test_release_assembly.py'
       - '!plugins/vs-mlrt/tools/test_release_assets.py'
       - .github/workflows/package-vs-mlrt.yml
+      - .github/workflows/quality-vs-mlrt-published.yml
 
 permissions:
   contents: read
