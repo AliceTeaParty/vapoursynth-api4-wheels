@@ -35,9 +35,10 @@ WINDOWS_BUILDER_RESOURCE_MARKER = "builder_resource_win"
 # - OpenVINO frontends other than ONNX: Windows ships only the ONNX frontend,
 #   and every OV library here reads ONNX models.
 # - TensorRT's ``_win_`` builder resources: build engines for a Windows target.
-# ``libnvJitLink`` and ``libnvvm`` are deliberately absent: ``libnvinfer``
-# names both, so TensorRT loads them while building engines. ``libtbbbind`` and
-# ``libtbbmalloc`` stay too: ``libtbb`` names them and they cost 0.5 MB.
+# The CUDA runtime allowlist below is authoritative. Model-matrix testing
+# removed NVRTC, NVVM, NVJitLink, cuFFT, nvBLAS, and cudart from both CUDA
+# lines; cu129 also removes cuBLAS and cuDNN. TBB allocator/binding libraries
+# remain because OpenVINO's TBB runtime names them.
 UNUSED_RUNTIME_MARKERS = (
     ".alt.",
     "libnvparsers",
@@ -153,6 +154,10 @@ def copy_runtime_family(
                     shutil.copy2(source.resolve(), destination)
 
 
+def runtime_directories(stage: Path) -> list[Path]:
+    return [directory for directory in (stage, stage / "vsmlrt-cuda") if directory.is_dir()]
+
+
 def write_elf_soname_aliases(stage: Path) -> None:
     """Stage exactly one file per library, under the name its dependents request.
 
@@ -173,30 +178,30 @@ def write_elf_soname_aliases(stage: Path) -> None:
     sm86`` -- and TensorRT opens them as ``<stem>.so.<major>``, so those fall
     back to the file-name rule.
     """
-    for library in sorted(stage.glob("*.so.*")):
-        match = re.match(r"(?P<stem>.+\.so)\.(?P<major>\d+)(?:\..+)?$", library.name)
-        if not match:
-            continue
-        if "builder_resource" in library.name:
-            # TensorRT's dispatch loader asks for the fully versioned name
-            # (libLoader.cpp opens libnvinfer_builder_resource_sm86.so.11.1.0),
-            # so these keep the name the SDK ships. Only the alias this function
-            # would have created is dropped, which is what removes the duplicate.
-            continue
-        fallback = f"{match.group('stem')}.{match.group('major')}"
-        soname = elf_dynamic_names(library)[0]
-        alias = stage / (soname if soname and soname.startswith(f"{match.group('stem')}.") else fallback)
-        if alias == library:
-            continue
-        if not alias.exists():
-            library.rename(alias)
-            continue
-        if os.path.samefile(alias, library) or same_contents(alias, library):
-            library.unlink()
-            continue
-        raise RuntimeError(
-            f"Staged Linux payload has two different libraries for one SONAME: {alias.name} and {library.name}"
-        )
+    for directory in runtime_directories(stage):
+        for library in sorted(directory.glob("*.so.*")):
+            match = re.match(r"(?P<stem>.+\.so)\.(?P<major>\d+)(?:\..+)?$", library.name)
+            if not match:
+                continue
+            if "builder_resource" in library.name:
+                # TensorRT's dispatch loader asks for the fully versioned name
+                # (libLoader.cpp opens libnvinfer_builder_resource_sm86.so.11.1.0),
+                # so these keep the name the SDK ships.
+                continue
+            fallback = f"{match.group('stem')}.{match.group('major')}"
+            soname = elf_dynamic_names(library)[0]
+            alias = directory / (soname if soname and soname.startswith(f"{match.group('stem')}.") else fallback)
+            if alias == library:
+                continue
+            if not alias.exists():
+                library.rename(alias)
+                continue
+            if os.path.samefile(alias, library) or same_contents(alias, library):
+                library.unlink()
+                continue
+            raise RuntimeError(
+                f"Staged Linux payload has two different libraries for one SONAME: {alias.name} and {library.name}"
+            )
 
 
 def same_contents(first: Path, second: Path) -> bool:
@@ -275,15 +280,34 @@ def write_origin_runpaths(stage: Path) -> None:
     """
     patchelf = shutil.which("patchelf")
     if patchelf is None:
-        print("vs-mlrt: patchelf is unavailable; staged libraries keep the SDK search paths", file=sys.stderr)
-        return
+        raise RuntimeError("patchelf is required to make the Linux wheel self-contained")
+
+    def normalize(path: Path, rpath: str) -> None:
+        subprocess.run([patchelf, "--set-rpath", rpath, str(path)], check=True)
+        # TensorRT 8.6's builder resource requests an executable stack even
+        # though it does not require one. Hardened runtimes refuse to load it.
+        subprocess.run([patchelf, "--clear-execstack", str(path)], check=True)
+        check = subprocess.run(
+            [patchelf, "--print-execstack", str(path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        if "X" in check.stdout:
+            raise RuntimeError(f"Staged ELF still requests an executable stack: {path}")
+
     for library in sorted(stage.glob("*.so*")):
         if library.is_symlink():
             continue
-        subprocess.run([patchelf, "--set-rpath", "$ORIGIN", str(library)], check=True)
-    for helper in sorted((stage / "vsmlrt-cuda").glob("*")):
-        if helper.is_file() and os.access(helper, os.X_OK):
-            subprocess.run([patchelf, "--set-rpath", "$ORIGIN:$ORIGIN/..", str(helper)], check=True)
+        rpath = "$ORIGIN:$ORIGIN/vsmlrt-cuda" if library.name in {"vstrt.so", "vstrt_rtx.so"} else "$ORIGIN"
+        normalize(library, rpath)
+    for library in sorted((stage / "vsmlrt-cuda").glob("*.so*")):
+        if not library.is_symlink():
+            normalize(library, "$ORIGIN")
+    for name in ("trtexec", "tensorrt_rtx"):
+        helper = stage / "vsmlrt-cuda" / name
+        if helper.is_file():
+            normalize(helper, "$ORIGIN:$ORIGIN/..")
 
 
 def verify_elf_dependencies(stage: Path) -> None:
@@ -292,13 +316,14 @@ def verify_elf_dependencies(stage: Path) -> None:
     Names alone are not evidence: the OpenVINO payload looked complete while
     every dependent asked for ``libopenvino.so.2460`` and no such file existed.
     """
-    staged = {path.name for path in stage.iterdir() if path.is_file()}
+    staged = {path.name for directory in runtime_directories(stage) for path in directory.iterdir() if path.is_file()}
     missing: dict[str, list[str]] = {}
-    for library in sorted(stage.glob("*.so*")):
-        for needed in elf_dynamic_names(library)[1]:
-            if needed in staged or needed in HOST_LIBRARY_NAMES:
-                continue
-            missing.setdefault(needed, []).append(library.name)
+    for directory in runtime_directories(stage):
+        for library in sorted(directory.glob("*.so*")):
+            for needed in elf_dynamic_names(library)[1]:
+                if needed in staged or needed in HOST_LIBRARY_NAMES:
+                    continue
+                missing.setdefault(needed, []).append(library.name)
     if missing:
         detail = "; ".join(f"{name} (needed by {', '.join(sorted(set(users)))})" for name, users in sorted(missing.items()))
         raise RuntimeError(f"Staged Linux payload has unresolved ELF dependencies: {detail}")
@@ -315,17 +340,26 @@ def copy_runtime(stage: Path, roots: list[Path], variant: str) -> None:
             exclude_markers=UNUSED_RUNTIME_MARKERS,
         )
     else:
+        destination = stage / "vsmlrt-cuda"
+        destination.mkdir(parents=True, exist_ok=True)
+        prefixes = (
+            ("libnvinfer", "libnvonnxparser", "libcudnn", "libcublas")
+            if variant == "cu121"
+            else ("libnvinfer", "libnvonnxparser", "libtensorrt_rtx", "libtensorrt_onnxparser_rtx")
+        )
         copy_runtime_family(
-            stage,
+            destination,
             roots,
-            ("libnvinfer", "libnvonnxparser", "libcudnn", "libcublas", "libcudart", "libcufft", "libnvblas", "libnvrtc", "libnvvm", "libnvJitLink", "libtensorrt_rtx", "libtensorrt_onnxparser_rtx"),
+            prefixes,
             exclude_markers=("builder_resource", *UNUSED_RUNTIME_MARKERS),
         )
 
 
 def copy_builder_resources(stage: Path, roots: list[Path]) -> None:
+    destination = stage / "vsmlrt-cuda"
+    destination.mkdir(parents=True, exist_ok=True)
     copy_runtime_family(
-        stage,
+        destination,
         roots,
         ("libnvinfer_builder_resource",),
         exclude_markers=(WINDOWS_BUILDER_RESOURCE_MARKER,),

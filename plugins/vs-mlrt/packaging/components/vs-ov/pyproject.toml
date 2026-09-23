@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vs-ov"
+version = "16.2.2"
+requires-python = ">=3.12"
+description = "OpenVINO backend and runtime for vs-mlrt"
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+
+[tool.hatch.build.hooks.custom]
+path = "../component_hook.py"

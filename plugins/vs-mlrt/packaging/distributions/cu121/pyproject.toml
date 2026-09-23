@@ -8,7 +8,24 @@ version = "16.2.2"
 description = "VapourSynth ML runtime tools with CUDA 12.1 backends"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
-dependencies = ["vs-mlrt-generic==16.2.2"]
+dependencies = [
+  "vapoursynth>=75",
+  "numpy",
+  "onnx",
+  "onnxconverter-common",
+  "vs-mlrt-models==16.2.2",
+  "vs-ov==16.2.2",
+  "vs-ncnn==16.2.2",
+  "vs-cublas-cu121==16.2.2",
+  "vs-cudnn-cu121==16.2.2",
+  "vs-tensorrt-core-cu121==16.2.2",
+  "vs-tensorrt-builder-cu121==16.2.2",
+  "vs-trtexec-cu121==16.2.2",
+  "vs-trt-cu121==16.2.2",
+]
+
+[project.scripts]
+rm_vsmlrt = "rm_vsmlrt.cli:console_main"
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-mlrt"

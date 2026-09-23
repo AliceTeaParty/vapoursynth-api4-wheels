@@ -1,7 +1,9 @@
 # vs-mlrt migration record
 
-Status: API4 source and native payload builds are verified. Publication is an
-explicit handoff TODO; all vs-mlrt prereleases and release tags were removed.
+Status: API4 source builds and the split component-wheel architecture are
+verified locally on Windows and Linux. Publication remains disabled until the
+updated GitHub workflows pass; all old prereleases and release tags remain
+removed.
 
 ## Alignment
 
@@ -11,9 +13,9 @@ explicit handoff TODO; all vs-mlrt prereleases and release tags were removed.
 - Fork patch: 114 commits compressed into one subtree patch commit
 - Source package version: `16.2.2`
 
-The three variant branches share the same source and differ only in
-`packaging/payload-tag.txt` plus the selected release payload. The combined
-repository exposes them as three distribution names:
+The old variant branches supplied the verified native build recipes. The
+combined repository now exposes three entry distributions backed by shared,
+exact-version component wheels:
 
 - `vs-mlrt-generic`
 - `vs-mlrt-cu121`
@@ -21,6 +23,31 @@ repository exposes them as three distribution names:
 
 CUDA compatibility is therefore represented by package name, never by a
 version suffix or a mutable branch ref in the user-facing install command.
+
+## Split wheel implementation
+
+The old monolithic/numbered-volume wheel experiment has been replaced by
+semantic components. Entry wheels directly depend on generic, model, TRT,
+builder, and plugin components and no longer depend on another entry wheel.
+Component file ownership is disjoint within each entry closure.
+
+Windows and Linux now use the same `vsmlrt-cuda/` support directory. Linux
+`vstrt.so` and `vstrt_rtx.so` encode
+`$ORIGIN:$ORIGIN/vsmlrt-cuda` in their CMake build/install RUNPATH; NVIDIA
+prebuilt ELF files are normalized during packaging. The layout passed real
+standard TRT and RTX engine builds and frame inference in `vpy:cu129` without
+`LD_LIBRARY_PATH` or a system TensorRT fallback.
+
+The cu129 closure no longer ships cudart, cuBLAS, cuDNN, cuFFT, nvBLAS, NVRTC,
+NVVM, or NVJitLink. The retained libraries built every one of the 14 distinct
+operator/input groups derived from the 81 bundled models. cu121 retains
+cuBLAS/cuBLASLt and cuDNN 8 because TensorRT 8.6's plugin directly imports
+them.
+
+Every entry wheel provides `python -m rm_vsmlrt` and `rm_vsmlrt`. A real Linux
+cu129 split installation test removed all 11 distributions, the shared plugin
+directory, models, and an untracked generated engine while preserving an
+unrelated plugin.
 
 ## API4 classification
 
@@ -66,21 +93,18 @@ WinPython or Docker consumer environments.
 
 ## Publication handoff
 
-Publication is intentionally disabled and visibly labeled
-`TODO(publishing)` in:
+Platform workflows now build and upload split-wheel artifacts but never modify
+a GitHub Release. The manual `package-vs-mlrt-finalize.yml` workflow is the
+only publication owner. It accepts the three successful platform run IDs,
+selects the generic jobs' shared wheels as authoritative, merges duplicate
+pure wheels only when their logical members match, verifies both platform
+closures and SHA-256 inventories, and emits one 34-wheel release artifact.
 
-- `.github/workflows/package-vs-mlrt-windows-generic.yml`
-- `.github/workflows/package-vs-mlrt-windows-cuda.yml`
-- `.github/workflows/package-vs-mlrt-linux.yml`
-
-The disabled blocks cover GitHub Release upload, published-digest checks, and
-Pages dispatch. Native build, staged payload verification, wheel experiments,
-and Actions artifact upload remain enabled for the next agent.
-
-The next publication implementation must choose a user-facing install and
-uninstall model, keep every Release asset below 2 GiB, repair the CUDA overlay
-manifest/install behavior, publish all three distribution names, and repeat
-Pages-only WinPython and Linux GPU consumer tests.
+Only an explicit `publish=true` finalizer run creates and publishes the atomic
+`vs-mlrt-v16.2.2` release. It verifies every uploaded wheel digest before
+publishing. The existing Pages workflow is triggered by the published release.
+Remote platform runs and published-index consumer installs remain the final
+uncompleted gates.
 
 Commit `4f3494ee8f8e69d33c30f820bd7d08de0201c0d0` validated the handoff guards:
 

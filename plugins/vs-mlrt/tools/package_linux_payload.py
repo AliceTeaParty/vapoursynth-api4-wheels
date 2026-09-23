@@ -76,6 +76,13 @@ def main() -> None:
     if args.variant != "generic":
         if not any("builder_resource" in PurePosixPath(name).name for name in payload):
             raise RuntimeError("Builder resources missing from a CUDA payload")
+        misplaced = sorted(
+            name for name in payload
+            if PurePosixPath(name).parent == PurePosixPath(".")
+            and PurePosixPath(name).name.startswith(("libcu", "libnv", "libtensorrt"))
+        )
+        if misplaced:
+            raise RuntimeError(f"CUDA runtime libraries must be under vsmlrt-cuda/: {misplaced}")
     else:
         expected -= {"vstrt.so", "vsmlrt-cuda/trtexec", "vsmlrt-cuda/trtexec-build.json"}
     if args.variant == "cu129":

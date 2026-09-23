@@ -1,0 +1,67 @@
+name: Quality - vs-mlrt published index
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published vs-mlrt version to verify
+        required: true
+        default: "16.2.2"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  consumer:
+    name: Test - ${{ matrix.os }} - ${{ matrix.variant }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, ubuntu-24.04]
+        variant: [generic, cu121, cu129]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install entry and complete dependency closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install pefile
+          python -m pip install \
+            --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ \
+            "vs-mlrt-${{ matrix.variant }}==${{ inputs.version }}"
+
+      - name: Verify installed published layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--variant "${{ matrix.variant }}" --distribution "vs-mlrt-${{ matrix.variant }}")
+          if [[ "${{ matrix.variant }}" != generic ]]; then
+            args+=(--layout-only)
+          fi
+          python plugins/vs-mlrt/tools/smoke_vcs_extras_install.py "${args[@]}"
+
+      - name: Verify complete uninstall and reinstall eligibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m rm_vsmlrt --yes
+          if python -m pip list --format=freeze | grep -Eqi \
+            '^(vs-mlrt|vs-ov|vs-ncnn|vs-cublas|vs-cudnn|vs-tensorrt|vs-trt|vs-trtexec)'; then
+            echo "rm_vsmlrt left a managed distribution installed" >&2
+            exit 1
+          fi
+          python -m pip install \
+            --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ \
+            "vs-mlrt-${{ matrix.variant }}==${{ inputs.version }}"
+          python plugins/vs-mlrt/tools/smoke_vcs_extras_install.py \
+            --variant "${{ matrix.variant }}" \
+            --distribution "vs-mlrt-${{ matrix.variant }}" \
+            --layout-only

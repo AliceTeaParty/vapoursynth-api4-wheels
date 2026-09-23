@@ -59,6 +59,16 @@ class VsmlrtPathTests(unittest.TestCase):
             finally:
                 self.vsmlrt.__file__ = old_file
 
+    def test_conflicting_entry_distributions_are_rejected(self) -> None:
+        def version(name: str) -> str:
+            if name in {"vs-mlrt-cu121", "vs-mlrt-cu129"}:
+                return "16.2.2"
+            raise self.vsmlrt.metadata.PackageNotFoundError(name)
+
+        with patch.object(self.vsmlrt.metadata, "version", side_effect=version):
+            with self.assertRaisesRegex(RuntimeError, "Conflicting vs-mlrt entry packages"):
+                self.vsmlrt._reject_conflicting_entry_distributions()
+
     def test_payload_tools_prefer_override_then_package_then_path(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

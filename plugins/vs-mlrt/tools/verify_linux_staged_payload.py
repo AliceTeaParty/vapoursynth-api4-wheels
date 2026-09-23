@@ -109,13 +109,32 @@ def verify(variant: str, asset_dir: Path) -> None:
         print("Verified staged Linux generic payload")
         return
 
-    for family in ("libcudart", "libcublas", "libnvinfer", "libnvinfer_plugin", "libnvonnxparser", "libcudnn"):
-        if not any(name.startswith(f"vsmlrt/{family}") for name in names):
+    misplaced = sorted(
+        name for name in names
+        if PurePosixPath(name).parent == PurePosixPath("vsmlrt")
+        and PurePosixPath(name).name.startswith(("libcu", "libnv", "libtensorrt"))
+    )
+    if misplaced:
+        raise RuntimeError(f"Linux CUDA libraries are outside vsmlrt-cuda: {misplaced}")
+
+    required_families = ["libnvinfer", "libnvinfer_plugin", "libnvonnxparser"]
+    if variant == "cu121":
+        required_families.extend(("libcublas", "libcudnn"))
+    for family in required_families:
+        if not any(name.startswith(f"vsmlrt/vsmlrt-cuda/{family}") for name in names):
             raise RuntimeError(f"Linux {variant} payload is missing the {family} library family")
     if not any("builder_resource" in name for name in names):
         raise RuntimeError(f"Linux {variant} payload is missing TensorRT builder resources")
-    if variant == "cu129" and not any("libtensorrt_rtx" in name for name in names):
-        raise RuntimeError("Linux cu129 payload is missing the TensorRT-RTX library family")
+    if variant == "cu129":
+        if not any(name.startswith("vsmlrt/vsmlrt-cuda/libtensorrt_rtx") for name in names):
+            raise RuntimeError("Linux cu129 payload is missing the TensorRT-RTX library family")
+        removed = ("libcudart", "libcublas", "libcudnn", "libcufft", "libnvblas", "libnvrtc", "libnvvm", "libnvJitLink")
+        forbidden = sorted(
+            name for name in names
+            if PurePosixPath(name).name.startswith(removed)
+        )
+        if forbidden:
+            raise RuntimeError(f"Linux cu129 payload contains a removed runtime family: {forbidden}")
     print(f"Verified staged Linux {variant} payload ({len(sources)} volume(s))")
 
 

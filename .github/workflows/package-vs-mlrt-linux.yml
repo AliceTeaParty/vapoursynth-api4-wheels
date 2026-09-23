@@ -1,13 +1,11 @@
 name: Package - vs-mlrt variants - Linux
 
-# generic/cu121/cu129 native compilation, staging, and payload verification are
-# verified independently of publication. TODO(vs-mlrt-publishing): repair the
-# compositional CUDA wheel manifest/install smoke, choose the final asset
-# layout, then re-enable the disabled Release and Pages steps below.
+# generic/cu121/cu129 native compilation, split-wheel smoke, and artifact
+# upload. Atomic publication is owned by package-vs-mlrt-finalize.yml.
 on:
   push:
     branches: [main]
-    tags: [vs-mlrt-generic-v*, vs-mlrt-cu121-v*, vs-mlrt-cu129-v*]
+    tags: [vs-mlrt-v*]
     paths:
       - plugins/vs-mlrt/**
       - .github/workflows/package-vs-mlrt-linux.yml
@@ -18,11 +16,6 @@ on:
         default: generic
         type: choice
         options: [generic, cu121, cu129]
-      publish:
-        description: "TODO(publishing): disabled until the release strategy is finalized"
-        required: false
-        default: false
-        type: boolean
 permissions:
   contents: write
 jobs:
@@ -47,7 +40,7 @@ jobs:
         run: |
           build=false
           [[ "$EVENT" == push && "$REF" == main ]] && build=true
-          [[ "$EVENT" == push && "$REF" == vs-mlrt-$VARIANT-v* ]] && build=true
+          [[ "$EVENT" == push && "$REF" == vs-mlrt-v* ]] && build=true
           [[ "$EVENT" == workflow_dispatch && "$INPUT" == "$VARIANT" ]] && build=true
           echo "build=$build" >> "$GITHUB_OUTPUT"
       - name: Install build tools
@@ -90,10 +83,10 @@ jobs:
           cmake --build deps/onnx/build --parallel && cmake --install deps/onnx/build --prefix deps/onnx/install
           curl -fsSL -o deps/ncnn.zip https://github.com/Tencent/ncnn/releases/download/20250503/ncnn-20250503-ubuntu-2404.zip && unzip -q deps/ncnn.zip -d deps
           curl -fsSL -o deps/openvino.tgz https://storage.openvinotoolkit.org/repositories/openvino/packages/2024.6/linux/l_openvino_toolkit_ubuntu24_2024.6.0.17404.4c0f47d2335_x86_64.tgz && tar -xzf deps/openvino.tgz -C deps && mv deps/l_openvino_* deps/openvino
-          if [[ "$VARIANT" == cu121 ]]; then trt_url=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz; trt_ref=v8.6.1; trt_ver=8.6.1.6; cuda_root=/usr/local/cuda-12.1; cudnn_url=https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz; else trt_url=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/11.1.0/tars/TensorRT-Enterprise-11.1.0.106-Linux-x86_64-cuda-12.9-Release-external.tar.zst; trt_ref=v11.1; trt_ver=11.1.0.106; cuda_root=/usr/local/cuda-12.9; cudnn_url=https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-9.19.0.56_cuda12-archive.tar.xz; fi
+          if [[ "$VARIANT" == cu121 ]]; then trt_url=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/secure/8.6.1/tars/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0.tar.gz; trt_ref=v8.6.1; trt_ver=8.6.1.6; cuda_root=/usr/local/cuda-12.1; cudnn_url=https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz; else trt_url=https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/11.1.0/tars/TensorRT-Enterprise-11.1.0.106-Linux-x86_64-cuda-12.9-Release-external.tar.zst; trt_ref=v11.1; trt_ver=11.1.0.106; cuda_root=/usr/local/cuda-12.9; fi
           if [[ "$VARIANT" != generic ]]; then
             curl -fsSL -o deps/tensorrt.archive "$trt_url" && tar -xf deps/tensorrt.archive -C deps && mv deps/TensorRT-* deps/tensorrt
-            curl -fsSL -o deps/cudnn.tar.xz "$cudnn_url" && tar -xJf deps/cudnn.tar.xz -C deps && mv deps/cudnn-linux-* deps/cudnn
+            if [[ "$VARIANT" == cu121 ]]; then curl -fsSL -o deps/cudnn.tar.xz "$cudnn_url" && tar -xJf deps/cudnn.tar.xz -C deps && mv deps/cudnn-linux-* deps/cudnn; fi
             git clone --depth 1 --branch "$trt_ref" https://github.com/NVIDIA/TensorRT.git deps/tensorrt-oss
             mkdir -p deps/tensorrt-oss/include/nlohmann && curl -fsSL -o deps/tensorrt-oss/include/nlohmann/json.hpp https://raw.githubusercontent.com/nlohmann/json/refs/tags/v3.11.3/single_include/nlohmann/json.hpp
             python3 tools/build_custom_trtexec.py --source deps/tensorrt-oss --sdk deps/tensorrt --version "$trt_ver" --cuda "$cuda_root" --build-dir build/trtexec --install-dir build/trtexec-install
@@ -109,10 +102,8 @@ jobs:
           if [[ "$VARIANT" != generic ]]; then export CUDAToolkit_ROOT="$cuda_root" VSMLRT_TENSORRT_HOME="$PWD/deps/tensorrt" VSMLRT_TRTEXEC_PATH="$PWD/build/trtexec-install/bin/trtexec" VSMLRT_TRTEXEC_BUILD_METADATA="$PWD/build/trtexec-install/bin/trtexec-build.json" VSMLRT_RUNTIME_ROOTS="$VSMLRT_RUNTIME_ROOTS:$cuda_root/lib64:$cuda_root/nvvm/lib64:$PWD/deps/tensorrt/lib:$PWD/deps/cudnn/lib"; fi
           if [[ "$VARIANT" == cu129 ]]; then export VSMLRT_TENSORRT_RTX_HOME="$PWD/deps/tensorrt-rtx" VSMLRT_TENSORRT_RTX_PATH="$PWD/deps/tensorrt-rtx/bin/tensorrt_rtx" VSMLRT_RUNTIME_ROOTS="$VSMLRT_RUNTIME_ROOTS:$PWD/deps/tensorrt-rtx/lib"; fi
           python3 packaging/linux_native_build.py --variant "$VARIANT" --stage-dir "build/payload-$VARIANT"
-          # One self-contained archive per tag: the generic plugins, the
-          # TensorRT backends, the CUDA/cuDNN runtime, and the builder helpers
-          # all travel together. Numbered volumes keep every asset below
-          # GitHub's 2 GiB limit.
+          # This canonical archive is an internal staging/evidence artifact.
+          # User-facing release assets are semantic component wheels.
           python3 tools/package_linux_payload.py \
             --stage-dir "build/payload-$VARIANT" --variant "$VARIANT" \
             --output "vs-mlrt-linux-x64-$VARIANT.zip" \
@@ -129,7 +120,7 @@ jobs:
         shell: bash
         run: python3 tools/verify_linux_staged_payload.py --variant "${{ matrix.variant }}" --asset-dir .
 
-      - name: Build and smoke variant wheel
+      - name: Build and smoke split variant wheels
         if: steps.select.outputs.build == 'true'
         shell: bash
         env:
@@ -139,26 +130,12 @@ jobs:
           python3 -m pip install --break-system-packages --upgrade build hatchling "vapoursynth==79" numpy onnx onnxconverter-common
           curl -fsSL -o models.zip https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/models/models.zip
           rm -rf dist/wheels
-          paths=$(find "$PWD" -maxdepth 1 -name "vs-mlrt-linux-x64-$VARIANT.zip*" -type f -printf '%p:' | sed 's/:$//')
-          generic_path=
-          if [[ "$VARIANT" != generic ]]; then
-            curl -fsSL -o generic.zip \
-              https://github.com/${{ github.repository }}/releases/download/vs-mlrt-generic-v16.2.2/vs-mlrt-linux-x64-generic.zip
-            generic_path="$PWD/generic.zip"
-          fi
-          VSMLRT_PAYLOAD_TAG="$VARIANT" \
-          VSMLRT_PREBUILT_PATHS="$paths" \
-          VSMLRT_MODELS_PREBUILT_PATH="$PWD/models.zip" \
-          VSMLRT_GENERIC_PREBUILT_PATH="$generic_path" \
-            python3 -m build "packaging/distributions/$VARIANT" --wheel --no-isolation --outdir dist/wheels
-          if [[ "$VARIANT" == cu129 ]]; then
-            for shard in 2 3; do
-              VSMLRT_PAYLOAD_TAG="$VARIANT" \
-              VSMLRT_PREBUILT_PATHS="$paths" \
-              VSMLRT_GENERIC_PREBUILT_PATH="$generic_path" \
-                python3 -m build "packaging/distributions/cu129-payload-$shard" --wheel --no-isolation --outdir dist/wheels
-            done
-          fi
+          python3 tools/build_component_wheels.py \
+            --variant "$VARIANT" \
+            --stage-dir "build/payload-$VARIANT" \
+            --models models.zip \
+            --output dist/wheels \
+            --clean
           for wheel in dist/wheels/*.whl; do
             size=$(stat -c%s "$wheel")
             if (( size >= 2147483648 )); then
@@ -167,32 +144,9 @@ jobs:
             fi
             echo "$wheel: $size bytes"
           done
-          if [[ "$VARIANT" != generic ]]; then
-            python3 -m pip uninstall --break-system-packages -y \
-              vs-mlrt vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129 \
-              vs-mlrt-cu129-payload-2 vs-mlrt-cu129-payload-3
-            python3 -m pip install --break-system-packages \
-              --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ \
-              --only-binary=:all: --no-deps --force-reinstall vs-mlrt-generic==16.2.2
-          fi
-          python3 -m pip install --break-system-packages --force-reinstall --no-deps dist/wheels/*.whl
-          python3 tools/smoke_linux_vcs_install.py --variant "$VARIANT"
-
-      - name: Install and verify staged Linux VCS wheel
-        if: steps.select.outputs.build == 'true'
-        shell: bash
-        env:
-          VARIANT: ${{ matrix.variant }}
-        run: |
-          set -euxo pipefail
-          python3 -m pip install --break-system-packages "vapoursynth==79" numpy onnx onnxconverter-common
           python3 -m pip uninstall --break-system-packages -y \
-            vs-mlrt vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129 \
-            vs-mlrt-cu129-payload-2 vs-mlrt-cu129-payload-3 || true
-          # A whole archive or any one of its volumes resolves to the volumes.
-          paths="$PWD/vs-mlrt-linux-x64-$VARIANT.zip"
-          VSMLRT_PAYLOAD_TAG="$VARIANT" VSMLRT_PREBUILT_PATHS="$paths" VSMLRT_MODELS_PREBUILT_PATH="$PWD/models.zip" \
-            python3 -m pip install --break-system-packages --no-deps --force-reinstall --no-cache-dir .
+            vs-mlrt vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129 || true
+          python3 -m pip install --break-system-packages --force-reinstall --no-deps dist/wheels/*.whl
           python3 tools/smoke_linux_vcs_install.py --variant "$VARIANT"
 
       - name: Upload Linux assets
@@ -204,22 +158,5 @@ jobs:
             plugins/vs-mlrt/vs-mlrt-linux-x64-*
             plugins/vs-mlrt/payload-inventory-${{ matrix.variant }}.json
             plugins/vs-mlrt/dist/wheels/*.whl
+            plugins/vs-mlrt/dist/wheels/component-wheel-inventory-*.json
           compression-level: 0
-
-      - name: TODO(publishing) - Publish Linux assets
-        if: ${{ false }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          files: |
-            plugins/vs-mlrt/vs-mlrt-linux-x64-*
-            plugins/vs-mlrt/payload-inventory-${{ matrix.variant }}.json
-            plugins/vs-mlrt/dist/wheels/*.whl
-          prerelease: true
-
-      - name: TODO(publishing) - Trigger package index
-        if: ${{ false }}
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api "repos/$GITHUB_REPOSITORY/dispatches" -f event_type=index

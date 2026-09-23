@@ -22,17 +22,18 @@ GENERIC = [
 ]
 CUDA = [
     "vsmlrt/vstrt.so",
-    "vsmlrt/libnvinfer.so.11",
-    "vsmlrt/libnvinfer_plugin.so.11",
-    "vsmlrt/libnvonnxparser.so.11",
-    "vsmlrt/libcudart.so.12",
-    "vsmlrt/libcublas.so.12",
-    "vsmlrt/libcudnn.so.9",
-    "vsmlrt/libnvinfer_builder_resource_sm90.so.11",
+    "vsmlrt/vsmlrt-cuda/libnvinfer.so.11",
+    "vsmlrt/vsmlrt-cuda/libnvinfer_plugin.so.11",
+    "vsmlrt/vsmlrt-cuda/libnvonnxparser.so.11",
+    "vsmlrt/vsmlrt-cuda/libnvinfer_builder_resource_sm90.so.11",
     "vsmlrt/vsmlrt-cuda/trtexec",
     "vsmlrt/vsmlrt-cuda/trtexec-build.json",
 ]
-CU129 = CUDA + ["vsmlrt/vstrt_rtx.so", "vsmlrt/libtensorrt_rtx.so.1", "vsmlrt/vsmlrt-cuda/tensorrt_rtx"]
+CU129 = CUDA + [
+    "vsmlrt/vstrt_rtx.so",
+    "vsmlrt/vsmlrt-cuda/libtensorrt_rtx.so.1",
+    "vsmlrt/vsmlrt-cuda/tensorrt_rtx",
+]
 
 MANIFESTS = {
     "generic": "[VapourSynth Manifest V1]\nvsncnn\nvsov\n",
@@ -69,7 +70,11 @@ class LinuxStagedPayloadTests(unittest.TestCase):
     def test_generic_rejects_windows_builder_resource(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            self.write_payload(root, "generic", [*GENERIC, "vsmlrt/libnvinfer_builder_resource_win_sm90.so.11"])
+            self.write_payload(
+                root,
+                "generic",
+                [*GENERIC, "vsmlrt/vsmlrt-cuda/libnvinfer_builder_resource_win_sm90.so.11"],
+            )
             with self.assertRaisesRegex(RuntimeError, "Windows-target builder resource"):
                 verify("generic", root)
 
@@ -106,6 +111,24 @@ class LinuxStagedPayloadTests(unittest.TestCase):
             members = [name for name in self.cu129_members() if "builder_resource" not in name]
             self.write_payload(root, "cu129", members)
             with self.assertRaisesRegex(RuntimeError, "builder resources"):
+                verify("cu129", root)
+
+    def test_cuda_library_at_plugin_root_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.write_payload(root, "cu129", [*self.cu129_members(), "vsmlrt/libnvinfer.so.11"])
+            with self.assertRaisesRegex(RuntimeError, "outside vsmlrt-cuda"):
+                verify("cu129", root)
+
+    def test_cu129_rejects_removed_cuda_families(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.write_payload(
+                root,
+                "cu129",
+                [*self.cu129_members(), "vsmlrt/vsmlrt-cuda/libcudnn.so.9"],
+            )
+            with self.assertRaisesRegex(RuntimeError, "removed runtime family"):
                 verify("cu129", root)
 
     def test_split_volumes_verify_as_one_payload(self):

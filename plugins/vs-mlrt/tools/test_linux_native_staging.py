@@ -6,6 +6,7 @@ from pathlib import Path
 import struct
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 spec = importlib.util.spec_from_file_location(
@@ -52,6 +53,34 @@ def minimal_shared_object(soname: str | None, needed: tuple[str, ...] = ()) -> b
 
 
 class LinuxStagingTests(unittest.TestCase):
+    def test_runpath_normalization_clears_executable_stack(self):
+        with tempfile.TemporaryDirectory() as temp:
+            stage = Path(temp)
+            (stage / "vsmlrt-cuda").mkdir()
+            plugin = stage / "vstrt.so"
+            runtime = stage / "vsmlrt-cuda" / "libnvinfer.so.11"
+            helper = stage / "vsmlrt-cuda" / "trtexec"
+            for path in (plugin, runtime, helper):
+                path.write_bytes(b"elf")
+            runtime.chmod(0o755)
+            helper.chmod(0o755)
+            calls = []
+
+            def fake_run(command, **kwargs):
+                calls.append(command)
+                class Result:
+                    stdout = "execstack: -\n"
+                return Result()
+
+            with patch.object(module.shutil, "which", return_value="patchelf"), patch.object(
+                module.subprocess, "run", side_effect=fake_run
+            ):
+                module.write_origin_runpaths(stage)
+            self.assertIn(["patchelf", "--set-rpath", "$ORIGIN:$ORIGIN/vsmlrt-cuda", str(plugin)], calls)
+            self.assertIn(["patchelf", "--set-rpath", "$ORIGIN", str(runtime)], calls)
+            self.assertIn(["patchelf", "--set-rpath", "$ORIGIN:$ORIGIN/..", str(helper)], calls)
+            self.assertEqual(sum(call[1] == "--clear-execstack" for call in calls), 3)
+
     def test_versioned_library_is_renamed_to_soname(self):
         with tempfile.TemporaryDirectory() as temp:
             stage = Path(temp)
@@ -91,7 +120,7 @@ class LinuxStagingTests(unittest.TestCase):
             stage.mkdir()
             module.copy_builder_resources(stage, [root])
             self.assertEqual(
-                sorted(path.name for path in stage.iterdir()),
+                sorted(path.name for path in (stage / "vsmlrt-cuda").iterdir()),
                 ["libnvinfer_builder_resource_ptx.so.11", "libnvinfer_builder_resource_sm90.so.11"],
             )
 
@@ -104,9 +133,9 @@ class LinuxStagingTests(unittest.TestCase):
             stage = Path(temp) / "stage"
             stage.mkdir()
             module.copy_runtime(stage, [root], "cu129")
-            self.assertEqual([path.name for path in stage.iterdir()], ["libnvrtc.so.12.9.86"])
+            self.assertEqual([path.name for path in (stage / "vsmlrt-cuda").iterdir()], [])
 
-    def test_unused_cuda_families_are_not_staged(self):
+    def test_cu129_keeps_only_verified_tensorrt_families(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp) / "sdk"
             root.mkdir()
@@ -124,9 +153,29 @@ class LinuxStagingTests(unittest.TestCase):
             stage.mkdir()
             module.copy_runtime(stage, [root], "cu129")
             self.assertEqual(
-                sorted(path.name for path in stage.iterdir()),
-                # sorted() compares by code point, so the capital J sorts first.
-                ["libcudnn_cnn_infer.so.8.9.7", "libnvJitLink.so.12.9.86", "libnvinfer.so.11.1.0", "libnvvm.so.4.0.0"],
+                sorted(path.name for path in (stage / "vsmlrt-cuda").iterdir()),
+                ["libnvinfer.so.11.1.0"],
+            )
+
+    def test_cu121_keeps_cublas_and_cudnn_hard_dependencies(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "sdk"
+            root.mkdir()
+            for name in (
+                "libnvinfer.so.8.6.1",
+                "libcublas.so.12.1",
+                "libcudnn.so.8.9.7",
+                "libcudart.so.12.1",
+                "libcufft.so.11.0",
+                "libnvrtc.so.12.1",
+            ):
+                (root / name).write_bytes(b"lib")
+            stage = Path(temp) / "stage"
+            stage.mkdir()
+            module.copy_runtime(stage, [root], "cu121")
+            self.assertEqual(
+                sorted(path.name for path in (stage / "vsmlrt-cuda").iterdir()),
+                ["libcublas.so.12.1", "libcudnn.so.8.9.7", "libnvinfer.so.8.6.1"],
             )
 
     def test_rtx_onnx_parser_is_staged(self):
@@ -139,7 +188,10 @@ class LinuxStagingTests(unittest.TestCase):
             stage = Path(temp) / "stage"
             stage.mkdir()
             module.copy_runtime(stage, [root], "cu129")
-            self.assertIn("libtensorrt_onnxparser_rtx.so.1.5.0", [path.name for path in stage.iterdir()])
+            self.assertIn(
+                "libtensorrt_onnxparser_rtx.so.1.5.0",
+                [path.name for path in (stage / "vsmlrt-cuda").iterdir()],
+            )
 
     def test_unused_openvino_families_are_not_staged(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -210,7 +262,10 @@ class LinuxStagingTests(unittest.TestCase):
             (stage / "vstrt.so").write_bytes(minimal_shared_object("libvstrt.so", ("libnvinfer.so.11", "libc.so.6")))
             with self.assertRaisesRegex(RuntimeError, "unresolved ELF dependencies"):
                 module.verify_elf_dependencies(stage)
-            (stage / "libnvinfer.so.11").write_bytes(minimal_shared_object("libnvinfer.so.11"))
+            (stage / "vsmlrt-cuda").mkdir()
+            (stage / "vsmlrt-cuda" / "libnvinfer.so.11").write_bytes(
+                minimal_shared_object("libnvinfer.so.11")
+            )
             module.verify_elf_dependencies(stage)
 
 

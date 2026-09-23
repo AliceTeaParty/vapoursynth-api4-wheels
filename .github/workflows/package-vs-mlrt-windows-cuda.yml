@@ -1,16 +1,13 @@
 name: Package - vs-mlrt CUDA - Windows
 
-# cu121/cu129 native compilation, staging, compression, and artifact upload are
-# verified independently of publication. TODO(vs-mlrt-publishing): repair the
-# compositional wheel install smoke, choose the final asset layout, then
-# re-enable the disabled Release/digest/index steps below.
+# cu121/cu129 native compilation, split-wheel smoke, and artifact upload.
+# Atomic publication is owned by package-vs-mlrt-finalize.yml.
 
 on:
   push:
     branches: [main]
     tags:
-      - vs-mlrt-cu121-v*
-      - vs-mlrt-cu129-v*
+      - vs-mlrt-v*
     paths:
       - plugins/vs-mlrt/**
       - .github/workflows/package-vs-mlrt-windows-cuda.yml
@@ -25,11 +22,6 @@ on:
           - all
           - cu121
           - cu129
-      publish:
-        description: "TODO(publishing): disabled until the release strategy is finalized"
-        type: boolean
-        required: false
-        default: false
 
 permissions:
   contents: write
@@ -58,7 +50,7 @@ jobs:
         run: |
           $shouldBuild = (
             ($env:EVENT_NAME -eq "push" -and $env:REF_NAME -eq "main") -or
-            ($env:EVENT_NAME -eq "push" -and $env:REF_NAME -like "vs-mlrt-$($env:MATRIX_CUDA_FLAVOR)-v*") -or
+            ($env:EVENT_NAME -eq "push" -and $env:REF_NAME -like "vs-mlrt-v*") -or
             ($env:EVENT_NAME -eq "workflow_dispatch" -and (
               $env:INPUT_CUDA_FLAVOR -eq "all" -or
               $env:INPUT_CUDA_FLAVOR -eq $env:MATRIX_CUDA_FLAVOR
@@ -215,7 +207,7 @@ jobs:
           Move-Item -Path (Get-ChildItem -Directory TensorRT-RTX-* | Select-Object -First 1).FullName -Destination tensorrt-rtx
 
       - name: Download cuDNN
-        if: steps.select.outputs.should_build == 'true'
+        if: steps.select.outputs.should_build == 'true' && matrix.cuda_flavor == 'cu121'
         shell: pwsh
         run: |
           curl.exe -L -o cudnn.zip $env:CUDNN_URL
@@ -302,7 +294,8 @@ jobs:
           # the dynamic dependencies and the dlopen name strings of every shipped
           # DLL: the deprecated nvparsers, the .alt NVRTC builds, and the cuDNN
           # training libraries, which are only reachable through the training
-          # backends. nvJitLink and nvvm stay: libnvinfer names both.
+          # backends. Final publication uses the explicit component allowlists;
+          # broad SDK copies are forbidden.
           $unusedRuntime = '(?i)(nvparsers|\.alt\.|_train)'
           function Copy-DllsFromPackage($packageDir, $destinationDir, [switch]$Recursive, [switch]$IncludeBuildResources) {
             if ($Recursive) {
@@ -351,7 +344,12 @@ jobs:
           }
           $manifestPlugins | Set-Content -LiteralPath "$basePluginDir\manifest.vs" -Encoding ascii
           Copy-DllsFromPackage "tensorrt" $baseCudaDir
-          Copy-DllsFromPackage "cudnn" $cudnnPayloadDir -Recursive
+          if ("${{ matrix.cuda_flavor }}" -eq "cu121") {
+            Copy-DllsFromPackage "cudnn" $cudnnPayloadDir -Recursive
+            foreach ($pattern in @("cublas64_12.dll", "cublasLt64_12.dll")) {
+              Copy-Item "$env:CUDA_PATH\bin\$pattern" $cudaPayloadDir
+            }
+          }
           Copy-Item vstrt\trtexec-install\bin\trtexec.exe $builderCudaDir
           Copy-Item vstrt\trtexec-install\bin\trtexec-build.json $builderCudaDir
           $builderResources = @(Get-ChildItem -LiteralPath tensorrt -Recurse -Filter "*builder_resource*.dll" -File | Sort-Object Name)
@@ -393,12 +391,6 @@ jobs:
             }
           }
 
-          $cudaPath = $env:CUDA_PATH
-          foreach ($runtimePath in @("$cudaPath\bin\*.dll", "$cudaPath\bin\x64\*.dll", "$cudaPath\extras\CUPTI\lib64\*.dll", "$cudaPath\nvvm\bin\*.dll")) {
-            Get-ChildItem -Path $runtimePath -File -ErrorAction SilentlyContinue |
-              Where-Object { $_.Name -notmatch $unusedRuntime } |
-              Copy-Item -Destination $cudaPayloadDir
-          }
           if (Test-Path vstrt\install_rtx\bin\vstrt_rtx.dll) {
             $rtxPluginDir = "payload-rtx\vsmlrt"
             $rtxCudaDir = "$rtxPluginDir\vsmlrt-cuda"
@@ -418,10 +410,7 @@ jobs:
           }
           $required = @(
             "payload-base\vsmlrt\manifest.vs",
-            "payload-base\vsmlrt\vstrt.dll",
-            "payload-cuda\vsmlrt\vsmlrt-cuda\cublas64_12.dll",
-            "payload-cuda\vsmlrt\vsmlrt-cuda\cublasLt64_12.dll",
-            "payload-cuda\vsmlrt\vsmlrt-cuda\cudart64_12.dll"
+            "payload-base\vsmlrt\vstrt.dll"
           )
           if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
             $required += "payload-trt-core\vsmlrt\vsmlrt-cuda\nvinfer_11.dll"
@@ -432,6 +421,9 @@ jobs:
           } else {
             $required += "payload-base\vsmlrt\vsmlrt-cuda\nvinfer$trtSuffix.dll"
             $required += "payload-base\vsmlrt\vsmlrt-cuda\nvinfer_plugin$trtSuffix.dll"
+            $required += "payload-cuda\vsmlrt\vsmlrt-cuda\cublas64_12.dll"
+            $required += "payload-cuda\vsmlrt\vsmlrt-cuda\cublasLt64_12.dll"
+            $required += "payload-cudnn\vsmlrt\vsmlrt-cuda\cudnn64_8.dll"
           }
           foreach ($path in $required) {
             if (-not (Test-Path $path)) {
@@ -463,9 +455,11 @@ jobs:
               throw "CUDA payload is not self-contained, missing: $selfContained"
             }
           }
-          foreach ($glob in @("payload-cuda\vsmlrt\vsmlrt-cuda\nvrtc*.dll", "payload-cudnn\vsmlrt\vsmlrt-cuda\cudnn*.dll")) {
-            if (-not (Test-Path $glob)) {
-              throw "Missing payload item matching: $glob"
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            $removedRuntime = Get-ChildItem payload-* -Recurse -File -ErrorAction SilentlyContinue |
+              Where-Object Name -match '^(cublas|cudnn|cudart|cufft|nvblas|nvrtc|nvvm|nvJitLink)'
+            if ($removedRuntime) {
+              throw "cu129 staged files contain a removed CUDA runtime family: $($removedRuntime.Name -join ', ')"
             }
           }
           foreach ($path in @("payload-base\vsmlrt\vsmlrt-cuda\trtexec.exe", "payload-base\vsmlrt\vsmlrt-cuda\trtexec-build.json", "payload-base\vsmlrt\vsmlrt-cuda\*builder_resource*.dll")) {
@@ -486,12 +480,8 @@ jobs:
         if: steps.select.outputs.should_build == 'true'
         shell: pwsh
         run: |
-          # One self-contained archive per tag: the generic plugins, the
-          # TensorRT backends, the CUDA/cuDNN runtime, and the builder helpers
-          # all travel together, and numbered volumes keep every asset below
-          # GitHub's 2 GiB limit. The staging directories are merged into one
-          # tree first: 7-Zip refuses several wildcard sources that each carry
-          # their own top-level vsmlrt/ directory.
+          # Merge build outputs into one canonical internal stage. The
+          # user-facing assets are component wheels built from this tree.
           $staging = @("payload-base", "payload-cuda", "payload-cudnn", "payload-builder")
           if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
             $staging += @("payload-trt-core", "payload-trt-plugin", "payload-trt-extra", "payload-rtx")
@@ -502,6 +492,14 @@ jobs:
           New-Item -ItemType Directory -Force "$merged\vsmlrt" | Out-Null
           foreach ($dir in $staging) {
             Copy-Item -Path "$dir\vsmlrt\*" -Destination "$merged\vsmlrt" -Recurse -Force
+          }
+          $cudaDir = "$merged\vsmlrt\vsmlrt-cuda"
+          $removed = @("cudart*.dll", "cufft*.dll", "nvblas*.dll", "nvrtc*.dll", "nvvm*.dll", "nvJitLink*.dll")
+          if ("${{ matrix.cuda_flavor }}" -eq "cu129") {
+            $removed += @("cublas*.dll", "cudnn*.dll")
+          }
+          foreach ($pattern in $removed) {
+            Get-ChildItem $cudaDir -Filter $pattern -File -ErrorAction SilentlyContinue | Remove-Item -Force
           }
           7z a -tzip -mx=1 -v1900m "vs-mlrt-windows-x64-${{ matrix.cuda_flavor }}.zip" ".\payload-all\*"
           Get-ChildItem vs-mlrt-windows-x64-* |
@@ -533,28 +531,20 @@ jobs:
           if ($installer.ExitCode -ne 0) { throw "Vulkan SDK installation failed: $($installer.ExitCode)" }
           "C:\VulkanSDK\1.4.321.1\Bin" | Add-Content -LiteralPath $env:GITHUB_PATH -Encoding utf8
 
-      - name: Install and verify this job's exact staged payload
-        if: steps.select.outputs.should_build == 'true'
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python tools/verify_staged_payload.py --variant "${{ matrix.cuda_flavor }}" --repo "${{ github.repository }}" --dependency-repo RyougiKukoc/vs-mlrt-api4 --evidence "payload-provenance-${{ matrix.cuda_flavor }}.json"
-
-      - name: Build and smoke variant wheel
+      - name: Build and smoke split variant wheels
         if: steps.select.outputs.should_build == 'true'
         shell: pwsh
         run: |
           python -m pip install --upgrade build hatchling
+          Invoke-WebRequest -Uri "https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/models/models.zip" -OutFile models.zip
           Remove-Item -Recurse -Force dist\wheels -ErrorAction SilentlyContinue
-          $payloads = (Get-ChildItem "vs-mlrt-windows-x64-${{ matrix.cuda_flavor }}.zip*" | Sort-Object Name | ForEach-Object FullName) -join ";"
-          $env:VSMLRT_PREBUILT_PATHS = $payloads
-          $env:VSMLRT_GENERIC_PREBUILT_PATH = "$env:RUNNER_TEMP\generic.zip"
           $variant = "${{ matrix.cuda_flavor }}"
-          python -m build "packaging\distributions\$variant" --wheel --no-isolation --outdir dist\wheels
-          if ($variant -eq "cu129") {
-            python -m build packaging\distributions\cu129-payload-2 --wheel --no-isolation --outdir dist\wheels
-            python -m build packaging\distributions\cu129-payload-3 --wheel --no-isolation --outdir dist\wheels
-          }
+          python tools\build_component_wheels.py `
+            --variant $variant `
+            --stage-dir payload-all\vsmlrt `
+            --models models.zip `
+            --output dist\wheels `
+            --clean
           $wheels = @(Get-ChildItem dist\wheels\*.whl | Sort-Object Name)
           foreach ($wheel in $wheels) {
             if ($wheel.Length -ge 2147483648) {
@@ -562,8 +552,7 @@ jobs:
             }
             Write-Host "$($wheel.Name): $($wheel.Length) bytes"
           }
-          python -m pip uninstall -y vs-mlrt vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129 vs-mlrt-cu129-payload-2 vs-mlrt-cu129-payload-3
-          python -m pip install --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ --only-binary=:all: --no-deps --force-reinstall vs-mlrt-generic==16.2.2
+          python -m pip uninstall -y vs-mlrt vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129
           python -m pip install --force-reinstall --no-deps $wheels.FullName
           python tools\smoke_vcs_extras_install.py --variant $variant --distribution "vs-mlrt-$variant"
 
@@ -574,28 +563,6 @@ jobs:
           name: vs-mlrt-windows-x64-${{ matrix.cuda_flavor }}
           path: |
             plugins/vs-mlrt/vs-mlrt-windows-x64-*.zip*
-            plugins/vs-mlrt/payload-provenance-${{ matrix.cuda_flavor }}.json
             plugins/vs-mlrt/dist/wheels/*.whl
+            plugins/vs-mlrt/dist/wheels/component-wheel-inventory-*.json
           compression-level: 0
-
-      - name: TODO(publishing) - Release CUDA payload
-        if: ${{ false }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          files: |
-            plugins/vs-mlrt/vs-mlrt-windows-x64-*.zip*
-            plugins/vs-mlrt/payload-provenance-${{ matrix.cuda_flavor }}.json
-            plugins/vs-mlrt/dist/wheels/*.whl
-          fail_on_unmatched_files: true
-          generate_release_notes: false
-          prerelease: true
-
-      - name: TODO(publishing) - Verify published payload digests and refresh index
-        if: ${{ false }}
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python tools/verify_staged_payload.py --variant "${{ matrix.cuda_flavor }}" --repo "${{ github.repository }}" --evidence "payload-provenance-${{ matrix.cuda_flavor }}.json" --verify-published-only --release-tag "${{ github.ref_name }}"
-          gh api "repos/$env:GITHUB_REPOSITORY/dispatches" -f event_type=index
