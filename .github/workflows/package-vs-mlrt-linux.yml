@@ -13,9 +13,9 @@ on:
     inputs:
       variant:
         required: true
-        default: generic
+        default: all
         type: choice
-        options: [generic, cu121, cu129]
+        options: [all, generic, cu121, cu129]
 permissions:
   contents: write
 jobs:
@@ -41,7 +41,7 @@ jobs:
           build=false
           [[ "$EVENT" == push && "$REF" == main ]] && build=true
           [[ "$EVENT" == push && "$REF" == vs-mlrt-v* ]] && build=true
-          [[ "$EVENT" == workflow_dispatch && "$INPUT" == "$VARIANT" ]] && build=true
+          [[ "$EVENT" == workflow_dispatch && ("$INPUT" == all || "$INPUT" == "$VARIANT") ]] && build=true
           echo "build=$build" >> "$GITHUB_OUTPUT"
       - name: Install build tools
         if: steps.select.outputs.build == 'true'
