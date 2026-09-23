@@ -7,10 +7,16 @@ graphs, unified Linux/Windows layout, CMake RUNPATH contract, ELF
 normalization, wheel closure verifier, release assembler, and `rm_vsmlrt` are
 implemented. Local Windows and Linux split-wheel installs passed cu121 TRT and
 cu129 TRT/RTX engine-build and frame-inference tests. `rm_vsmlrt` passed a real
-Linux cu129 complete-uninstall test. The remaining gates are the repository's
-remote GitHub Actions runs, atomic draft release upload, published digest
-verification, and Pages-index consumer installs. Publication remains disabled
-until those remote gates pass.
+Linux cu129 complete-uninstall test. All six remote Windows/Linux build jobs
+also passed. The first `publish=false` release-finalizer run
+(`35866774669`) exposed one release-assembly defect: Windows and Linux had
+independently built same-name `py3-none-any` entry wheels, and the finalizer
+had selected a canonical copy only for the generic build. The assembler
+correctly rejected the differing `vs_mlrt_cu121-16.2.2-py3-none-any.whl`
+files instead of silently choosing one. The remaining gates are a corrected
+finalizer run, atomic draft release upload, published digest verification, and
+Pages-index consumer installs. Publication remains disabled until those
+remote gates pass.
 
 ## 1. Scope and fixed baseline
 
@@ -335,6 +341,18 @@ Linux, and platform-independent wheels. Create it as a draft, upload every
 wheel and provenance file, verify remote SHA-256 values, and publish only when
 the complete dependency closure is present. Publishing the release triggers
 `.github/workflows/index-pages.yml`, which regenerates the PEP 503 index.
+
+Platform-independent wheels are release-train assets with exactly one owner,
+even though each platform job builds a copy for its local installation smoke
+test. Independent Windows and Linux builds of a `py3-none-any` wheel are not
+assumed byte-identical or logically identical: checkout newline normalization
+alone can change the packaged Python sources. The finalizer must explicitly
+select the verified Linux copies of `vs-mlrt-models`, `vs-mlrt-generic`,
+`vs-mlrt-cu121`, and `vs-mlrt-cu129` as the four authoritative shared wheels.
+It must still validate every original artifact against all six component
+inventories. A same-name wheel conflict without an explicitly selected
+authoritative shared copy is a hard failure; filename-order or first-seen
+deduplication is forbidden.
 
 Build and verify in this order:
 

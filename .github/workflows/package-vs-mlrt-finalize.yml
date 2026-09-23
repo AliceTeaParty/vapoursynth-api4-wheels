@@ -77,9 +77,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p artifacts/canonical-shared/windows artifacts/canonical-shared/linux
-          find artifacts/windows-generic -type f -name '*.whl' -exec cp '{}' artifacts/canonical-shared/windows/ \;
-          find artifacts/linux/generic -type f -name '*.whl' -exec cp '{}' artifacts/canonical-shared/linux/ \;
+          mkdir -p artifacts/canonical-shared
+
+          select_one() {
+            local root="$1"
+            local pattern="$2"
+            local matches=()
+            mapfile -t matches < <(find "$root" -type f -name "$pattern")
+            [[ ${#matches[@]} -eq 1 ]] || {
+              echo "Expected exactly one $pattern under $root, found ${#matches[@]}" >&2
+              exit 1
+            }
+            cp "${matches[0]}" artifacts/canonical-shared/
+          }
+
+          # Pure-Python wheels are release-train assets, not platform assets.
+          # Select one verified Linux build explicitly so CRLF/LF checkout
+          # differences cannot produce two same-name release files.
+          select_one artifacts/linux/generic 'vs_mlrt_models-*-any.whl'
+          select_one artifacts/linux/generic 'vs_mlrt_generic-*-any.whl'
+          select_one artifacts/linux/cu121 'vs_mlrt_cu121-*-any.whl'
+          select_one artifacts/linux/cu129 'vs_mlrt_cu129-*-any.whl'
 
       - name: Assemble and verify atomic release wheelhouse
         shell: bash
