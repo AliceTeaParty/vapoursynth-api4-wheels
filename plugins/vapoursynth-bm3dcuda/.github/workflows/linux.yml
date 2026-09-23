@@ -1,0 +1,137 @@
+name: Build (Linux)
+
+on:
+  push:
+    paths:
+      - 'CMakeLists.txt'
+      - 'source/*'
+      - 'cpu_source/*'
+      - 'hip_source/*'
+      - 'rtc_source/*'
+      - 'sycl_source/*'
+      - '.github/workflows/linux.yml'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Ninja
+      run: pip install ninja
+
+    - name: Download VapourSynth headers
+      run: |
+        wget -q -O vs.zip https://github.com/vapoursynth/vapoursynth/archive/refs/tags/R57.zip
+        unzip -q vs.zip
+        mv vapoursynth*/ vapoursynth
+
+    - name: Setup CUDA
+      run: |
+        wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+        sudo dpkg -i cuda-keyring_1.1-1_all.deb
+        sudo apt-get update
+        sudo apt-get install -y cuda-nvcc-12-8 cuda-cudart-dev-12-8 cuda-nvrtc-dev-12-8
+        echo "PATH=/usr/local/cuda/bin${PATH:+:${PATH}}" >> $GITHUB_ENV
+        echo "CUDA_PATH=/usr/local/cuda" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=/usr/local/cuda/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> $GITHUB_ENV
+
+    - name: Configure (CUDA, CPU)
+      run: cmake -S . -B build -G Ninja -LA
+        -D USE_NVRTC_STATIC=ON
+        -D VAPOURSYNTH_INCLUDE_DIRECTORY="`pwd`/vapoursynth/include"
+        -D CMAKE_BUILD_TYPE=Release
+        -D CMAKE_CXX_FLAGS="-Wall -ffast-math -march=x86-64-v3"
+        -D CMAKE_CUDA_FLAGS="--threads 0 --use_fast_math --resource-usage -Wno-deprecated-gpu-targets"
+        -D CMAKE_CUDA_ARCHITECTURES="50;61-real;70;75-real;86-real;89-real;90-real;100-real;120-real"
+
+    - name: Build (CUDA, CPU)
+      run: cmake --build build --verbose
+
+    - name: Install (CUDA, CPU)
+      run: cmake --install build --prefix artifact
+
+    - name: Setup HIP
+      run: |
+        wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | sudo tee /etc/apt/keyrings/rocm.gpg > /dev/null
+        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/7.0 jammy main" | sudo tee --append /etc/apt/sources.list.d/rocm.list
+        echo -e 'Package: *\nPin: release o=repo.radeon.com\nPin-Priority: 600' | sudo tee /etc/apt/preferences.d/rocm-pin-600
+        sudo apt update
+        sudo apt install hip-runtime-amd rocm-device-libs hip-dev libxml2
+
+    - name: Configure (HIP)
+      run: cmake -S . -B build_hip -G Ninja -LA
+        -D CMAKE_BUILD_TYPE=Release
+        -D ENABLE_CPU=OFF -D ENABLE_CUDA=OFF -D ENABLE_HIP=ON
+        -D CMAKE_CXX_COMPILER=/opt/rocm/bin/amdclang++
+        -D CMAKE_CXX_FLAGS="-Wall -ffast-math -munsafe-fp-atomics -Rpass-analysis=kernel-resource-usage"
+        -D VAPOURSYNTH_INCLUDE_DIRECTORY="`pwd`/vapoursynth/include"
+        -D CMAKE_PREFIX_PATH=/opt/rocm/lib/cmake
+        -D GPU_TARGETS="gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1033;gfx1034;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103;gfx1200;gfx1201"
+
+    - name: Build (HIP)
+      run: cmake --build build_hip --verbose
+
+    - name: Install (HIP)
+      run: cmake --install build_hip --prefix artifact
+
+    - name: Setup SYCL
+      if: false
+      run: |
+        wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+          | gpg --dearmor \
+          | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+
+        echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+          | sudo tee /etc/apt/sources.list.d/oneAPI.list
+
+        sudo apt-get update
+        sudo apt-get install -y intel-oneapi-dpcpp-cpp-2024.0
+
+    - name: Setup ocloc
+      if: false
+      run: |
+        wget -qO - https://repositories.intel.com/gpu/intel-graphics.key \
+          | sudo gpg --dearmor --output /usr/share/keyrings/intel-graphics.gpg
+
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/gpu/ubuntu jammy client" \
+          | sudo tee /etc/apt/sources.list.d/intel-gpu-jammy.list
+
+        sudo apt-get update
+        sudo apt-get install -y intel-ocloc
+        
+        ocloc compile --help
+
+    - name: Configure (SYCL)
+      if: false
+      run: |
+        source /opt/intel/oneapi/compiler/latest/env/vars.sh
+
+        cmake -S . -B build_sycl -G Ninja -LA \
+          -D CMAKE_BUILD_TYPE=Release \
+          -D ENABLE_CPU=OFF -D ENABLE_CUDA=OFF -D ENABLE_HIP=OFF -D ENABLE_SYCL=ON \
+          -D VAPOURSYNTH_INCLUDE_DIRECTORY="`pwd`/vapoursynth/include" \
+          -D CMAKE_CXX_COMPILER=icpx \
+          -D CMAKE_CXX_FLAGS="-Wall -ffast-math -march=x86-64-v3" \
+          -D CMAKE_SHARED_LINKER_FLAGS="-fsycl -fsycl-targets=spir64_gen -Xsycl-target-backend=spir64_gen \"-device gen12lp,xe-hpg,xe-lpg,xe-lpgplus\""
+
+    - name: Build (SYCL)
+      if: false
+      run: |
+        source /opt/intel/oneapi/compiler/latest/env/vars.sh
+
+        cmake --build build_sycl --verbose
+
+    - name: Install (SYCL)
+      if: false
+      run: cmake --install build_sycl --prefix artifact
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: VapourSynth-BM3DCUDA-Linux
+        path: artifact
