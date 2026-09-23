@@ -137,7 +137,7 @@ jobs:
               test -n "$wheel"
               "$py" tools/package_linux_release.py --wheel "$wheel" \
                 --output dist/release-assets-linux/bm3dcuda-cpu-linux-x86_64.zip
-              "$py" -c "import re, subprocess; path='dist/release-assets-linux/bm3dcuda-cpu-linux-x86_64.zip'; subprocess.run(['unzip', '-l', path], check=True); subprocess.run(['unzip', '-p', path, 'bm3dcuda/bm3dcpu.so'], check=True, stdout=open('/tmp/bm3dcpu.so', 'wb')); out=subprocess.check_output(['readelf', '--version-info', '/tmp/bm3dcpu.so'], text=True); versions=[tuple(map(int, value.split('.'))) for value in re.findall(r'GLIBC_(\\d+\\.\\d+)', out)]; print('GLIBC versions:', versions); assert all(version <= (2, 27) for version in versions), versions"
+              "$py" -c "import re, subprocess; path=\"dist/release-assets-linux/bm3dcuda-cpu-linux-x86_64.zip\"; subprocess.run([\"unzip\", \"-l\", path], check=True); subprocess.run([\"unzip\", \"-p\", path, \"bm3dcuda/bm3dcpu.so\"], check=True, stdout=open(\"/tmp/bm3dcpu.so\", \"wb\")); out=subprocess.check_output([\"readelf\", \"--version-info\", \"/tmp/bm3dcpu.so\"], text=True); versions=[tuple(map(int, value.split(\".\"))) for value in re.findall(r\"GLIBC_(\\d+\\.\\d+)\", out)]; print(\"GLIBC versions:\", versions); assert all(version <= (2, 27) for version in versions), versions"
             '
       - uses: actions/upload-artifact@v4
         with:
