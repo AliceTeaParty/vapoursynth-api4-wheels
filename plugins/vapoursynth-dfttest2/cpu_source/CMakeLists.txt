@@ -8,6 +8,18 @@ endif()
 
 message(STATUS "cpu targets: ${CPU_DISPATCH_TARGETS}")
 
+# VCL's vector math uses floating-point bit patterns for masks. Clang's
+# finite-only assumption corrupts AVX2 pow even for finite inputs (for example,
+# pow(0.5, 0.7) becomes approximately 1e-27). Retain the other fast-math options.
+set(DFTTEST2_VECTOR_FP_OPTIONS "")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+        set(DFTTEST2_VECTOR_FP_OPTIONS /clang:-fno-finite-math-only)
+    else()
+        set(DFTTEST2_VECTOR_FP_OPTIONS -fno-finite-math-only)
+    endif()
+endif()
+
 add_library(dfttest2_cpu MODULE source.cpp ${CMAKE_CURRENT_SOURCE_DIR}/vectorclass/instrset_detect.cpp)
 
 set_target_properties(dfttest2_cpu PROPERTIES
@@ -15,15 +27,18 @@ set_target_properties(dfttest2_cpu PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
+configure_dfttest2_plugin(dfttest2_cpu)
 
 target_include_directories(dfttest2_cpu PRIVATE ${VCL_HOME})
+find_package(Threads REQUIRED)
+target_link_libraries(dfttest2_cpu PRIVATE Threads::Threads)
 
 if(PKG_CONFIG_FOUND AND VS_FOUND)
     target_include_directories(dfttest2_cpu PRIVATE ${VS_INCLUDE_DIRS})
-    install(TARGETS dfttest2_cpu LIBRARY DESTINATION ${install_dir})
+    install(TARGETS dfttest2_cpu LIBRARY DESTINATION ${install_dir} RUNTIME DESTINATION ${install_dir})
 else()
     target_include_directories(dfttest2_cpu PRIVATE ${VS_INCLUDE_DIR})
-    install(TARGETS dfttest2_cpu LIBRARY DESTINATION lib)
+    install(TARGETS dfttest2_cpu LIBRARY DESTINATION lib RUNTIME DESTINATION lib)
 endif()
 
 target_include_directories(dfttest2_cpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/..)
@@ -67,9 +82,11 @@ if(CPU_DISPATCH_TARGETS)
             CXX_EXTENSIONS OFF
             CXX_STANDARD 20
             CXX_STANDARD_REQUIRED ON
+            POSITION_INDEPENDENT_CODE ON
         )
 
         target_compile_definitions(${current_target} PRIVATE HAS_DISPATCH)
+        target_compile_options(${current_target} PRIVATE ${DFTTEST2_VECTOR_FP_OPTIONS})
         target_compile_definitions(${current_target} PRIVATE DFTTEST_GETFRAME_NAME=${current_getframe_name})
         target_compile_definitions(${current_target} PRIVATE SUPPORTED_ARCH_NAME=${current_supported_arch_name})
 
@@ -90,8 +107,8 @@ if(CPU_DISPATCH_TARGETS)
         target_include_directories(${current_target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
         string(APPEND GETFRAME_DECLARATIONS "
-        extern const VSFrameRef *VS_CC ${current_getframe_name}(
-            int n, int activationReason, void **instanceData, void **frameData,
+        extern const VSFrame *VS_CC ${current_getframe_name}(
+            int n, int activationReason, void *instanceData, void **frameData,
             VSFrameContext *frameCtx, VSCore *core, const VSAPI *vsapi
         ) noexcept;\n")
 
@@ -114,11 +131,13 @@ if(CPU_DISPATCH_TARGETS)
     target_include_directories(dfttest2_cpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 else()
     add_library(getframe_impl OBJECT getframe_impl.cpp)
+    target_compile_options(getframe_impl PRIVATE ${DFTTEST2_VECTOR_FP_OPTIONS})
 
     set_target_properties(getframe_impl PROPERTIES
         CXX_EXTENSIONS OFF
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
+        POSITION_INDEPENDENT_CODE ON
     )
 
     target_include_directories(getframe_impl PRIVATE ${VCL_HOME})

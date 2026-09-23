@@ -1,0 +1,56 @@
+[build-system]
+requires = [
+  "hatchling>=1.30",
+  "packaging>=24.0",
+  "cmake>=3.22",
+  "ninja>=1.11",
+  "VapourSynth>=79",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "vapoursynth-dfttest2"
+version = "10.2"
+description = "DFTTest2 frequency-domain denoiser plugin for VapourSynth"
+readme = "README.md"
+license = { file = "LICENSE" }
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [{ name = "DFTTest2 contributors" }]
+dependencies = ["VapourSynth>=77"]
+
+[project.urls]
+"Source Code" = "https://github.com/RyougiKukoc/vs-dfttest2-api4"
+"Releases" = "https://github.com/RyougiKukoc/vs-dfttest2-api4/releases"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "CMakeLists.txt",
+  "LICENSE",
+  "README.md",
+  "common",
+  "cpu_source",
+  "cuda_source",
+  "dfttest2",
+  "dfttest2.py",
+  "hatch_build.py",
+  "nvrtc_source",
+  "pyproject.toml",
+  "tools",
+]
+
+[tool.hatch.build.targets.wheel]
+include = [
+  "dfttest2",
+  "vapoursynth/plugins",
+]
+artifacts = [
+  "vapoursynth/plugins/**/*.dll",
+  "vapoursynth/plugins/**/*.so",
+  "vapoursynth/plugins/**/*.dylib",
+  "vapoursynth/plugins/**/manifest.vs",
+  "vapoursynth/plugins/**/LICENSE",
+]
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+path = "hatch_build.py"
