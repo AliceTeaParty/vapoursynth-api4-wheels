@@ -4,9 +4,8 @@ Package names deliberately omit `-api4` and `-vcs`. CUDA variants name the
 runtime compatibility in the distribution name instead of encoding it in the
 version or selecting it through a Git tag.
 
-Only `vs-nlq` has been migrated and audited so far. The remaining versions are
-intentionally marked pending: every plugin must be handled and verified one at
-a time.
+Audited versions are recorded only after their corresponding wheels have been
+published and verified. Pending rows have not completed that process.
 
 | Former fork repository | Published package name | Audited version |
 | --- | --- | --- |
@@ -24,9 +23,9 @@ a time.
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cpu`) | `vapoursynth-bm3dcpu` | `2.16` |
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu121`) | `vapoursynth-bm3dcuda-cu121` | `2.16` |
 | `RyougiKukoc/VapourSynth-BM3DCUDA-api4` (`cu129`) | `vapoursynth-bm3dcuda-cu129` | `2.16` |
-| `RyougiKukoc/vs-dfttest2-api4` (`cpu`) | `vapoursynth-dfttest2-cpu` | Pending |
-| `RyougiKukoc/vs-dfttest2-api4` (`cu121`) | `vapoursynth-dfttest2-cu121` | Pending |
-| `RyougiKukoc/vs-dfttest2-api4` (`cu129`) | `vapoursynth-dfttest2-cu129` | Pending |
+| `RyougiKukoc/vs-dfttest2-api4` (`cpu`) | `vapoursynth-dfttest2-cpu` | `10.2` |
+| `RyougiKukoc/vs-dfttest2-api4` (`cu121`) | `vapoursynth-dfttest2-cu121` | `10.2` |
+| `RyougiKukoc/vs-dfttest2-api4` (`cu129`) | `vapoursynth-dfttest2-cu129` | `10.2` |
 | `RyougiKukoc/vs-mlrt-api4` (`generic`) | `vs-mlrt-generic` | `16.2.2` |
 | `RyougiKukoc/vs-mlrt-api4` (`cu121`) | `vs-mlrt-cu121` | `16.2.2` |
 | `RyougiKukoc/vs-mlrt-api4` (`cu129`) | `vs-mlrt-cu129` | `16.2.2` |

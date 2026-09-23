@@ -34,6 +34,9 @@ the project index is supplied with `--extra-index-url`.
 | [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcpu` | `2.16` | Windows/Linux x86_64 | Published and verified |
 | [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcuda-cu121` | `2.16` | Windows/Linux x86_64 | Published and verified |
 | [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcuda-cu129` | `2.16` | Windows/Linux x86_64 | Published and verified |
+| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cpu` | `10.2` | Windows/Linux x86_64 | Published and verified |
+| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cu121` | `10.2` | Windows/Linux x86_64 | Published and verified |
+| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cu129` | `10.2` | Windows/Linux x86_64 | Published and verified |
 | [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-generic` | `16.2.2` | Windows/Linux x86_64 | Variant migration prepared |
 | [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu121` | `16.2.2` | Windows/Linux x86_64 | Variant migration prepared |
 | [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu129` | `16.2.2` | Windows/Linux x86_64 | Variant migration prepared |
