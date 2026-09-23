@@ -99,6 +99,15 @@ jobs:
           select_one artifacts/linux/cu121 'vs_mlrt_cu121-*-any.whl'
           select_one artifacts/linux/cu129 'vs_mlrt_cu129-*-any.whl'
 
+          # Generic native components are rebuilt for every CUDA variant.
+          # Their filenames are platform-specific, so select one generic-build
+          # copy for each platform rather than treating variant copies as
+          # independent release assets.
+          select_one artifacts/windows-generic 'vs_ncnn-*-win_amd64.whl'
+          select_one artifacts/windows-generic 'vs_ov-*-win_amd64.whl'
+          select_one artifacts/linux/generic 'vs_ncnn-*-manylinux_*.whl'
+          select_one artifacts/linux/generic 'vs_ov-*-manylinux_*.whl'
+
       - name: Assemble and verify atomic release wheelhouse
         shell: bash
         run: |
