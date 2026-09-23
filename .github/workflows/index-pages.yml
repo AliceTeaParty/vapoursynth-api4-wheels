@@ -4,8 +4,6 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [index]
-  release:
-    types: [published, unpublished, deleted]
 
 permissions:
   contents: read

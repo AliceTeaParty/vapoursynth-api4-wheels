@@ -3,12 +3,6 @@ name: Package - vs-mlrt variants - Linux
 # generic/cu121/cu129 native compilation, split-wheel smoke, and artifact
 # upload. Atomic publication is owned by package-vs-mlrt-finalize.yml.
 on:
-  push:
-    branches: [main]
-    tags: [vs-mlrt-v*]
-    paths:
-      - plugins/vs-mlrt/**
-      - .github/workflows/package-vs-mlrt-linux.yml
   workflow_dispatch:
     inputs:
       variant:

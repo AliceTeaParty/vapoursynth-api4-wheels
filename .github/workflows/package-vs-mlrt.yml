@@ -1,16 +1,14 @@
-name: Package - vs-mlrt variants
+name: Quality - vs-mlrt contracts
 
 on:
   workflow_dispatch:
-    inputs:
-      variant:
-        required: true
-        type: choice
-        options: [generic, cu121, cu129]
-  push:
-    branches: [main]
+  pull_request:
     paths:
       - plugins/vs-mlrt/**
+      - '!plugins/vs-mlrt/tools/assemble_component_release.py'
+      - '!plugins/vs-mlrt/tools/verify_release_assets.py'
+      - '!plugins/vs-mlrt/tools/test_release_assembly.py'
+      - '!plugins/vs-mlrt/tools/test_release_assets.py'
       - .github/workflows/package-vs-mlrt.yml
 
 permissions:
@@ -45,9 +43,4 @@ jobs:
         shell: bash
         run: |
           python -m pip install "hatchling>=1.25"
-          python -m unittest \
-            plugins/vs-mlrt/tools/test_component_packaging.py \
-            plugins/vs-mlrt/tools/test_rm_vsmlrt.py \
-            plugins/vs-mlrt/tools/test_linux_native_staging.py \
-            plugins/vs-mlrt/tools/test_linux_staged_payload.py \
-            plugins/vs-mlrt/tools/test_linux_payload_packaging.py
+          python -m unittest discover -s plugins/vs-mlrt/tools -p 'test_*.py'

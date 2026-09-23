@@ -4,13 +4,6 @@ name: Package - vs-mlrt-generic - Windows
 # Atomic publication is owned by package-vs-mlrt-finalize.yml.
 
 on:
-  push:
-    branches: [main]
-    tags:
-      - vs-mlrt-v*
-    paths:
-      - plugins/vs-mlrt/**
-      - .github/workflows/package-vs-mlrt-windows-generic.yml
   workflow_dispatch:
 
 permissions:

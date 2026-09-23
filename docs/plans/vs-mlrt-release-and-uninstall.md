@@ -26,7 +26,10 @@ a draft release, but its post-upload check used GitHub's
 `/releases/tags/<tag>` REST endpoint. That endpoint returns 404 for drafts, so
 the workflow stopped without publishing. Draft and published release assets
 must instead be queried through `gh release view --json assets`; the existing
-draft remains private until all 34 remote digests are verified.
+draft remained private until all 34 remote digests were verified. That audit
+passed, `vs-mlrt-v16.2.2` was published on 2026-09-23, and Pages index run
+`35881526259` deployed the three entry projects successfully from `main`.
+Published-index consumer installs remain the final release gate.
 
 ## 1. Scope and fixed baseline
 
@@ -351,6 +354,18 @@ Linux, and platform-independent wheels. Create it as a draft, upload every
 wheel and provenance file, verify remote SHA-256 values, and publish only when
 the complete dependency closure is present. Publishing the release triggers
 `.github/workflows/index-pages.yml`, which regenerates the PEP 503 index.
+
+The three native build workflows are manual producers. They must use
+`workflow_dispatch` only: a merge to `main` or creation of the release tag
+must not rebuild roughly 10 GiB of already verified artifacts. The lightweight
+contract workflow runs on relevant pull requests before merge. Finalizer-only
+tools and tests do not trigger native builds.
+
+The `github-pages` environment allows deployments only from `main`, so the
+index workflow must not deploy directly from a `release` event (whose ref is
+the release tag). Every publisher sends `repository_dispatch(index)` only
+after release assets are verified and published; that event runs the index
+workflow from the default branch and satisfies the environment policy.
 
 Platform-independent wheels are release-train assets with exactly one owner,
 even though each platform job builds a copy for its local installation smoke

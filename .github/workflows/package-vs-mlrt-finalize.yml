@@ -147,3 +147,4 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --tag "$RELEASE_TAG"
           gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+          gh api "repos/$GITHUB_REPOSITORY/dispatches" -f event_type=index
