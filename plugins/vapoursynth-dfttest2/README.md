@@ -1,4 +1,4 @@
-# vs-dfttest2-api4
+# DFTTest2
 DFTTest re-implementation for VapourSynth API4.
 
 This fork packages the CPU backend and, for CUDA-tagged builds, the NVRTC and
@@ -7,24 +7,24 @@ repository, but they are not part of the default Windows package.
 
 ## Installation
 
-The Windows and Linux x86_64 VCS install paths are release-backed. Pick the
-package variant by installing from one of the repository tags:
+Install the matching Windows or Linux x86_64 wheel from the project index:
 
 ```powershell
-pip install "vapoursynth-dfttest2 @ git+https://github.com/RyougiKukoc/vs-dfttest2-api4.git@cpu"
-pip install "vapoursynth-dfttest2 @ git+https://github.com/RyougiKukoc/vs-dfttest2-api4.git@cu121"
-pip install "vapoursynth-dfttest2 @ git+https://github.com/RyougiKukoc/vs-dfttest2-api4.git@cu129"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-generic
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-cu121
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-cu129
 ```
 
-`cpu` installs only the CPU plugin. `cu121` installs the CPU plugin plus CUDA
+`vapoursynth-dfttest2-generic` installs only the CPU plugin. The `cu121`
+distribution installs the CPU plugin plus CUDA
 12.1 builds of the NVRTC and cuFFT backends. `cu129` does the same with CUDA
 12.9. Linux CUDA packages include the matching cuFFT/cudart runtime beside the
-plugins; the NVIDIA driver is supplied by the host. If you switch between tags, use
-`--force-reinstall` so pip replaces the already-installed wheel with the other
-variant.
+plugins; the NVIDIA driver is supplied by the host. The distributions install
+the same Python and native paths, so uninstall the current variant before
+switching.
 
 On Linux x86_64, the hook downloads `dfttest2-<variant>-linux-x86_64.zip` from
-the matching `cpu`, `cu121`, or `cu129` Release. All Linux wheels are tagged
+the matching distribution Release. All Linux wheels are tagged
 `manylinux_2_27_x86_64`. Package-wide ABI inspection finds a maximum of GLIBC
 2.14 / GLIBCXX 3.4.18 for CPU, GLIBC 2.27 / GLIBCXX 3.4.22 for cu121, and
 GLIBC 2.27 / GLIBCXX 3.4.21 for cu129; each CUDA package includes

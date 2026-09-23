@@ -18,9 +18,14 @@ from packaging import tags
 
 ROOT = Path(__file__).resolve().parent
 PLUGIN_NAME = "dfttest2"
-DEFAULT_REPOSITORY = "RyougiKukoc/vs-dfttest2-api4"
+DEFAULT_REPOSITORY = "AliceTeaParty/vapoursynth-api4-wheels"
 CUDA_VARIANTS = {"cu121", "cu129"}
 SUPPORTED_VARIANTS = {"cpu", *CUDA_VARIANTS}
+RELEASE_TAGS = {
+    "cpu": "vapoursynth-dfttest2-generic-v10.2",
+    "cu121": "vapoursynth-dfttest2-cu121-v10.2",
+    "cu129": "vapoursynth-dfttest2-cu129-v10.2",
+}
 VARIANT_MARKER = ROOT / ".dfttest2-variant"
 
 
@@ -122,7 +127,7 @@ def _default_asset_name(variant: str) -> str:
 
 def _default_prebuilt_url(variant: str) -> str:
     repository = _default_repository()
-    tag = os.environ.get("DFTTEST2_PREBUILT_TAG") or variant
+    tag = os.environ.get("DFTTEST2_PREBUILT_TAG") or RELEASE_TAGS[variant]
     asset = os.environ.get("DFTTEST2_PREBUILT_ASSET_NAME") or _default_asset_name(variant)
     return f"https://github.com/{repository}/releases/download/{tag}/{asset}"
 
