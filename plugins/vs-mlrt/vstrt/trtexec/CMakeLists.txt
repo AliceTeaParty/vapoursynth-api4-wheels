@@ -31,4 +31,11 @@ target_include_directories(trtexec PRIVATE
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 )
 
+if(UNIX AND NOT APPLE)
+    set_target_properties(trtexec PROPERTIES
+        BUILD_RPATH "$ORIGIN"
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()
+
 install(TARGETS trtexec RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

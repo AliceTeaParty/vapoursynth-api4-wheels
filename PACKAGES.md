@@ -26,9 +26,9 @@ published and verified. Pending rows have not completed that process.
 | `RyougiKukoc/vs-dfttest2-api4` (`cpu`) | `vapoursynth-dfttest2-cpu` | `10.2` |
 | `RyougiKukoc/vs-dfttest2-api4` (`cu121`) | `vapoursynth-dfttest2-cu121` | `10.2` |
 | `RyougiKukoc/vs-dfttest2-api4` (`cu129`) | `vapoursynth-dfttest2-cu129` | `10.2` |
-| `RyougiKukoc/vs-mlrt-api4` (`generic`) | `vs-mlrt-generic` | `16.2.2` |
-| `RyougiKukoc/vs-mlrt-api4` (`cu121`) | `vs-mlrt-cu121` | `16.2.2` |
-| `RyougiKukoc/vs-mlrt-api4` (`cu129`) | `vs-mlrt-cu129` | `16.2.2` |
+| `RyougiKukoc/vs-mlrt-api4` (`generic`) | `vs-mlrt-generic` | pending (`16.2.2` candidate) |
+| `RyougiKukoc/vs-mlrt-api4` (`cu121`) | `vs-mlrt-cu121` | pending (`16.2.2` candidate) |
+| `RyougiKukoc/vs-mlrt-api4` (`cu129`) | `vs-mlrt-cu129` | pending (`16.2.2` candidate) |
 
 ## Version rules
 

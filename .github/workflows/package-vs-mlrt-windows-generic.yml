@@ -1,24 +1,17 @@
 name: Package - vs-mlrt-generic - Windows
 
-# Native compilation, staging, wheel smoke, and artifact upload are verified.
-# TODO(vs-mlrt-publishing): re-enable the disabled Release/digest/index steps
-# only after the replacement publication strategy is selected and validated.
+# Native compilation, staging, split-wheel smoke, and artifact upload.
+# Atomic publication is owned by package-vs-mlrt-finalize.yml.
 
 on:
   push:
     branches: [main]
     tags:
-      - vs-mlrt-generic-v*
+      - vs-mlrt-v*
     paths:
       - plugins/vs-mlrt/**
       - .github/workflows/package-vs-mlrt-windows-generic.yml
   workflow_dispatch:
-    inputs:
-      publish:
-        description: "TODO(publishing): disabled until the release strategy is finalized"
-        type: boolean
-        required: false
-        default: false
 
 permissions:
   contents: write
@@ -300,23 +293,20 @@ jobs:
             Select-Object Name, Length |
             Format-Table -AutoSize
 
-      - name: Build and smoke vs-mlrt-generic wheel
+      - name: Build and smoke split generic wheels
         shell: pwsh
         run: |
           python -m pip install --upgrade build hatchling
           Invoke-WebRequest -Uri "https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/models/models.zip" -OutFile models.zip
-          $env:VSMLRT_PREBUILT_PATH = "$pwd\vs-mlrt-windows-x64-generic.zip"
-          $env:VSMLRT_MODELS_PREBUILT_PATH = "$pwd\models.zip"
-          python -m build packaging\distributions\generic --wheel --no-isolation --outdir dist\wheels
-          $wheel = Get-ChildItem dist\wheels\*.whl | Select-Object -First 1 -ExpandProperty FullName
-          python -m pip install --force-reinstall --no-deps $wheel
+          python tools\build_component_wheels.py `
+            --variant generic `
+            --stage-dir payload-generic\vsmlrt `
+            --models models.zip `
+            --output dist\wheels `
+            --clean
+          $wheels = @(Get-ChildItem dist\wheels\*.whl | Sort-Object Name)
+          python -m pip install --force-reinstall --no-deps $wheels.FullName
           python tools\smoke_vcs_extras_install.py --variant generic --distribution vs-mlrt-generic
-
-      - name: Install and verify this job's exact staged payload
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python tools/verify_staged_payload.py --variant generic --repo "${{ github.repository }}" --dependency-repo RyougiKukoc/vs-mlrt-api4 --evidence payload-provenance-generic.json
 
       - name: Upload generic payload artifact
         uses: actions/upload-artifact@v7
@@ -324,31 +314,8 @@ jobs:
           name: vs-mlrt-windows-x64-generic
           path: |
             plugins/vs-mlrt/vs-mlrt-windows-x64-generic.zip
-            plugins/vs-mlrt/payload-provenance-generic.json
             plugins/vs-mlrt/verification-native-*.json
             plugins/vs-mlrt/models.zip
             plugins/vs-mlrt/dist/wheels/*.whl
+            plugins/vs-mlrt/dist/wheels/component-wheel-inventory-*.json
           compression-level: 0
-
-      - name: TODO(publishing) - Release generic payload
-        if: ${{ false }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          files: |
-            plugins/vs-mlrt/vs-mlrt-windows-x64-generic.zip
-            plugins/vs-mlrt/payload-provenance-generic.json
-            plugins/vs-mlrt/models.zip
-            plugins/vs-mlrt/dist/wheels/*.whl
-          fail_on_unmatched_files: true
-          generate_release_notes: false
-          prerelease: true
-
-      - name: TODO(publishing) - Verify published payload digests and refresh index
-        if: ${{ false }}
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python tools/verify_staged_payload.py --variant generic --repo "${{ github.repository }}" --evidence payload-provenance-generic.json --verify-published-only --release-tag "${{ github.ref_name }}"
-          gh api "repos/$env:GITHUB_REPOSITORY/dispatches" -f event_type=index

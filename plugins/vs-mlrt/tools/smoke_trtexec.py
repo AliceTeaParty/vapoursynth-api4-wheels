@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import shutil
 import tempfile
 
 import vsmlrt
@@ -20,11 +19,9 @@ def main() -> None:
     parser.add_argument("--channels", type=int, default=2)
     args = parser.parse_args()
 
-    trtexec = shutil.which("trtexec")
-    if trtexec is None:
-        raise SystemExit("trtexec is not available on PATH")
-    if Path(vsmlrt.trtexec_path).resolve() != Path(trtexec).resolve():
-        raise SystemExit(f"vsmlrt.trtexec_path={vsmlrt.trtexec_path!r} != PATH trtexec={trtexec!r}")
+    trtexec = Path(vsmlrt.trtexec_path).resolve()
+    if not trtexec.is_file():
+        raise SystemExit(f"Packaged trtexec does not exist: {trtexec}")
     if not args.network.is_file():
         raise SystemExit(f"Network does not exist: {args.network}")
 
@@ -43,7 +40,7 @@ def main() -> None:
         )
         if not engine.is_file() or engine.stat().st_size < 1024:
             raise SystemExit(f"TensorRT did not create a usable engine: {engine}")
-        print(f"Built TensorRT engine with {vsmlrt.trtexec_path}: {engine.stat().st_size} bytes")
+        print(f"Built TensorRT engine with {trtexec}: {engine.stat().st_size} bytes")
 
 
 if __name__ == "__main__":

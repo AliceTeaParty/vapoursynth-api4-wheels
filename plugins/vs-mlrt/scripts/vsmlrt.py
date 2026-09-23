@@ -20,6 +20,7 @@ import copy
 from dataclasses import dataclass, field
 import enum
 from fractions import Fraction
+from importlib import metadata
 import math
 import os
 import os.path
@@ -32,6 +33,27 @@ import time
 import typing
 import warnings
 import zlib
+
+
+_ENTRY_DISTRIBUTIONS = ("vs-mlrt-generic", "vs-mlrt-cu121", "vs-mlrt-cu129")
+
+
+def _reject_conflicting_entry_distributions() -> None:
+    installed = []
+    for distribution in _ENTRY_DISTRIBUTIONS:
+        try:
+            metadata.version(distribution)
+        except metadata.PackageNotFoundError:
+            continue
+        installed.append(distribution)
+    if len(installed) > 1:
+        raise RuntimeError(
+            "Conflicting vs-mlrt entry packages are installed: "
+            f"{', '.join(installed)}. Run 'python -m rm_vsmlrt --yes', then install exactly one entry package."
+        )
+
+
+_reject_conflicting_entry_distributions()
 
 try:
     import vsmlrt_dll_paths  # noqa: F401

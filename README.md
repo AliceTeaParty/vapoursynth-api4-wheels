@@ -37,9 +37,9 @@ the project index is supplied with `--extra-index-url`.
 | [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cpu` | `10.2` | Windows/Linux x86_64 | Published and verified |
 | [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cu121` | `10.2` | Windows/Linux x86_64 | Published and verified |
 | [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cu129` | `10.2` | Windows/Linux x86_64 | Published and verified |
-| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-generic` | `16.2.2` | Windows/Linux x86_64 | Native builds verified; publishing TODO |
-| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu121` | `16.2.2` | Windows/Linux x86_64 | Native builds verified; publishing TODO |
-| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu129` | `16.2.2` | Windows/Linux x86_64 | Native builds verified; publishing TODO |
+| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-generic` | `16.2.2` | Windows/Linux x86_64 | Split wheels verified locally; CI/release pending |
+| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu121` | `16.2.2` | Windows/Linux x86_64 | Split wheels and GPU inference verified locally; CI/release pending |
+| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu129` | `16.2.2` | Windows/Linux x86_64 | Split TRT/RTX wheels and GPU inference verified locally; CI/release pending |
 | [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` | `4.2` | Windows/Linux x86_64 | Published and verified |
 | [VFR-maniac/VapourSynth-FFT3DFilter](https://github.com/VFR-maniac/VapourSynth-FFT3DFilter) | `vapoursynth-fft3dfilter` | `2.1` | Windows/Linux x86_64 | Published and verified |
 | [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | `vs-cfl` | `1.0.2` | Windows/Linux x86_64 | Published and verified |

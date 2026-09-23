@@ -48,10 +48,10 @@ class ReleasePayloadBuildHook(BuildHookInterface):
         if os.environ.get("VSMLRT_SKIP_PREBUILT") == "1":
             return
 
-        if platform.system() != "Windows":
+        if not self.models_payload and platform.system() != "Windows":
             return
 
-        build_data["tag"] = "py3-none-win_amd64"
+        build_data["tag"] = "py3-none-any" if self.models_payload else "py3-none-win_amd64"
 
         payload_zip_paths = self._resolve_payload_paths()
 

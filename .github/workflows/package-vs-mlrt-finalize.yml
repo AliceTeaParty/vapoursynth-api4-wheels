@@ -1,0 +1,133 @@
+name: Package - vs-mlrt release train
+
+on:
+  workflow_dispatch:
+    inputs:
+      windows-generic-run:
+        description: Successful Windows generic workflow run ID
+        required: true
+        type: string
+      windows-cuda-run:
+        description: Successful Windows CUDA matrix workflow run ID
+        required: true
+        type: string
+      linux-run:
+        description: Successful Linux matrix workflow run ID
+        required: true
+        type: string
+      release-tag:
+        description: Atomic release tag, for example vs-mlrt-v16.2.2
+        required: true
+        type: string
+      publish:
+        description: Create/upload and publish the GitHub Release after verification
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  finalize:
+    name: Verify - complete wheel release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate requested release tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.release-tag }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" == "vs-mlrt-v16.2.2" ]] || {
+            echo "release-tag must match the package version: vs-mlrt-v16.2.2" >&2
+            exit 1
+          }
+
+      - name: Download verified build artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          WINDOWS_GENERIC_RUN: ${{ inputs.windows-generic-run }}
+          WINDOWS_CUDA_RUN: ${{ inputs.windows-cuda-run }}
+          LINUX_RUN: ${{ inputs.linux-run }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/windows-generic artifacts/windows-cuda artifacts/linux
+          gh run download "$WINDOWS_GENERIC_RUN" --repo "$REPOSITORY" \
+            --name vs-mlrt-windows-x64-generic --dir artifacts/windows-generic
+          for variant in cu121 cu129; do
+            gh run download "$WINDOWS_CUDA_RUN" --repo "$REPOSITORY" \
+              --name "vs-mlrt-windows-x64-$variant" --dir "artifacts/windows-cuda/$variant"
+          done
+          for variant in generic cu121 cu129; do
+            gh run download "$LINUX_RUN" --repo "$REPOSITORY" \
+              --name "vs-mlrt-linux-$variant" --dir "artifacts/linux/$variant"
+          done
+
+      - name: Select authoritative shared wheels
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/canonical-shared/windows artifacts/canonical-shared/linux
+          find artifacts/windows-generic -type f -name '*.whl' -exec cp '{}' artifacts/canonical-shared/windows/ \;
+          find artifacts/linux/generic -type f -name '*.whl' -exec cp '{}' artifacts/canonical-shared/linux/ \;
+
+      - name: Assemble and verify atomic release wheelhouse
+        shell: bash
+        run: |
+          set -euo pipefail
+          python plugins/vs-mlrt/tools/assemble_component_release.py \
+            --canonical-shared-input artifacts/canonical-shared \
+            --input artifacts/windows-generic \
+            --input artifacts/windows-cuda \
+            --input artifacts/linux \
+            --output release-wheelhouse
+
+      - name: Upload verified release wheelhouse
+        uses: actions/upload-artifact@v4
+        with:
+          name: vs-mlrt-release-wheelhouse
+          path: release-wheelhouse/*
+          compression-level: 0
+
+      - name: Publish atomic GitHub Release
+        if: ${{ inputs.publish }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            source_revision=$(python -c 'import json; print(json.load(open("release-wheelhouse/vs-mlrt-release-inventory.json"))["source_revision"])')
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+              --target "$source_revision" \
+              --title "$RELEASE_TAG" --notes "Atomic split-wheel vs-mlrt release." --draft
+          fi
+          gh release upload "$RELEASE_TAG" release-wheelhouse/* \
+            --repo "$GITHUB_REPOSITORY" --clobber
+          python - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+
+          expected = json.loads(Path("release-wheelhouse/vs-mlrt-release-inventory.json").read_text())
+          remote = json.loads(subprocess.check_output([
+              "gh", "api", f"repos/{os.environ['GITHUB_REPOSITORY']}/releases/tags/{os.environ['RELEASE_TAG']}"
+          ]))
+          assets = {item["name"]: item for item in remote["assets"]}
+          for item in expected["wheels"]:
+              asset = assets.get(item["name"])
+              if asset is None or asset.get("digest") != "sha256:" + item["sha256"]:
+                  raise SystemExit(f"Remote release digest mismatch: {item['name']}")
+          print(f"Verified {len(expected['wheels'])} remote wheel digests")
+          PY
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false

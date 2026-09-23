@@ -56,4 +56,12 @@ foreach(target trtexec trtexec_filelock_smoke)
         target_sources(${target} PRIVATE trtexec.manifest)
     endif()
 endforeach()
+
+if(UNIX AND NOT APPLE)
+    set_target_properties(trtexec PROPERTIES
+        BUILD_RPATH "$ORIGIN"
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()
+
 install(TARGETS trtexec trtexec_filelock_smoke RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

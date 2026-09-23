@@ -1,47 +1,38 @@
-# Linux / Windows payload audit and repair plan
+# Linux and Windows component parity audit
 
-The current published Linux assets are materially smaller than Windows. The
-requested target is Windows capability parity; package size is secondary.
+Status: the split wheel layout has platform parity.
 
-Required repairs:
+Both platforms install native VapourSynth plugins and generic support files at
+`vapoursynth/plugins/vsmlrt/`. All TensorRT, TensorRT-RTX, builder, and cu121
+CUDA dependency files install at `vapoursynth/plugins/vsmlrt/vsmlrt-cuda/`.
 
-1. Linux generic must contain `vsncnn.so` as well as `vsov.so`. Upstream has a
-   working `.github/workflows/linux-ncnn.yml`; the fork's Linux packaging had
-   simply omitted its artifact. This automatically repairs generic, `cu121`,
-   and `cu129`, because CUDA refs overlay generic.
-2. Linux standard TensorRT must enable `USE_NVINFER_PLUGIN=ON` and carry the
-   Windows-equivalent TensorRT parser, plugin, dispatch/lean and CUDA support
-   families. The goal is behavior parity, not the smallest runtime closure.
-3. Linux `cu129` must include `vstrt_rtx.so`, the TensorRT-RTX runtime and the
-   `tensorrt_rtx` builder helper. NVIDIA publishes the matching
-   TensorRT-RTX 1.5.0.114 Linux CUDA 12.9 archive as a `.tar.zst`.
-4. Both CUDA refs must publish a dedicated builder overlay containing the
-   version-matched `trtexec`, provenance JSON, and TensorRT builder resources.
-   Linux CUDA overlays also split oversized CUDA/cuDNN and cu129
-   builder-resource payloads into separate assets under GitHub's 2 GiB limit.
-   `Backend.TRT` invokes `trtexec` to convert ONNX; host PATH fallback is not a
-   complete VCS installation.
+Linux originally kept shared libraries at the plugin root because `vstrt.so`
+used `RUNPATH=$ORIGIN`. Moving them without changing RUNPATH failed with
+`libnvinfer.so.11: cannot open shared object file`. The final contract is:
 
-`trtexec` is built from the matching NVIDIA TensorRT OSS tag with this fork's
-pinned CMake recipe and Windows file-lock/logging fixes. It is not a wholly
-from-scratch implementation, and it is not the untouched prebuilt NVIDIA
-executable.
+```text
+vstrt.so and vstrt_rtx.so:       $ORIGIN:$ORIGIN/vsmlrt-cuda
+vsmlrt-cuda/lib*.so*:            $ORIGIN
+vsmlrt-cuda/trtexec:             $ORIGIN:$ORIGIN/..
+vsmlrt-cuda/tensorrt_rtx:        $ORIGIN:$ORIGIN/..
+```
 
-The overlays are intentionally separate: generic, standard TensorRT, CUDA,
-cuDNN, builder, and (for `cu129`) RTX. The root build hook downloads all
-selected overlays and regenerates one final manifest.
+With that contract, `vpy:cu129` loaded `libnvinfer.so.11`,
+`libnvinfer_plugin.so.11`, and `libtensorrt_rtx.so.1` from the package
+subdirectory, built standard and RTX engines, and rendered frames without
+`LD_LIBRARY_PATH` or system TensorRT libraries.
 
-Verification requirements:
+The Linux cu121 audit additionally found NVIDIA's TensorRT 8.6 builder
+resource requesting an executable stack. Packaging now applies
+`patchelf --clear-execstack` to every staged ELF and verifies the result. The
+corrected split cu121 closure built an engine and rendered a frame in the GPU
+container.
 
-- component packaging tests must prove builder resources do not leak into the
-  standard runtime overlay;
-- Linux `readelf`/`ldd` checks must cover every published ELF family;
-- clean API4 Linux and Windows installs must load the plugins;
-- deterministic `Backend.TRT` ONNX conversion must use the packaged builder;
-- `cu129` must build an RTX engine with the packaged `tensorrt_rtx` and render a
-  real frame on a compatible NVIDIA GPU.
+Component-wheel verification enforces:
 
-The exact source provenance previously audited was generic
-`e328c6641ca4d133d0f18d7ab337ca7b1b3a7b7a`, `cu121`
-`e6a7150d8fd917cd8765e0e008c08d48f427ee80`, and `cu129`
-`b44ca11dfac276c99104e465b15282cfa0618aa9`.
+- no overlapping files in any entry dependency closure;
+- no CUDA/TensorRT support library outside `vsmlrt-cuda/`;
+- cu121 includes its cuBLAS and cuDNN hard dependencies;
+- cu129 excludes the removed CUDA runtime/compiler families;
+- platform-correct wheel tags and the GitHub 2 GiB asset limit;
+- exact manifests for generic, cu121, and cu129.

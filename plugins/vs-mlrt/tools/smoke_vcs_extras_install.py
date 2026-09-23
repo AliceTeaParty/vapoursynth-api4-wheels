@@ -438,7 +438,12 @@ def verify_cuda_imports(roots: list[Path], plugin_dir: Path, cuda_dir: Path, fla
         pe_targets.extend([plugin_dir / "vstrt_rtx.dll", cuda_dir / "tensorrt_rtx_1_5.dll"])
 
     missing_driver = check_import_tree(pe_targets)
-    missing_driver.extend(check_dll_string_refs(cuda_dir / f"nvinfer_plugin{trt_suffix}.dll"))
+    # TensorRT 8.6's plugin dynamically names its cuBLAS/cuDNN hard
+    # dependencies. TensorRT 11 contains legacy/tactic strings for libraries
+    # that the verified model matrix does not load, so strings are not runtime
+    # dependency evidence for cu129.
+    if flavor == "cu121":
+        missing_driver.extend(check_dll_string_refs(cuda_dir / "nvinfer_plugin.dll"))
     return sorted(set(missing_driver))
 
 
@@ -567,9 +572,6 @@ def main() -> None:
                 cuda_prefix / "vstrt.dll",
                 cuda_prefix / "vsmlrt-cuda" / f"nvinfer{trt_suffix}.dll",
                 cuda_prefix / "vsmlrt-cuda" / f"nvinfer_plugin{trt_suffix}.dll",
-                cuda_prefix / "vsmlrt-cuda" / "cublas64_12.dll",
-                cuda_prefix / "vsmlrt-cuda" / "cublasLt64_12.dll",
-                cuda_prefix / "vsmlrt-cuda" / "cudart64_12.dll",
                 cuda_prefix / "vsmlrt-cuda" / "trtexec.exe",
                 cuda_prefix / "vsmlrt-cuda" / "trtexec-build.json",
             ],
@@ -584,23 +586,33 @@ def main() -> None:
                     cuda_prefix / "vsmlrt-cuda" / "tensorrt_rtx.exe",
                 ],
             )
+            removed_patterns = (
+                "cudart*.dll", "cublas*.dll", "cudnn*.dll", "cufft*.dll", "nvblas*.dll",
+                "nvrtc*.dll", "nvvm*.dll", "nvJitLink*.dll",
+            )
+            present = [
+                pattern for pattern in removed_patterns
+                if find_glob(roots, str(cuda_prefix / "vsmlrt-cuda" / pattern)) is not None
+            ]
+            if present:
+                raise SystemExit("cu129 install restored removed runtime families: " + ", ".join(present))
         else:
+            require_paths(
+                roots,
+                [
+                    cuda_prefix / "vsmlrt-cuda" / "cublas64_12.dll",
+                    cuda_prefix / "vsmlrt-cuda" / "cublasLt64_12.dll",
+                    cuda_prefix / "vsmlrt-cuda" / "cudnn64_8.dll",
+                    cuda_prefix / "vsmlrt-cuda" / "cudnn_ops_infer64_8.dll",
+                    cuda_prefix / "vsmlrt-cuda" / "cudnn_cnn_infer64_8.dll",
+                    cuda_prefix / "vsmlrt-cuda" / "cudnn_adv_infer64_8.dll",
+                ],
+            )
             forbid_paths(
                 roots,
                 [plugin_prefix / "vstrt_rtx.dll"],
                 "cu121 install unexpectedly contains TensorRT-RTX payload",
             )
-
-        missing_globs = [
-            pattern
-            for pattern in [
-                str(cuda_prefix / "vsmlrt-cuda" / "cudnn*.dll"),
-                str(cuda_prefix / "vsmlrt-cuda" / "nvrtc*.dll"),
-            ]
-            if find_glob(roots, pattern) is None
-        ]
-        if missing_globs:
-            raise SystemExit("Missing installed files matching: " + ", ".join(missing_globs))
 
         cuda_dir = cuda_paths[cuda_prefix / "vstrt.dll"].parent / "vsmlrt-cuda"
         expected_trtexec = cuda_dir / "trtexec.exe"
