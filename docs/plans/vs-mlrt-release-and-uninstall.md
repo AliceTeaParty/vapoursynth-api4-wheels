@@ -19,7 +19,14 @@ Pages-index consumer installs. A second `publish=false` run (`35871122166`)
 proved the four platform-independent selections worked, then exposed the same
 ownership requirement for the generic native `vs-ncnn` and `vs-ov` wheels
 rebuilt by each CUDA variant. Publication remains disabled until all remote
-gates pass.
+gates pass. The corrected `publish=false` run (`35874217261`) then assembled
+and uploaded the complete verified wheelhouse successfully. The first
+`publish=true` run (`35877751333`) uploaded all 34 wheels plus the inventory to
+a draft release, but its post-upload check used GitHub's
+`/releases/tags/<tag>` REST endpoint. That endpoint returns 404 for drafts, so
+the workflow stopped without publishing. Draft and published release assets
+must instead be queried through `gh release view --json assets`; the existing
+draft remains private until all 34 remote digests are verified.
 
 ## 1. Scope and fixed baseline
 
