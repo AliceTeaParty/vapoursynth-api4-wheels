@@ -1,3 +1,0 @@
-[submodule "cpu_source/vectorclass"]
-	path = cpu_source/vectorclass
-	url = https://github.com/vectorclass/version2
