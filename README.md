@@ -23,30 +23,53 @@ the project index is supplied with `--extra-index-url`.
 
 ## Packages
 
-| Upstream | Package | Version | Platforms | Status |
-| --- | --- | --- | --- | --- |
-| [quietvoid/vs-nlq](https://github.com/quietvoid/vs-nlq) | `vs-nlq` | `1.2.0` | Windows/Linux x86_64 | Published and verified |
-| [HomeOfVapourSynthEvolution/VapourSynth-NNEDI3CL](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-NNEDI3CL) | `vapoursynth-nnedi3cl` | `8.1` | Windows/Linux x86_64 | Published and verified |
-| [dubhatervapoursynth/vapoursynth-smoothuv](https://github.com/dubhatervapoursynth/vapoursynth-smoothuv) | `vapoursynth-smoothuv` | `3.1` | Windows/Linux x86_64 | Published and verified |
-| [HomeOfVapourSynthEvolution/VapourSynth-DFTTest](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-DFTTest) | `vapoursynth-dfttest` | `1.1` | Windows/Linux x86_64 | Published and verified |
-| [Khanattila/KNLMeansCL](https://github.com/Khanattila/KNLMeansCL) | `vapoursynth-knlm` | `1.1.2` | Windows/Linux x86_64 | Published and verified |
-| [HomeOfVapourSynthEvolution/VapourSynth-Retinex](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex) | `vapoursynth-retinex` | `4.1` | Windows/Linux x86_64 | Published and verified |
-| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcpu` | `2.16` | Windows/Linux x86_64 | Published and verified |
-| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcuda-cu121` | `2.16` | Windows/Linux x86_64 | Published and verified |
-| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcuda-cu129` | `2.16` | Windows/Linux x86_64 | Published and verified |
-| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cpu` | `10.2` | Windows/Linux x86_64 | Published and verified |
-| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cu121` | `10.2` | Windows/Linux x86_64 | Published and verified |
-| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cu129` | `10.2` | Windows/Linux x86_64 | Published and verified |
-| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-generic` | `16.2.2` | Windows/Linux x86_64 | Split wheels verified locally; CI/release pending |
-| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu121` | `16.2.2` | Windows/Linux x86_64 | Split wheels and GPU inference verified locally; CI/release pending |
-| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu129` | `16.2.2` | Windows/Linux x86_64 | Split TRT/RTX wheels and GPU inference verified locally; CI/release pending |
-| [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` | `4.2` | Windows/Linux x86_64 | Published and verified |
-| [VFR-maniac/VapourSynth-FFT3DFilter](https://github.com/VFR-maniac/VapourSynth-FFT3DFilter) | `vapoursynth-fft3dfilter` | `2.1` | Windows/Linux x86_64 | Published and verified |
-| [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | `vs-cfl` | `1.0.2` | Windows/Linux x86_64 | Published and verified |
-| [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | `vapoursynth-tcanny` | `14.1` | Windows/Linux x86_64 | Published and verified |
-| [vapoursynth/vs-miscfilters-obsolete](https://github.com/vapoursynth/vs-miscfilters-obsolete) | `vapoursynth-misc` | `2.1` | Windows/Linux x86_64 | Published and verified |
+| Upstream | Package |
+| --- | --- |
+| [quietvoid/vs-nlq](https://github.com/quietvoid/vs-nlq) | `vs-nlq` |
+| [HomeOfVapourSynthEvolution/VapourSynth-NNEDI3CL](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-NNEDI3CL) | `vapoursynth-nnedi3cl` |
+| [dubhatervapoursynth/vapoursynth-smoothuv](https://github.com/dubhatervapoursynth/vapoursynth-smoothuv) | `vapoursynth-smoothuv` |
+| [HomeOfVapourSynthEvolution/VapourSynth-DFTTest](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-DFTTest) | `vapoursynth-dfttest` |
+| [Khanattila/KNLMeansCL](https://github.com/Khanattila/KNLMeansCL) | `vapoursynth-knlm` |
+| [HomeOfVapourSynthEvolution/VapourSynth-Retinex](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex) | `vapoursynth-retinex` |
+| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcpu` |
+| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcuda-cu121` |
+| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcuda-cu129` |
+| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cpu` |
+| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cu121` |
+| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cu129` |
+| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-generic` |
+| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu121` |
+| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-cu129` |
+| [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` |
+| [VFR-maniac/VapourSynth-FFT3DFilter](https://github.com/VFR-maniac/VapourSynth-FFT3DFilter) | `vapoursynth-fft3dfilter` |
+| [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | `vs-cfl` |
+| [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | `vapoursynth-tcanny` |
+| [vapoursynth/vs-miscfilters-obsolete](https://github.com/vapoursynth/vs-miscfilters-obsolete) | `vapoursynth-misc` |
 
-See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
+## vs-mlrt
+
+Install exactly one vs-mlrt entry package from this index. `generic` provides
+NCNN/Vulkan and OpenVINO; the CUDA variants add their respective TensorRT
+runtime. The CUDA variants require a compatible NVIDIA driver.
+
+```console
+python -m pip install --extra-index-url \
+  https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ \
+  vs-mlrt-generic
+```
+
+Replace `vs-mlrt-generic` with `vs-mlrt-cu121` or `vs-mlrt-cu129` as needed.
+Do not install more than one entry package in the same environment.
+
+To remove a vs-mlrt installation and its installed component wheels, run:
+
+```console
+python -m rm_vsmlrt_helper
+```
+
+The helper prints the exact `python -m pip uninstall -y ...` command for the
+reviewed installed vs-mlrt distributions. Review and run that command; the
+helper does not invoke pip or delete files itself.
 
 ## Repository layout
 
@@ -55,16 +78,9 @@ See [PACKAGES.md](PACKAGES.md) for the complete naming plan and version audit.
 - `scripts/generate_index.py`: GitHub Release to PEP 503 index generator
 - `docs/reflections/<name>.md`: lessons recorded after each verified migration
 
-## Updating a subtree
+## Licenses
 
-Each plugin records its upstream repository and revision in its reflection
-document. Updates must be pulled from the original upstream, never from the
-former fork:
-
-```console
-git subtree pull --prefix plugins/vs-nlq \
-  https://github.com/quietvoid/vs-nlq.git main --squash
-```
-
-Build logic must continue to come from the already verified fork workflow.
-Only monorepo path handling and release/index publishing may be adapted.
+This repository is a collection of independently licensed upstream projects,
+not a single relicensed work. Each plugin retains its upstream license in its
+own directory. See [LICENSES.md](LICENSES.md) for the upstream audit, license
+mapping, and third-party notices.
