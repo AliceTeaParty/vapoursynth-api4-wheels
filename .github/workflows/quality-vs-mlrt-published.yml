@@ -53,14 +53,20 @@ jobs:
             python plugins/vs-mlrt/tools/smoke_vcs_extras_install.py "${args[@]}"
           fi
 
-      - name: Verify complete uninstall and reinstall eligibility
+      - name: Verify uninstall helper and reinstall eligibility
         shell: bash
         run: |
           set -euo pipefail
-          python -m rm_vsmlrt --yes
+          python -m rm_vsmlrt_helper
+          python -m pip uninstall -y \
+            vs-mlrt-generic vs-mlrt-cu121 vs-mlrt-cu129 vs-mlrt-models vs-ov vs-ncnn \
+            vs-cublas-cu121 vs-cudnn-cu121 vs-tensorrt-core-cu121 vs-tensorrt-builder-cu121 \
+            vs-trtexec-cu121 vs-trt-cu121 vs-tensorrt-core-cu129 vs-tensorrt-builder-cu129-base \
+            vs-tensorrt-builder-cu129-modern vs-trtexec-cu129 vs-trt-cu129 vs-tensorrt-rtx-cu129 \
+            vs-trt-rtx-cu129 || true
           if python -m pip list --format=freeze | grep -Eqi \
             '^(vs-mlrt|vs-ov|vs-ncnn|vs-cublas|vs-cudnn|vs-tensorrt|vs-trt|vs-trtexec)'; then
-            echo "rm_vsmlrt left a managed distribution installed" >&2
+            echo "manual reviewed uninstall left a managed distribution installed" >&2
             exit 1
           fi
           python -m pip install \

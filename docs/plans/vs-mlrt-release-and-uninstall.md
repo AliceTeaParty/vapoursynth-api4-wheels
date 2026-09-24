@@ -424,48 +424,15 @@ Required gates include:
 - the installed manifest exactly matches the selected entry package;
 - published-index installs produce the same file hashes as staged installs.
 
-## 7. `rm_vsmlrt` design
+## 7. `rm_vsmlrt_helper` design
 
-### 7.1 Naming and ownership
+Each entry wheel ships the same `rm_vsmlrt_helper` package and a direct command
+entry point. Both `python -m rm_vsmlrt_helper` and `rm_vsmlrt_helper` inspect
+the current environment and print a reviewed `python -m pip uninstall -y ...`
+command. The helper never invokes pip, deletes files, changes PATH, or starts a
+background process.
 
-Each of the three mutually exclusive entry wheels ships the same Python
-package:
-
-```text
-rm_vsmlrt/
-  __init__.py
-  __main__.py
-  cli.py
-```
-
-and installs both `rm_vsmlrt.cmd` and an extensionless POSIX shell wrapper in
-the scripts directory. Each wrapper runs the module in the foreground with
-the environment's Python interpreter.
-
-Supported invocations are:
-
-```text
-python -m rm_vsmlrt
-rm_vsmlrt
-```
-
-The module and command wrappers use the same underscore spelling: `rm_vsmlrt`.
-
-### 7.2 Why deletion alone is insufficient
-
-Deleting only `vapoursynth/plugins/vsmlrt` and `vsmlrt.py` leaves every wheel's
-`.dist-info` metadata installed. Pip would continue to report the components
-as satisfied and could skip them on a later reinstall. Complete removal must:
-
-1. uninstall every known vs-mlrt distribution through the running Python's
-   `python -m pip`;
-2. remove untracked/generated files left in the shared plugin directory;
-3. remove legacy wrapper files left by old VCS or monolithic installs.
-
-### 7.3 Exact uninstall allowlist
-
-The command operates on a fixed, normalized distribution-name allowlist. It
-must include the new packages:
+The printed command is assembled from a fixed, normalized allowlist:
 
 ```text
 vs-mlrt-generic
@@ -489,8 +456,8 @@ vs-tensorrt-rtx-cu129
 vs-trt-rtx-cu129
 ```
 
-It must also remove known superseded distributions from this repository and
-the fork:
+The allowlist also includes known superseded distributions from this repository
+and the fork:
 
 ```text
 vs-mlrt
@@ -501,71 +468,17 @@ vs-mlrt-cu129-payload-2
 vs-mlrt-cu129-payload-3
 ```
 
-Do not uninstall packages discovered merely because their name contains
-`mlrt`; only names in the reviewed allowlist are eligible.
+Packages are never selected merely because their name contains `mlrt`.
+The user reviews and runs the printed command, and can separately remove any
+generated engines or caches if desired. This avoids a self-deleting launcher
+and makes the actual destructive operation explicit in every shell.
 
-### 7.4 Execution sequence
+### 7.1 Helper verification
 
-1. Resolve the interpreter, site-packages directories, installed allowlisted
-   distributions, and the actual `vapoursynth` package directory.
-2. Refuse paths outside the resolved site-packages roots. Do not follow a
-   symlink or junction that escapes those roots.
-3. Print the distributions and filesystem targets. Interactive use requires
-   confirmation; CI uses `--yes`. `--dry-run` performs no mutation.
-4. Run `sys.executable -m pip uninstall -y` for installed component and legacy
-   distributions, then uninstall all entry distributions, including the one
-   that supplied the command.
-5. Delete the remaining shared directory
-   `vapoursynth/plugins/vsmlrt/`. This intentionally removes generated
-   `.engine`, `.cache`, and `.lock` files as part of a complete uninstall.
-6. Remove only these reviewed legacy top-level paths when present:
-   `vsmlrt.py`, `vsmlrt_dll_paths.py`, `vs_mlrt_dll_paths.pth`, and their
-   matching `__pycache__` entries.
-7. Rescan `importlib.metadata` and the filesystem. A nonempty allowlisted
-   distribution set or remaining reviewed path is an error.
-
-The Windows command is a batch wrapper rather than a generated `.exe` console
-launcher; POSIX and Git Bash use the extensionless shell wrapper. Windows runs
-all component uninstalls and payload cleanup in the foreground, then starts a
-silent helper only for removal of the running wrapper and its owning entry
-wheel after the foreground Python process exits. This avoids `cmd.exe` rereading
-a deleted batch file. Both wrappers invoke `python -m rm_vsmlrt` in the
-foreground, so the shell does not return to its prompt until all user-visible
-uninstall and cleanup work has completed.
-
-Recommended options and exit behavior:
-
-```text
---dry-run       show exact pip and filesystem actions
---yes           skip the interactive confirmation
---keep-engines  preserve generated *.engine/*.cache files outside the plugin
-                directory only; never preserve a partial plugin directory
---verbose       show subprocess output and resolved paths
-```
-
-- Exit 0: all allowlisted distributions and reviewed files are absent.
-- Exit 1: pip uninstall or filesystem cleanup failed.
-- Exit 2: unsafe path, invalid arguments, or user declined confirmation.
-
-The tool must never edit global PATH, delete the parent `vapoursynth/plugins`
-directory, uninstall VapourSynth itself, or remove unrelated plugins.
-
-### 7.5 Uninstall verification
-
-Test the command from each entry wheel on Windows and Linux:
-
-1. Install from a clean local wheelhouse and confirm every expected component
-   distribution is present.
-2. Generate at least one TensorRT engine/cache for CUDA entries.
-3. Run `python -m rm_vsmlrt --yes`; verify metadata, wrapper files, plugin
-   directory, engines, and caches are absent.
-4. Reinstall the same entry normally and run a smoke inference. This proves no
-   stale `.dist-info` prevented dependency restoration.
-5. Repeat through `rm_vsmlrt`/`rm_vsmlrt.exe` to exercise the Windows launcher
-   handoff.
-6. Place an unrelated plugin beside `vsmlrt` and prove its hash is unchanged.
-7. Exercise `--dry-run`, declined confirmation, a read-only file, a path
-   escape symlink/junction, and a partially installed legacy package set.
+Test both invocation forms from every entry wheel on Windows and Linux. Confirm
+that the printed command uses the active Python interpreter, includes exactly
+the installed allowlisted distributions, excludes unrelated packages, and does
+not change the environment.
 
 ## 8. Implementation work breakdown
 

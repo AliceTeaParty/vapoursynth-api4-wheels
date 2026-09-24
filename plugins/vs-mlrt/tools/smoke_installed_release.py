@@ -33,7 +33,7 @@ def require_distribution(variant: str) -> None:
     if entries != [expected]:
         fail(
             f"expected exactly {expected!r}, found {entries or 'no vs-mlrt entry package'}. "
-            "Run `python -m rm_vsmlrt --yes` before installing another variant."
+            "Run `python -m rm_vsmlrt_helper` and execute its printed command before installing another variant."
         )
     print(f"entry package: {expected} {importlib.metadata.version(expected)}")
 

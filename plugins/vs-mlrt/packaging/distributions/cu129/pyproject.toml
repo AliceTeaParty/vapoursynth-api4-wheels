@@ -29,6 +29,9 @@ dependencies = [
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-mlrt"
 "Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-mlrt-v16.2.6"
 
+[project.scripts]
+rm_vsmlrt_helper = "rm_vsmlrt_helper.cli:main"
+
 [tool.hatch.build.targets.wheel]
 bypass-selection = true
 
