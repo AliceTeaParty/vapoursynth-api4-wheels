@@ -34,7 +34,7 @@ class ComponentPackagingTests(unittest.TestCase):
         self.assertTrue(component_projects)
         for project in entry_projects:
             data = tomllib.loads(project.read_text(encoding="utf-8"))
-            self.assertEqual(data["project"]["version"], "16.2.4", project)
+            self.assertEqual(data["project"]["version"], "16.2.5", project)
         for project in component_projects:
             data = tomllib.loads(project.read_text(encoding="utf-8"))
             self.assertEqual(data["project"]["version"], "16.2.2", project)
@@ -115,7 +115,9 @@ class ComponentPackagingTests(unittest.TestCase):
             self.assertNotIn("scripts", data["project"])
         wrapper = ROOT / "scripts" / "rm_vsmlrt.cmd"
         self.assertTrue(wrapper.is_file())
+        self.assertTrue((ROOT / "scripts" / "rm_vsmlrt.sh").is_file())
         hook = (ROOT / "packaging" / "distributions" / "entry_hook.py").read_text(encoding="utf-8")
+        self.assertIn(".data/scripts/rm_vsmlrt\"", hook)
         self.assertIn(".data/scripts/rm_vsmlrt.cmd", hook)
 
 

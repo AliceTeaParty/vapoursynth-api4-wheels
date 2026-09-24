@@ -17,7 +17,7 @@ spec.loader.exec_module(smoke)
 
 class DistributionVersionTests(unittest.TestCase):
     def test_named_distribution_is_verified(self) -> None:
-        with patch.object(smoke.importlib.metadata, "version", return_value="16.2.4") as version:
+        with patch.object(smoke.importlib.metadata, "version", return_value="16.2.5") as version:
             smoke.verify_distribution_version("vs-mlrt-generic")
         version.assert_called_once_with("vs-mlrt-generic")
 
