@@ -75,20 +75,5 @@ class ReleaseAssemblyTests(unittest.TestCase):
             self.assertEqual((output / name).read_bytes(), canonical.read_bytes())
             self.assertEqual(verify.call_count, 2)
 
-    def test_finalizer_selects_all_four_shared_wheels(self) -> None:
-        workflow = (ROOT.parents[1] / ".github" / "workflows" / "package-vs-mlrt-finalize.yml").read_text(
-            encoding="utf-8"
-        )
-        for wheel in ("vs_mlrt_models", "vs_mlrt_generic", "vs_mlrt_cu121", "vs_mlrt_cu129"):
-            self.assertIn(f"'{wheel}-*-any.whl'", workflow)
-        for wheel, platform_tag in (
-            ("vs_ncnn", "win_amd64"),
-            ("vs_ov", "win_amd64"),
-            ("vs_ncnn", "manylinux_*"),
-            ("vs_ov", "manylinux_*"),
-        ):
-            self.assertIn(f"'{wheel}-*-{platform_tag}.whl'", workflow)
-
-
 if __name__ == "__main__":
     unittest.main()

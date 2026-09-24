@@ -1,7 +1,7 @@
 name: Package - vs-mlrt CUDA - Windows
 
 # cu121/cu129 native compilation, split-wheel smoke, and artifact upload.
-# Atomic publication is owned by package-vs-mlrt-finalize.yml.
+# Publication is intentionally separate from native artifact builds.
 
 on:
   workflow_dispatch:
