@@ -25,7 +25,7 @@ import vsmlrt
 out = vsmlrt.DPIR(clip, strength=5.0, backend=vsmlrt.Backend.TRT(fp16=True))
 ```
 
-The `16.2.5` entry packages depend on the tested `16.2.2` component wheels.
+The `16.2.6` entry packages depend on the tested `16.2.2` component wheels.
 This entry-only release is aligned with upstream `AmusementClub/vs-mlrt` tag `v16.2.test1`, commit
 `9e4d0c9dbbcaa28275772d30520330e69a58307c`.
 
@@ -72,7 +72,7 @@ site-packages/
   vsmlrt.py
   vsmlrt_dll_paths.py
   vs_mlrt_dll_paths.pth
-  rm_vsmlrt/
+  rm_vsmlrt_helper/
   vapoursynth/plugins/vsmlrt/
     manifest.vs
     models/
@@ -111,15 +111,14 @@ Pip does not recursively remove dependencies when an entry package is
 uninstalled. Use the command shipped by every entry wheel:
 
 ```text
-python -m rm_vsmlrt --yes
-# Command wrapper in Windows shells, Git Bash, and POSIX shells
-rm_vsmlrt --yes
+python -m rm_vsmlrt_helper
+# or
+rm_vsmlrt_helper
 ```
 
-It uninstalls the reviewed current and legacy distributions, removes metadata
-and wrapper files, and deletes the shared payload including generated engines
-and caches. It does not uninstall VapourSynth or remove unrelated plugins.
-Run `python -m rm_vsmlrt --dry-run` to inspect the exact actions.
+It prints, but never executes, an exact `python -m pip uninstall -y ...`
+command for the reviewed current and legacy distributions. It does not
+uninstall VapourSynth or include unrelated plugins.
 
 ## Backend Scope
 
@@ -171,9 +170,8 @@ both `vstrt` and `vstrt_rtx` rendered frames. Linux loaded `libnvinfer`,
 `libnvinfer_plugin`, and `libtensorrt_rtx` from `vsmlrt-cuda/` without a
 system TensorRT fallback.
 
-`rm_vsmlrt` was exercised against an installed Linux cu129 closure: it removed
-all 11 distributions, the shared payload, and an untracked generated engine,
-while preserving an unrelated plugin.
+The reviewed uninstall command printed by `rm_vsmlrt_helper` can be used to
+remove an installed component closure without selecting unrelated packages.
 
 Run the packaging regression suite with:
 

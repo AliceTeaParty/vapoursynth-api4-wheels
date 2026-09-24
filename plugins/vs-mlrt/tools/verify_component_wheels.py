@@ -10,9 +10,9 @@ import zipfile
 
 ASSET_LIMIT = 2 * 1024 ** 3
 ENTRY_FILES = {
-    "rm_vsmlrt/__init__.py",
-    "rm_vsmlrt/__main__.py",
-    "rm_vsmlrt/cli.py",
+    "rm_vsmlrt_helper/__init__.py",
+    "rm_vsmlrt_helper/__main__.py",
+    "rm_vsmlrt_helper/cli.py",
     "vs_mlrt_dll_paths.pth",
     "vsmlrt.py",
     "vsmlrt_dll_paths.py",
@@ -56,7 +56,7 @@ def elf_requests_executable_stack(payload: bytes) -> bool:
     return False
 
 
-def wheel_info(path: Path) -> tuple[str, str, str, set[str], zipfile.ZipFile]:
+def wheel_info(path: Path) -> tuple[str, set[str], zipfile.ZipFile]:
     archive = zipfile.ZipFile(path)
     metadata_name = next(name for name in archive.namelist() if name.endswith(".dist-info/METADATA"))
     message = BytesParser().parsebytes(archive.read(metadata_name))
@@ -65,7 +65,7 @@ def wheel_info(path: Path) -> tuple[str, str, str, set[str], zipfile.ZipFile]:
         value for value in archive.namelist()
         if ".dist-info/" not in value and not value.endswith("/")
     }
-    return name, message["Name"].replace("-", "_"), message["Version"], files, archive
+    return name, files, archive
 
 
 def verify(
@@ -80,13 +80,13 @@ def verify(
         wheels = [path for path in wheels if path.name.endswith("-any.whl") or "-manylinux_" in path.name]
     if not wheels:
         raise RuntimeError(f"No wheels found in {wheelhouse}")
-    packages: dict[str, tuple[Path, str, str, set[str]]] = {}
+    packages: dict[str, tuple[Path, set[str]]] = {}
     archives: list[zipfile.ZipFile] = []
     try:
         for wheel in wheels:
             if wheel.stat().st_size >= ASSET_LIMIT:
                 raise RuntimeError(f"Wheel exceeds GitHub's 2 GiB asset limit: {wheel.name}")
-            name, distribution, version, files, archive = wheel_info(wheel)
+            name, files, archive = wheel_info(wheel)
             archives.append(archive)
             if target_platform == "linux":
                 executable_stack = [
@@ -97,7 +97,7 @@ def verify(
                     raise RuntimeError(f"{wheel.name} contains ELF files requesting an executable stack: {executable_stack}")
             if name in packages:
                 raise RuntimeError(f"Duplicate wheel distribution: {name}")
-            packages[name] = (wheel, distribution, version, files)
+            packages[name] = (wheel, files)
 
         selected_closures = {entry: CLOSURES[entry] for entry in entries} if entries else CLOSURES
         for entry, closure in selected_closures.items():
@@ -106,23 +106,19 @@ def verify(
                 raise RuntimeError(f"{entry} closure is missing wheels: {missing}")
             owners: dict[str, str] = {}
             for package in sorted(closure):
-                for filename in packages[package][3]:
+                for filename in packages[package][1]:
                     if filename in owners:
                         raise RuntimeError(f"{entry} has overlapping file {filename}: {owners[filename]} and {package}")
                     owners[filename] = package
 
         for entry in selected_closures:
-            _, distribution, version, files = packages[entry]
-            expected_files = ENTRY_FILES | {
-                f"{distribution}-{version}.data/scripts/rm_vsmlrt",
-                f"{distribution}-{version}.data/scripts/rm_vsmlrt.cmd",
-            }
-            if files != expected_files:
-                raise RuntimeError(f"{entry} owns unexpected entry files: {sorted(files ^ expected_files)}")
+            files = packages[entry][1]
+            if files != ENTRY_FILES:
+                raise RuntimeError(f"{entry} owns unexpected entry files: {sorted(files ^ ENTRY_FILES)}")
 
         if "vs-mlrt-cu129" in selected_closures:
             cu129_files = {
-                filename for package in CLOSURES["vs-mlrt-cu129"] for filename in packages[package][3]
+                filename for package in CLOSURES["vs-mlrt-cu129"] for filename in packages[package][1]
             }
             forbidden = sorted(
                 filename for filename in cu129_files

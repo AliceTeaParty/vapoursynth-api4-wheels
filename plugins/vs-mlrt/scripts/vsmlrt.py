@@ -49,7 +49,7 @@ def _reject_conflicting_entry_distributions() -> None:
     if len(installed) > 1:
         raise RuntimeError(
             "Conflicting vs-mlrt entry packages are installed: "
-            f"{', '.join(installed)}. Run 'python -m rm_vsmlrt --yes', then install exactly one entry package."
+            f"{', '.join(installed)}. Run 'python -m rm_vsmlrt_helper', then execute its printed command before installing exactly one entry package."
         )
 
 
