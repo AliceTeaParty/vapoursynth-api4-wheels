@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
 from importlib import metadata
+import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import sys
+import time
 
 
 NEW_DISTRIBUTIONS = (
@@ -39,6 +42,7 @@ LEGACY_DISTRIBUTIONS = (
     "vs-mlrt-cu129-payload-3",
 )
 KNOWN_DISTRIBUTIONS = (*NEW_DISTRIBUTIONS, *LEGACY_DISTRIBUTIONS)
+ENTRY_DISTRIBUTIONS = ("vs-mlrt-generic", "vs-mlrt-cu121", "vs-mlrt-cu129")
 LEGACY_FILES = ("vsmlrt.py", "vsmlrt_dll_paths.py", "vs_mlrt_dll_paths.pth")
 
 
@@ -111,11 +115,33 @@ def uninstall(distributions: list[str], *, dry_run: bool, verbose: bool) -> int:
     return subprocess.run(command, check=False).returncode
 
 
+def wait_for_parent(pid: int) -> None:
+    if pid <= 0:
+        return
+    if os.name == "nt":
+        synchronize = 0x00100000
+        handle = ctypes.windll.kernel32.OpenProcess(synchronize, False, pid)
+        if handle:
+            try:
+                ctypes.windll.kernel32.WaitForSingleObject(handle, 30000)
+            finally:
+                ctypes.windll.kernel32.CloseHandle(handle)
+        return
+    for _ in range(300):
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return
+        time.sleep(0.1)
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Completely uninstall every vs-mlrt component and payload.")
     parser.add_argument("--dry-run", action="store_true", help="show actions without changing the environment")
     parser.add_argument("--yes", action="store_true", help="do not ask for interactive confirmation")
     parser.add_argument("--verbose", action="store_true", help="show resolved distributions and paths")
+    parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--parent-pid", type=int, default=0, help=argparse.SUPPRESS)
     return parser.parse_args(argv)
 
 
@@ -132,9 +158,16 @@ def confirm_removal(distributions: list[str], targets: list[Path]) -> bool:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    wait_for_parent(args.parent_pid)
     site_root = site_packages_root()
     distributions = selected_distributions()
     targets = cleanup_targets(site_root)
+    defer_entry_cleanup = (
+        not args.worker
+        and not args.dry_run
+        and os.name == "nt"
+        and os.environ.get("RM_VSMLRT_DEFER_ENTRY_CLEANUP") == "1"
+    )
 
     print_removal_summary(distributions, targets)
     if not args.yes and not args.dry_run:
@@ -142,7 +175,13 @@ def main(argv: list[str] | None = None) -> int:
             print("rm_vsmlrt: cancelled")
             return 2
 
-    pip_status = uninstall(distributions, dry_run=args.dry_run, verbose=args.verbose)
+    foreground_distributions = distributions
+    if defer_entry_cleanup:
+        entry_names = {normalize_distribution(name) for name in ENTRY_DISTRIBUTIONS}
+        foreground_distributions = [
+            name for name in distributions if normalize_distribution(name) not in entry_names
+        ]
+    pip_status = uninstall(foreground_distributions, dry_run=args.dry_run, verbose=args.verbose)
     cleanup_status = 0
     for target in targets:
         try:
@@ -153,6 +192,23 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.dry_run:
         return 0
+    if defer_entry_cleanup:
+        command = [
+            sys.executable,
+            "-m",
+            "rm_vsmlrt",
+            "--worker",
+            "--parent-pid",
+            str(os.getpid()),
+            "--yes",
+        ]
+        subprocess.Popen(
+            command,
+            close_fds=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return 1 if pip_status or cleanup_status else 0
     remaining = selected_distributions()
     remaining_paths = [str(path) for path in targets if path.exists() or path.is_symlink()]
     if remaining:

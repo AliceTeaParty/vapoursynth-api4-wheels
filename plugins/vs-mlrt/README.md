@@ -25,7 +25,7 @@ import vsmlrt
 out = vsmlrt.DPIR(clip, strength=5.0, backend=vsmlrt.Backend.TRT(fp16=True))
 ```
 
-The `16.2.5` entry packages depend on the tested `16.2.2` component wheels.
+The `16.2.6` entry packages depend on the tested `16.2.2` component wheels.
 This entry-only release is aligned with upstream `AmusementClub/vs-mlrt` tag `v16.2.test1`, commit
 `9e4d0c9dbbcaa28275772d30520330e69a58307c`.
 

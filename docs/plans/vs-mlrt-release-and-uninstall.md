@@ -525,11 +525,13 @@ Do not uninstall packages discovered merely because their name contains
    distribution set or remaining reviewed path is an error.
 
 The Windows command is a batch wrapper rather than a generated `.exe` console
-launcher; POSIX and Git Bash use the extensionless shell wrapper. Both invoke
-`python -m rm_vsmlrt` synchronously, so the shell does not return to its prompt
-until pip uninstall, filesystem cleanup, and the final rescan have completed.
-Neither wrapper keeps a locked executable image open, allowing the owning entry
-distribution and command wrapper to be removed during the same foreground process.
+launcher; POSIX and Git Bash use the extensionless shell wrapper. Windows runs
+all component uninstalls and payload cleanup in the foreground, then starts a
+silent helper only for removal of the running wrapper and its owning entry
+wheel after the foreground Python process exits. This avoids `cmd.exe` rereading
+a deleted batch file. Both wrappers invoke `python -m rm_vsmlrt` in the
+foreground, so the shell does not return to its prompt until all user-visible
+uninstall and cleanup work has completed.
 
 Recommended options and exit behavior:
 

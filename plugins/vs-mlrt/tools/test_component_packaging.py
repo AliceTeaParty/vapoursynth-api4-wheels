@@ -34,7 +34,7 @@ class ComponentPackagingTests(unittest.TestCase):
         self.assertTrue(component_projects)
         for project in entry_projects:
             data = tomllib.loads(project.read_text(encoding="utf-8"))
-            self.assertEqual(data["project"]["version"], "16.2.5", project)
+            self.assertEqual(data["project"]["version"], "16.2.6", project)
         for project in component_projects:
             data = tomllib.loads(project.read_text(encoding="utf-8"))
             self.assertEqual(data["project"]["version"], "16.2.2", project)

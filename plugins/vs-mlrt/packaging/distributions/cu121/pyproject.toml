@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vs-mlrt-cu121"
-version = "16.2.5"
+version = "16.2.6"
 description = "VapourSynth ML runtime tools with CUDA 12.1 backends"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
@@ -26,7 +26,7 @@ dependencies = [
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-mlrt"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-mlrt-v16.2.5"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-mlrt-v16.2.6"
 
 [tool.hatch.build.targets.wheel]
 bypass-selection = true

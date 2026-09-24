@@ -36,7 +36,7 @@ jobs:
           for variant, name in expected.items():
               data = tomllib.loads((root / variant / "pyproject.toml").read_text())
               assert data["project"]["name"] == name
-              assert data["project"]["version"] == "16.2.5"
+              assert data["project"]["version"] == "16.2.6"
               internal = [item for item in data["project"]["dependencies"] if item.startswith("vs-")]
               assert internal and all(item.endswith("==16.2.2") for item in internal), internal
           non_entry_projects = [
