@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import ctypes
 from importlib import metadata
-import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import sys
-import time
 
 
 NEW_DISTRIBUTIONS = (
@@ -114,33 +111,11 @@ def uninstall(distributions: list[str], *, dry_run: bool, verbose: bool) -> int:
     return subprocess.run(command, check=False).returncode
 
 
-def wait_for_parent(pid: int) -> None:
-    if pid <= 0:
-        return
-    if os.name == "nt":
-        synchronize = 0x00100000
-        handle = ctypes.windll.kernel32.OpenProcess(synchronize, False, pid)
-        if handle:
-            try:
-                ctypes.windll.kernel32.WaitForSingleObject(handle, 30000)
-            finally:
-                ctypes.windll.kernel32.CloseHandle(handle)
-        return
-    for _ in range(300):
-        try:
-            os.kill(pid, 0)
-        except ProcessLookupError:
-            return
-        time.sleep(0.1)
-
-
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Completely uninstall every vs-mlrt component and payload.")
     parser.add_argument("--dry-run", action="store_true", help="show actions without changing the environment")
     parser.add_argument("--yes", action="store_true", help="do not ask for interactive confirmation")
     parser.add_argument("--verbose", action="store_true", help="show resolved distributions and paths")
-    parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
-    parser.add_argument("--parent-pid", type=int, default=0, help=argparse.SUPPRESS)
     return parser.parse_args(argv)
 
 
@@ -157,7 +132,6 @@ def confirm_removal(distributions: list[str], targets: list[Path]) -> bool:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    wait_for_parent(args.parent_pid)
     site_root = site_packages_root()
     distributions = selected_distributions()
     targets = cleanup_targets(site_root)
@@ -186,31 +160,3 @@ def main(argv: list[str] | None = None) -> int:
     if remaining_paths:
         print(f"rm_vsmlrt: paths remain: {', '.join(remaining_paths)}", file=sys.stderr)
     return 1 if pip_status or cleanup_status or remaining or remaining_paths else 0
-
-
-def console_main() -> int:
-    if os.name != "nt" or "--worker" in sys.argv:
-        return main()
-    args = parse_args(sys.argv[1:])
-    if args.dry_run:
-        return main()
-    if not args.yes:
-        site_root = site_packages_root()
-        distributions = selected_distributions()
-        targets = cleanup_targets(site_root)
-        print_removal_summary(distributions, targets)
-        if not confirm_removal(distributions, targets):
-            print("rm_vsmlrt: cancelled")
-            return 2
-    command = [
-        sys.executable,
-        "-m",
-        "rm_vsmlrt",
-        "--worker",
-        "--parent-pid",
-        str(os.getpid()),
-        "--yes",
-        *sys.argv[1:],
-    ]
-    subprocess.Popen(command, close_fds=True)
-    return 0

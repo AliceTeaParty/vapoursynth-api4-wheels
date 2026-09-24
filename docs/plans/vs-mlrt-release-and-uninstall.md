@@ -438,23 +438,18 @@ rm_vsmlrt/
   cli.py
 ```
 
-and registers:
-
-```toml
-[project.scripts]
-rm_vsmlrt = "rm_vsmlrt.cli:console_main"
-```
+and installs `rm_vsmlrt.cmd` in the Windows scripts directory. The wrapper
+runs the module in the foreground with the environment's Python interpreter.
 
 Supported invocations are:
 
 ```text
 python -m rm_vsmlrt
 rm_vsmlrt
-rm_vsmlrt.exe
 ```
 
-The module, console command, and Windows launcher all use the same underscore
-spelling: `rm_vsmlrt`.
+The module and Windows command wrapper use the same underscore spelling:
+`rm_vsmlrt`.
 
 ### 7.2 Why deletion alone is insufficient
 
@@ -529,14 +524,12 @@ Do not uninstall packages discovered merely because their name contains
 7. Rescan `importlib.metadata` and the filesystem. A nonempty allowlisted
    distribution set or remaining reviewed path is an error.
 
-The console-script launcher on Windows may be locked while it is executing.
-`console_main` should therefore spawn
-`sys.executable -m rm_vsmlrt --worker --parent-pid <pid>` and exit. The worker
-waits for the launcher process to exit before uninstalling the owning entry
-distribution. An interactive confirmation must be completed by the foreground
-launcher before it starts the worker, which receives `--yes`; otherwise the
-console can return to its next prompt before the worker reads the response.
-Direct `python -m rm_vsmlrt` can run the worker in process.
+The Windows command is a batch wrapper rather than a generated `.exe` console
+launcher. It invokes `python -m rm_vsmlrt` synchronously, so the shell does
+not return to its prompt until pip uninstall, filesystem cleanup, and the
+final rescan have completed. Batch files do not keep a locked executable image
+open, allowing the owning entry distribution and command wrapper to be
+removed during the same foreground process.
 
 Recommended options and exit behavior:
 
