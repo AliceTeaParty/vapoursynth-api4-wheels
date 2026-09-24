@@ -68,38 +68,16 @@ class RemoveVsmlrtTests(unittest.TestCase):
             self.assertFalse(plugin.exists())
             self.assertEqual(unrelated.read_bytes(), b"other")
 
-    def test_windows_console_launcher_confirms_before_starting_worker(self):
-        site = Path.cwd()
-        with (
-            patch.object(module.os, "name", "nt"),
-            patch.object(module.sys, "argv", ["rm_vsmlrt"]),
-            patch.object(module, "site_packages_root", return_value=site),
-            patch.object(module, "selected_distributions", return_value=["vs-mlrt-generic"]),
-            patch.object(module, "cleanup_targets", return_value=[site / "vapoursynth" / "plugins" / "vsmlrt"]),
-            patch("builtins.input", return_value="y") as prompt,
-            patch.object(module.subprocess, "Popen") as popen,
-        ):
-            self.assertEqual(module.console_main(), 0)
+    def test_background_worker_arguments_are_not_accepted(self):
+        with self.assertRaises(SystemExit):
+            module.parse_args(["--worker"])
 
-        prompt.assert_called_once()
-        command = popen.call_args.args[0]
-        self.assertIn("--worker", command)
-        self.assertIn("--yes", command)
-
-    def test_windows_console_launcher_does_not_start_worker_when_cancelled(self):
-        site = Path.cwd()
-        with (
-            patch.object(module.os, "name", "nt"),
-            patch.object(module.sys, "argv", ["rm_vsmlrt"]),
-            patch.object(module, "site_packages_root", return_value=site),
-            patch.object(module, "selected_distributions", return_value=["vs-mlrt-generic"]),
-            patch.object(module, "cleanup_targets", return_value=[site / "vapoursynth" / "plugins" / "vsmlrt"]),
-            patch("builtins.input", return_value="n"),
-            patch.object(module.subprocess, "Popen") as popen,
-        ):
-            self.assertEqual(module.console_main(), 2)
-
-        popen.assert_not_called()
+    def test_windows_wrapper_runs_the_module_in_the_foreground(self):
+        wrapper = Path(__file__).resolve().parents[1] / "scripts" / "rm_vsmlrt.cmd"
+        contents = wrapper.read_text(encoding="ascii")
+        self.assertIn('"%~dp0python.exe" -m rm_vsmlrt %*', contents)
+        self.assertIn("python -m rm_vsmlrt %*", contents)
+        self.assertNotIn("start ", contents.lower())
 
 
 if __name__ == "__main__":
