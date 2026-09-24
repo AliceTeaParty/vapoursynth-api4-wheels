@@ -37,6 +37,12 @@ class WorkflowOrchestrationTests(unittest.TestCase):
         finalizer = (WORKFLOWS / "package-vs-mlrt-finalize.yml").read_text(encoding="utf-8")
         self.assertIn('gh api "repos/$GITHUB_REPOSITORY/dispatches" -f event_type=index', finalizer)
 
+    def test_published_smoke_uses_platform_specific_verifiers(self) -> None:
+        workflow = (WORKFLOWS / "quality-vs-mlrt-published.yml").read_text(encoding="utf-8")
+        self.assertGreaterEqual(workflow.count('"${{ runner.os }}" == Linux'), 2)
+        self.assertGreaterEqual(workflow.count("smoke_linux_vcs_install.py"), 2)
+        self.assertGreaterEqual(workflow.count("smoke_vcs_extras_install.py"), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

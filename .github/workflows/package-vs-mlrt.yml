@@ -10,6 +10,7 @@ on:
       - '!plugins/vs-mlrt/tools/test_release_assembly.py'
       - '!plugins/vs-mlrt/tools/test_release_assets.py'
       - .github/workflows/package-vs-mlrt.yml
+      - .github/workflows/quality-vs-mlrt-published.yml
 
 permissions:
   contents: read
@@ -35,7 +36,16 @@ jobs:
           for variant, name in expected.items():
               data = tomllib.loads((root / variant / "pyproject.toml").read_text())
               assert data["project"]["name"] == name
-              assert data["project"]["version"] == "16.2.2"
+              assert data["project"]["version"] == "16.2.3"
+              internal = [item for item in data["project"]["dependencies"] if item.startswith("vs-")]
+              assert internal and all(item.endswith("==16.2.2") for item in internal), internal
+          non_entry_projects = [
+              *Path("plugins/vs-mlrt/packaging/components").glob("*/pyproject.toml"),
+              Path("plugins/vs-mlrt/packaging/payloads/models/pyproject.toml"),
+              Path("plugins/vs-mlrt/pyproject.toml"),
+          ]
+          for project in non_entry_projects:
+              assert tomllib.loads(project.read_text())["project"]["version"] == "16.2.2", project
           assert (Path("plugins/vs-mlrt/vstrt/vs_tensorrt.cpp")).is_file()
           print("validated", ", ".join(expected.values()))
           PY

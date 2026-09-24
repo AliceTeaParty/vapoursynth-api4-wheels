@@ -324,7 +324,7 @@ jobs:
           # payload plus this archive and nothing else.
           $genericUrl = "https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/generic/vs-mlrt-windows-x64-generic.zip"
           if ($env:GITHUB_REF_TYPE -eq "tag") {
-            $genericUrl = "https://github.com/${{ github.repository }}/releases/download/vs-mlrt-generic-v16.2.2/vs-mlrt-windows-x64-generic.zip"
+            $genericUrl = "https://github.com/${{ github.repository }}/releases/download/vs-mlrt-generic-v16.2.3/vs-mlrt-windows-x64-generic.zip"
           }
           curl.exe -fsSL -o "$env:RUNNER_TEMP\generic.zip" $genericUrl
           Expand-Archive -LiteralPath "$env:RUNNER_TEMP\generic.zip" -DestinationPath generic-dependency -Force

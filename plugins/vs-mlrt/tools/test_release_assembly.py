@@ -20,10 +20,10 @@ SPEC.loader.exec_module(module)
 
 def write_wheel(path: Path, newline: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    dist_info = "vs_mlrt_cu121-16.2.2.dist-info"
+    dist_info = "vs_mlrt_cu121-16.2.3.dist-info"
     with zipfile.ZipFile(path, "w") as archive:
         archive.writestr("vsmlrt.py", newline.join((b"from pathlib import Path", b"ROOT = Path(__file__).parent", b"")))
-        archive.writestr(f"{dist_info}/METADATA", b"Name: vs-mlrt-cu121\nVersion: 16.2.2\n")
+        archive.writestr(f"{dist_info}/METADATA", b"Name: vs-mlrt-cu121\nVersion: 16.2.3\n")
         archive.writestr(f"{dist_info}/WHEEL", b"Wheel-Version: 1.0\nGenerator: test\nTag: py3-none-any\n")
         archive.writestr(f"{dist_info}/RECORD", b"")
 
@@ -32,7 +32,7 @@ class ReleaseAssemblyTests(unittest.TestCase):
     def test_conflicting_platform_independent_wheels_require_canonical_copy(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            name = "vs_mlrt_cu121-16.2.2-py3-none-any.whl"
+            name = "vs_mlrt_cu121-16.2.3-py3-none-any.whl"
             windows = root / "windows" / name
             linux = root / "linux" / name
             write_wheel(windows, b"\r\n")
@@ -44,7 +44,7 @@ class ReleaseAssemblyTests(unittest.TestCase):
     def test_canonical_copy_wins_while_all_inventory_hashes_are_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            name = "vs_mlrt_cu121-16.2.2-py3-none-any.whl"
+            name = "vs_mlrt_cu121-16.2.3-py3-none-any.whl"
             windows = root / "inputs" / "windows" / name
             linux = root / "inputs" / "linux" / name
             canonical = root / "canonical" / name

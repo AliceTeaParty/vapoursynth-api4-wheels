@@ -25,8 +25,8 @@ import vsmlrt
 out = vsmlrt.DPIR(clip, strength=5.0, backend=vsmlrt.Backend.TRT(fp16=True))
 ```
 
-All packages in a release train use the same version. Version `16.2.2` is
-aligned with upstream `AmusementClub/vs-mlrt` tag `v16.2.test1`, commit
+The `16.2.3` entry packages depend on the tested `16.2.2` component wheels.
+This entry-only release is aligned with upstream `AmusementClub/vs-mlrt` tag `v16.2.test1`, commit
 `9e4d0c9dbbcaa28275772d30520330e69a58307c`.
 
 ## Package Composition
