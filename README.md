@@ -14,7 +14,7 @@ This repository was inspired by Jaded-Encoding-Thaumaturgy's
 [vs-wheels](https://github.com/Jaded-Encoding-Thaumaturgy/vs-wheels). After
 maintaining API4 forks and builds for a long time, we adopted its idea of
 organizing prebuilt plugins as a dedicated wheel repository and package index.
-The two repositories are independent; VSWheels is the inspiration for this
+The two repositories are independent; vs-wheels is the inspiration for this
 repository's distribution model, not the upstream of the plugin ports hosted
 here.
 
@@ -25,7 +25,7 @@ expect to deprecate the corresponding package here and eventually remove it
 once a reasonable migration path exists.
 
 Where the repositories package the same plugins, they serve somewhat different
-compatibility goals. VSWheels generally tracks the current CUDA toolchain -- at
+compatibility goals. vs-wheels generally tracks the current CUDA toolchain -- at
 the time of writing, its BM3DCUDA and DFTTest2 CUDA workflows default to CUDA
 13.4, and its vs-mlrt TensorRT packages use the CUDA 13 line -- which targets
 systems with sufficiently recent NVIDIA drivers. This repository instead
