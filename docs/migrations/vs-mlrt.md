@@ -93,18 +93,15 @@ WinPython or Docker consumer environments.
 
 ## Publication handoff
 
-Platform workflows now build and upload split-wheel artifacts but never modify
-a GitHub Release. The manual `package-vs-mlrt-finalize.yml` workflow is the
-only publication owner. It accepts the three successful platform run IDs,
-selects the generic jobs' shared wheels as authoritative, merges duplicate
-pure wheels only when their logical members match, verifies both platform
-closures and SHA-256 inventories, and emits one 34-wheel release artifact.
+Platform workflows build and upload native split-wheel artifacts but never
+modify a GitHub Release. Entry-only patch releases are built from the three
+pure-Python entry projects after their metadata is verified, then published
+manually with their dependencies pinned to the already published component
+wheels. The Pages index is refreshed through its `repository_dispatch` event.
 
-Only an explicit `publish=true` finalizer run creates and publishes the atomic
-`vs-mlrt-v16.2.2` release. It verifies every uploaded wheel digest before
-publishing. The existing Pages workflow is triggered by the published release.
-Remote platform runs and published-index consumer installs remain the final
-uncompleted gates.
+This avoids rebuilding or republishing native component wheels when only the
+entry package metadata changes. Native platform builds remain available as
+manual validation workflows when their payloads change.
 
 Commit `4f3494ee8f8e69d33c30f820bd7d08de0201c0d0` validated the handoff guards:
 
