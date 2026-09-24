@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vs-trt-rtx-cu129"
-version = "16.2.2"
+version = "16.2.3"
 requires-python = ">=3.12"
 description = "TensorRT-RTX 1.5 VapourSynth plugin for vs-mlrt"
-dependencies = ["vs-tensorrt-rtx-cu129==16.2.2"]
+dependencies = ["vs-tensorrt-rtx-cu129==16.2.3"]
 
 [tool.hatch.build.targets.wheel]
 bypass-selection = true

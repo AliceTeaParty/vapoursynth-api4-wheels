@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       release-tag:
-        description: Atomic release tag, for example vs-mlrt-v16.2.2
+        description: Atomic release tag, for example vs-mlrt-v16.2.3
         required: true
         type: string
       publish:
@@ -46,8 +46,8 @@ jobs:
           RELEASE_TAG: ${{ inputs.release-tag }}
         run: |
           set -euo pipefail
-          [[ "$RELEASE_TAG" == "vs-mlrt-v16.2.2" ]] || {
-            echo "release-tag must match the package version: vs-mlrt-v16.2.2" >&2
+          [[ "$RELEASE_TAG" == "vs-mlrt-v16.2.3" ]] || {
+            echo "release-tag must match the package version: vs-mlrt-v16.2.3" >&2
             exit 1
           }
 

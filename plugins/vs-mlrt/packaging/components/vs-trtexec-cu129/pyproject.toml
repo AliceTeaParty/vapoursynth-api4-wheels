@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vs-trtexec-cu129"
-version = "16.2.2"
+version = "16.2.3"
 requires-python = ">=3.12"
 description = "TensorRT 11.1 engine builder for vs-mlrt"
 dependencies = [
-  "vs-tensorrt-core-cu129==16.2.2",
-  "vs-tensorrt-builder-cu129-base==16.2.2",
-  "vs-tensorrt-builder-cu129-modern==16.2.2",
+  "vs-tensorrt-core-cu129==16.2.3",
+  "vs-tensorrt-builder-cu129-base==16.2.3",
+  "vs-tensorrt-builder-cu129-modern==16.2.3",
 ]
 
 [tool.hatch.build.targets.wheel]

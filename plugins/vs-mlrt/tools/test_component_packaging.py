@@ -93,7 +93,7 @@ class ComponentPackagingTests(unittest.TestCase):
             dependencies = data["project"]["dependencies"]
             internal = {value.split("==", 1)[0] for value in dependencies if value.startswith("vs-")}
             self.assertEqual(internal, required)
-            self.assertTrue(all("==16.2.2" in value for value in dependencies if value.startswith("vs-")))
+            self.assertTrue(all("==16.2.3" in value for value in dependencies if value.startswith("vs-")))
             self.assertNotIn("vs-mlrt-generic", internal)
             self.assertEqual(data["project"]["scripts"]["rm_vsmlrt"], "rm_vsmlrt.cli:console_main")
 

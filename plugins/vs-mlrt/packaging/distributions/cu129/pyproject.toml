@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vs-mlrt-cu129"
-version = "16.2.2"
+version = "16.2.3"
 description = "VapourSynth ML runtime tools with CUDA 12.9 backends"
 requires-python = ">=3.12"
 license = "GPL-3.0-or-later"
@@ -13,16 +13,16 @@ dependencies = [
   "numpy",
   "onnx",
   "onnxconverter-common",
-  "vs-mlrt-models==16.2.2",
-  "vs-ov==16.2.2",
-  "vs-ncnn==16.2.2",
-  "vs-tensorrt-core-cu129==16.2.2",
-  "vs-tensorrt-builder-cu129-base==16.2.2",
-  "vs-tensorrt-builder-cu129-modern==16.2.2",
-  "vs-trtexec-cu129==16.2.2",
-  "vs-trt-cu129==16.2.2",
-  "vs-tensorrt-rtx-cu129==16.2.2",
-  "vs-trt-rtx-cu129==16.2.2",
+  "vs-mlrt-models==16.2.3",
+  "vs-ov==16.2.3",
+  "vs-ncnn==16.2.3",
+  "vs-tensorrt-core-cu129==16.2.3",
+  "vs-tensorrt-builder-cu129-base==16.2.3",
+  "vs-tensorrt-builder-cu129-modern==16.2.3",
+  "vs-trtexec-cu129==16.2.3",
+  "vs-trt-cu129==16.2.3",
+  "vs-tensorrt-rtx-cu129==16.2.3",
+  "vs-trt-rtx-cu129==16.2.3",
 ]
 
 [project.scripts]
@@ -30,7 +30,7 @@ rm_vsmlrt = "rm_vsmlrt.cli:console_main"
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-mlrt"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-mlrt-cu129-v16.2.2"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-mlrt-cu129-v16.2.3"
 
 [tool.hatch.build.targets.wheel]
 bypass-selection = true

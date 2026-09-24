@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vs-tensorrt-core-cu129"
-version = "16.2.2"
+version = "16.2.3"
 requires-python = ">=3.12"
 description = "TensorRT 11.1 runtime for vs-mlrt"
 

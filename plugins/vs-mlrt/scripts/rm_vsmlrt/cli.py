@@ -144,6 +144,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def print_removal_summary(distributions: list[str], targets: list[Path]) -> None:
+    print("rm_vsmlrt: installed distributions:", ", ".join(distributions) or "none")
+    print(f"rm_vsmlrt: shared payload: {targets[0]}")
+
+
+def confirm_removal(distributions: list[str], targets: list[Path]) -> bool:
+    del distributions, targets
+    answer = input("Remove all listed vs-mlrt distributions, plugins, models, and generated engines? [y/N] ")
+    return answer.strip().lower() in {"y", "yes"}
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     wait_for_parent(args.parent_pid)
@@ -151,11 +162,9 @@ def main(argv: list[str] | None = None) -> int:
     distributions = selected_distributions()
     targets = cleanup_targets(site_root)
 
-    print("rm_vsmlrt: installed distributions:", ", ".join(distributions) or "none")
-    print(f"rm_vsmlrt: shared payload: {targets[0]}")
+    print_removal_summary(distributions, targets)
     if not args.yes and not args.dry_run:
-        answer = input("Remove all listed vs-mlrt distributions, plugins, models, and generated engines? [y/N] ")
-        if answer.strip().lower() not in {"y", "yes"}:
+        if not confirm_removal(distributions, targets):
             print("rm_vsmlrt: cancelled")
             return 2
 
@@ -182,6 +191,17 @@ def main(argv: list[str] | None = None) -> int:
 def console_main() -> int:
     if os.name != "nt" or "--worker" in sys.argv:
         return main()
+    args = parse_args(sys.argv[1:])
+    if args.dry_run:
+        return main()
+    if not args.yes:
+        site_root = site_packages_root()
+        distributions = selected_distributions()
+        targets = cleanup_targets(site_root)
+        print_removal_summary(distributions, targets)
+        if not confirm_removal(distributions, targets):
+            print("rm_vsmlrt: cancelled")
+            return 2
     command = [
         sys.executable,
         "-m",
@@ -189,6 +209,7 @@ def console_main() -> int:
         "--worker",
         "--parent-pid",
         str(os.getpid()),
+        "--yes",
         *sys.argv[1:],
     ]
     subprocess.Popen(command, close_fds=True)

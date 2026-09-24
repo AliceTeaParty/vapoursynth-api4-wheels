@@ -36,7 +36,7 @@ jobs:
           for variant, name in expected.items():
               data = tomllib.loads((root / variant / "pyproject.toml").read_text())
               assert data["project"]["name"] == name
-              assert data["project"]["version"] == "16.2.2"
+              assert data["project"]["version"] == "16.2.3"
           assert (Path("plugins/vs-mlrt/vstrt/vs_tensorrt.cpp")).is_file()
           print("validated", ", ".join(expected.values()))
           PY

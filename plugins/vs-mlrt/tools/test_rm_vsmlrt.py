@@ -68,6 +68,39 @@ class RemoveVsmlrtTests(unittest.TestCase):
             self.assertFalse(plugin.exists())
             self.assertEqual(unrelated.read_bytes(), b"other")
 
+    def test_windows_console_launcher_confirms_before_starting_worker(self):
+        site = Path.cwd()
+        with (
+            patch.object(module.os, "name", "nt"),
+            patch.object(module.sys, "argv", ["rm_vsmlrt"]),
+            patch.object(module, "site_packages_root", return_value=site),
+            patch.object(module, "selected_distributions", return_value=["vs-mlrt-generic"]),
+            patch.object(module, "cleanup_targets", return_value=[site / "vapoursynth" / "plugins" / "vsmlrt"]),
+            patch("builtins.input", return_value="y") as prompt,
+            patch.object(module.subprocess, "Popen") as popen,
+        ):
+            self.assertEqual(module.console_main(), 0)
+
+        prompt.assert_called_once()
+        command = popen.call_args.args[0]
+        self.assertIn("--worker", command)
+        self.assertIn("--yes", command)
+
+    def test_windows_console_launcher_does_not_start_worker_when_cancelled(self):
+        site = Path.cwd()
+        with (
+            patch.object(module.os, "name", "nt"),
+            patch.object(module.sys, "argv", ["rm_vsmlrt"]),
+            patch.object(module, "site_packages_root", return_value=site),
+            patch.object(module, "selected_distributions", return_value=["vs-mlrt-generic"]),
+            patch.object(module, "cleanup_targets", return_value=[site / "vapoursynth" / "plugins" / "vsmlrt"]),
+            patch("builtins.input", return_value="n"),
+            patch.object(module.subprocess, "Popen") as popen,
+        ):
+            self.assertEqual(module.console_main(), 2)
+
+        popen.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
