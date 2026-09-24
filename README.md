@@ -62,9 +62,9 @@ the project index is supplied with `--extra-index-url`.
 | [HomeOfVapourSynthEvolution/VapourSynth-DFTTest](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-DFTTest) | `vapoursynth-dfttest` |
 | [Khanattila/KNLMeansCL](https://github.com/Khanattila/KNLMeansCL) | `vapoursynth-knlm` |
 | [HomeOfVapourSynthEvolution/VapourSynth-Retinex](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex) | `vapoursynth-retinex` |
-| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcpu` / `vapoursynth-bm3dcuda-cu121` / `vapoursynth-bm3dcuda-cu129` |
-| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cpu` / `vapoursynth-dfttest2-cu121` / `vapoursynth-dfttest2-cu129` |
-| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | (Entry packages:) `vs-mlrt-generic` / `vs-mlrt-cu121` / `vs-mlrt-cu129` |
+| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcpu` /<br> `vapoursynth-bm3dcuda-cu121` /<br> `vapoursynth-bm3dcuda-cu129` |
+| [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cpu` /<br> `vapoursynth-dfttest2-cu121` /<br> `vapoursynth-dfttest2-cu129` |
+| [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-generic` /<br> `vs-mlrt-cu121` /<br> `vs-mlrt-cu129` (Entry packages) |
 | [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` |
 | [VFR-maniac/VapourSynth-FFT3DFilter](https://github.com/VFR-maniac/VapourSynth-FFT3DFilter) | `vapoursynth-fft3dfilter` |
 | [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | `vs-cfl` |
