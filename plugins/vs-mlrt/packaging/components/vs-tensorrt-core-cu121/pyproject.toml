@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vs-tensorrt-core-cu121"
-version = "16.2.3"
+version = "16.2.2"
 requires-python = ">=3.12"
 description = "TensorRT 8.6 runtime for vs-mlrt"
-dependencies = ["vs-cublas-cu121==16.2.3", "vs-cudnn-cu121==16.2.3"]
+dependencies = ["vs-cublas-cu121==16.2.2", "vs-cudnn-cu121==16.2.2"]
 
 [tool.hatch.build.targets.wheel]
 bypass-selection = true

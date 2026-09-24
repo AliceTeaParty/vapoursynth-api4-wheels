@@ -13,9 +13,9 @@ dependencies = [
   "numpy",
   "onnx",
   "onnxconverter-common",
-  "vs-mlrt-models==16.2.3",
-  "vs-ov==16.2.3",
-  "vs-ncnn==16.2.3",
+  "vs-mlrt-models==16.2.2",
+  "vs-ov==16.2.2",
+  "vs-ncnn==16.2.2",
 ]
 
 [project.scripts]

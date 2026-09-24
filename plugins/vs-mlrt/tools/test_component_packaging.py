@@ -22,6 +22,23 @@ VERIFY_SPEC.loader.exec_module(verify_module)
 
 
 class ComponentPackagingTests(unittest.TestCase):
+    def test_only_entry_projects_use_the_entry_release_version(self):
+        entries = ROOT / "packaging" / "distributions"
+        entry_projects = sorted(entries.glob("*/pyproject.toml"))
+        component_projects = sorted((ROOT / "packaging" / "components").glob("*/pyproject.toml"))
+        component_projects.extend(
+            [ROOT / "packaging" / "payloads" / "models" / "pyproject.toml", ROOT / "pyproject.toml"]
+        )
+
+        self.assertTrue(entry_projects)
+        self.assertTrue(component_projects)
+        for project in entry_projects:
+            data = tomllib.loads(project.read_text(encoding="utf-8"))
+            self.assertEqual(data["project"]["version"], "16.2.3", project)
+        for project in component_projects:
+            data = tomllib.loads(project.read_text(encoding="utf-8"))
+            self.assertEqual(data["project"]["version"], "16.2.2", project)
+
     def test_executable_stack_detector(self):
         payload = bytearray(128)
         payload[:6] = b"\x7fELF\x02\x01"
@@ -93,7 +110,7 @@ class ComponentPackagingTests(unittest.TestCase):
             dependencies = data["project"]["dependencies"]
             internal = {value.split("==", 1)[0] for value in dependencies if value.startswith("vs-")}
             self.assertEqual(internal, required)
-            self.assertTrue(all("==16.2.3" in value for value in dependencies if value.startswith("vs-")))
+            self.assertTrue(all("==16.2.2" in value for value in dependencies if value.startswith("vs-")))
             self.assertNotIn("vs-mlrt-generic", internal)
             self.assertEqual(data["project"]["scripts"]["rm_vsmlrt"], "rm_vsmlrt.cli:console_main")
 
