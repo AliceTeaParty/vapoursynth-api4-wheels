@@ -438,8 +438,9 @@ rm_vsmlrt/
   cli.py
 ```
 
-and installs `rm_vsmlrt.cmd` in the Windows scripts directory. The wrapper
-runs the module in the foreground with the environment's Python interpreter.
+and installs both `rm_vsmlrt.cmd` and an extensionless POSIX shell wrapper in
+the scripts directory. Each wrapper runs the module in the foreground with
+the environment's Python interpreter.
 
 Supported invocations are:
 
@@ -448,8 +449,7 @@ python -m rm_vsmlrt
 rm_vsmlrt
 ```
 
-The module and Windows command wrapper use the same underscore spelling:
-`rm_vsmlrt`.
+The module and command wrappers use the same underscore spelling: `rm_vsmlrt`.
 
 ### 7.2 Why deletion alone is insufficient
 
@@ -525,11 +525,11 @@ Do not uninstall packages discovered merely because their name contains
    distribution set or remaining reviewed path is an error.
 
 The Windows command is a batch wrapper rather than a generated `.exe` console
-launcher. It invokes `python -m rm_vsmlrt` synchronously, so the shell does
-not return to its prompt until pip uninstall, filesystem cleanup, and the
-final rescan have completed. Batch files do not keep a locked executable image
-open, allowing the owning entry distribution and command wrapper to be
-removed during the same foreground process.
+launcher; POSIX and Git Bash use the extensionless shell wrapper. Both invoke
+`python -m rm_vsmlrt` synchronously, so the shell does not return to its prompt
+until pip uninstall, filesystem cleanup, and the final rescan have completed.
+Neither wrapper keeps a locked executable image open, allowing the owning entry
+distribution and command wrapper to be removed during the same foreground process.
 
 Recommended options and exit behavior:
 

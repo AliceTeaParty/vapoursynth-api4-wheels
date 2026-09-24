@@ -62,7 +62,7 @@ class VsmlrtPathTests(unittest.TestCase):
     def test_conflicting_entry_distributions_are_rejected(self) -> None:
         def version(name: str) -> str:
             if name in {"vs-mlrt-cu121", "vs-mlrt-cu129"}:
-                return "16.2.4"
+                return "16.2.5"
             raise self.vsmlrt.metadata.PackageNotFoundError(name)
 
         with patch.object(self.vsmlrt.metadata, "version", side_effect=version):

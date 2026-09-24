@@ -113,7 +113,10 @@ def verify(
 
         for entry in selected_closures:
             _, distribution, version, files = packages[entry]
-            expected_files = ENTRY_FILES | {f"{distribution}-{version}.data/scripts/rm_vsmlrt.cmd"}
+            expected_files = ENTRY_FILES | {
+                f"{distribution}-{version}.data/scripts/rm_vsmlrt",
+                f"{distribution}-{version}.data/scripts/rm_vsmlrt.cmd",
+            }
             if files != expected_files:
                 raise RuntimeError(f"{entry} owns unexpected entry files: {sorted(files ^ expected_files)}")
 

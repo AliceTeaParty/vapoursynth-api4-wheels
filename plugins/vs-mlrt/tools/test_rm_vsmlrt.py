@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import redirect_stderr
+import io
 import importlib.util
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -69,7 +71,7 @@ class RemoveVsmlrtTests(unittest.TestCase):
             self.assertEqual(unrelated.read_bytes(), b"other")
 
     def test_background_worker_arguments_are_not_accepted(self):
-        with self.assertRaises(SystemExit):
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             module.parse_args(["--worker"])
 
     def test_windows_wrapper_runs_the_module_in_the_foreground(self):
@@ -77,7 +79,19 @@ class RemoveVsmlrtTests(unittest.TestCase):
         contents = wrapper.read_text(encoding="ascii")
         self.assertIn('"%~dp0python.exe" -m rm_vsmlrt %*', contents)
         self.assertIn("python -m rm_vsmlrt %*", contents)
+        self.assertIn("exit /b !ERRORLEVEL!", contents)
+        self.assertEqual(len(contents.splitlines()), 3)
         self.assertNotIn("start ", contents.lower())
+
+    def test_posix_wrapper_runs_the_module_in_the_foreground(self):
+        wrapper = Path(__file__).resolve().parents[1] / "scripts" / "rm_vsmlrt.sh"
+        contents = wrapper.read_text(encoding="ascii")
+        self.assertTrue(contents.startswith("#!/bin/sh\n"))
+        self.assertIn('exec "$script_dir/python" -m rm_vsmlrt "$@"', contents)
+        self.assertIn('exec "$script_dir/python.exe" -m rm_vsmlrt "$@"', contents)
+        self.assertIn("exec python -m rm_vsmlrt", contents)
+        self.assertNotIn("nohup", contents)
+        self.assertNotIn("setsid", contents)
 
 
 if __name__ == "__main__":
