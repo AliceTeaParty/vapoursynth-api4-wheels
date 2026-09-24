@@ -29,7 +29,7 @@ rm_vsmlrt = "rm_vsmlrt.cli:console_main"
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-mlrt"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-mlrt-cu121-v16.2.3"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-mlrt-v16.2.3"
 
 [tool.hatch.build.targets.wheel]
 bypass-selection = true
