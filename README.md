@@ -8,10 +8,10 @@ commit for each plugin.
 Only Windows and Linux x86_64 are supported. macOS and ARM wheels are not
 published.
 
-## Relationship to VSWheels
+## Relationship to vs-wheels
 
 This repository was inspired by Jaded-Encoding-Thaumaturgy's
-[VSWheels](https://github.com/Jaded-Encoding-Thaumaturgy/vs-wheels). After
+[vs-wheels](https://github.com/Jaded-Encoding-Thaumaturgy/vs-wheels). After
 maintaining API4 forks and builds for a long time, we adopted its idea of
 organizing prebuilt plugins as a dedicated wheel repository and package index.
 The two repositories are independent; VSWheels is the inspiration for this
