@@ -66,7 +66,10 @@ Without a notification credential, the central maintainer can run a preview
 directly, or accept the PR route below.
 
 The source workflow has only a manual trigger. Quality checks on code PRs use
-local fixtures; they do not synchronize upstream modules or publish wheels.
+local fixtures and the fixed upstream commits in `tests/module-snapshots.json`.
+These regression checks do not synchronize to new upstream versions or publish
+wheels. Runtime imports in clean snapshot environments are checked to retain
+their normal missing-dependency error, without stubs or added dependencies.
 
 ## API v1
 

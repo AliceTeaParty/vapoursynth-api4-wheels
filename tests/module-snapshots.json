@@ -1,0 +1,4 @@
+[
+  {"module": "rksfunc", "source_sha": "d29dc6ec22f29312157d72de9b02295b5a3071c0", "version": "1.1.4", "missing_runtime_import": "vapoursynth"},
+  {"module": "rkstool", "source_sha": "873518b7ba93401e379786f38f0425f2890a3ac3", "version": "1.1.1", "missing_runtime_import": "vapoursynth"}
+]
