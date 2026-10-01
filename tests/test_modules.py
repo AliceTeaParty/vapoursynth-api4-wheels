@@ -311,7 +311,7 @@ class PublisherTests(unittest.TestCase):
             manifest.update(build_run_url="https://example.invalid/run", build_run_id=1234)
             manifest_file = root / "source-manifest.json"
             common.write_json(manifest_file, manifest)
-            state = {"release": None, "uploads": []}
+            state = {"release": None, "uploads": [], "fail_manifest_once": True}
 
             class ReleaseAPI:
                 def request(self, path, method="GET", data=None):
@@ -329,6 +329,9 @@ class PublisherTests(unittest.TestCase):
             def upload(command, **kwargs):
                 self.assertNotIn("--clobber", command)
                 file = Path(command[4])
+                if file.name == "source-manifest.json" and state["fail_manifest_once"]:
+                    state["fail_manifest_once"] = False
+                    raise subprocess.CalledProcessError(1, command)
                 state["uploads"].append(file.name)
                 state["release"]["assets"].append({
                     "id": 100 + len(state["uploads"]), "size": file.stat().st_size,
@@ -338,6 +341,10 @@ class PublisherTests(unittest.TestCase):
 
             with patch.object(publisher.subprocess, "run", side_effect=upload), patch.object(publisher.subprocess, "check_output", return_value=manifest_file.read_bytes()):
                 api = ReleaseAPI()
+                with self.assertRaises(subprocess.CalledProcessError):
+                    publisher.publish_release(api, wheel, manifest_file, manifest)
+                self.assertTrue(state["release"]["draft"])
+                self.assertEqual(state["uploads"], [wheel.name])
                 self.assertEqual(publisher.publish_release(api, wheel, manifest_file, manifest)[1], "published")
                 self.assertEqual(state["uploads"], [wheel.name, "source-manifest.json"])
                 self.assertEqual(publisher.publish_release(api, wheel, manifest_file, manifest)[1], "already_published")
