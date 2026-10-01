@@ -46,6 +46,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          sparse-checkout: |
+            .github
+            modules
+            scripts
+            tests
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -84,6 +89,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          sparse-checkout: |
+            .github
+            modules
+            scripts
+            tests
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -129,6 +139,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          sparse-checkout: |
+            .github
+            modules
+            scripts
+            tests
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}

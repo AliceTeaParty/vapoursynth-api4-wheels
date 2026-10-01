@@ -34,6 +34,9 @@ jobs:
           repository: AliceTeaParty/vapoursynth-api4-wheels
           ref: ${{ inputs.tools_ref }}
           persist-credentials: false
+          sparse-checkout: |
+            modules
+            scripts
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
