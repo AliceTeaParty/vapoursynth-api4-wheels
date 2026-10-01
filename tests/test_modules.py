@@ -126,6 +126,18 @@ class RegistryAndSourceTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 common.validate_request({**request(), key: "unsafe"})
 
+    def test_registry_hash_survives_windows_checkout_line_endings(self):
+        original = common.ROOT / "modules/rkstool/module.toml"
+        raw = original.read_bytes().replace(b"\r\n", b"\n")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            file = root / "modules/rkstool/module.toml"
+            file.parent.mkdir(parents=True)
+            file.write_bytes(raw)
+            before = common.load_registry(root)["rkstool"]
+            file.write_bytes(raw.replace(b"\n", b"\r\n"))
+            self.assertEqual(common.load_registry(root)["rkstool"], before)
+
     def test_author_requires_fixed_source_and_all_has_no_shared_overrides(self):
         common.validate_request(request(), author_request=True)
         for key in ("source_sha", "expected_version", "source_ref", "request_id"):

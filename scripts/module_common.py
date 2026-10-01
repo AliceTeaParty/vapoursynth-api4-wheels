@@ -92,7 +92,9 @@ def load_registry(root: Path = ROOT) -> dict[str, dict[str, Any]]:
         for pattern in cfg["required_files"]:
             relative_path(pattern)
         require(len(set(cfg["required_files"])) == len(cfg["required_files"]), "duplicate required file")
-        cfg = {**cfg, "module": module, "config_sha256": hashlib.sha256(raw).hexdigest()}
+        # Git's Windows checkout may use CRLF; registry identity must be the
+        # same in Linux resolution and Windows artifact validation jobs.
+        cfg = {**cfg, "module": module, "config_sha256": hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()}
         registry[module] = cfg
         distributions.add(cfg["distribution"])
     require(bool(registry), "no registered modules")
