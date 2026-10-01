@@ -5,3 +5,5 @@ dist/
 .work/
 __pycache__/
 *.pyc
+modules/*/src/
+modules/*/dist/

@@ -12,6 +12,21 @@ SPEC.loader.exec_module(generate_index)
 
 
 class GenerateIndexTests(unittest.TestCase):
+    def test_modules_share_the_index_with_native_plugins(self) -> None:
+        releases = [{"draft": False, "assets": [
+            {"name": name, "digest": "sha256:abc123", "browser_download_url": "https://example.invalid/" + name}
+            for name in ("rksfunc-1.1.4-py2.py3-none-any.whl", "rkstool-1.1.1-py2.py3-none-any.whl", "vs_nlq-1.2.0-py3-none-win_amd64.whl", "source-manifest.json")
+        ]}]
+        projects = generate_index.collect_wheels(releases)
+        self.assertEqual(set(projects), {"rksfunc", "rkstool", "vs-nlq"})
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            generate_index.write_index(projects, output)
+            for project in ("rksfunc", "rkstool"):
+                page = (output / "simple" / project / "index.html").read_text()
+                self.assertIn("#sha256=abc123", page)
+                self.assertNotIn("source-manifest.json", page)
+
     def test_collects_digest_backed_wheels_and_writes_normalized_index(self) -> None:
         releases = [
             {

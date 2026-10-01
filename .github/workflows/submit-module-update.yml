@@ -1,0 +1,52 @@
+name: Submit Python module preview request
+
+on:
+  workflow_call:
+    inputs:
+      module:
+        required: true
+        type: string
+      source_ref:
+        default: main
+        type: string
+      tools_ref:
+        description: Full central tools commit matching the reusable workflow version
+        required: true
+        type: string
+    secrets:
+      update-token:
+        description: Credential with Actions write on the central wheels repository
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require immutable tools ref
+        env:
+          TOOLS_REF: ${{ inputs.tools_ref }}
+        run: '[[ "$TOOLS_REF" =~ ^[0-9a-f]{40}$ ]]'
+      - uses: actions/checkout@v4
+        with:
+          repository: AliceTeaParty/vapoursynth-api4-wheels
+          ref: ${{ inputs.tools_ref }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r scripts/requirements-modules.txt
+      - name: Resolve the caller source and submit a preview request
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          WHEELS_UPDATE_TOKEN: ${{ secrets.update-token }}
+          MODULE: ${{ inputs.module }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          CALLER_REPOSITORY: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+          REQUEST_ID: ${{ github.repository }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: >-
+          python scripts/submit_module_update.py --module "$MODULE" --source-ref "$SOURCE_REF"
+          --caller-repository "$CALLER_REPOSITORY" --actor "$ACTOR" --request-id "$REQUEST_ID"

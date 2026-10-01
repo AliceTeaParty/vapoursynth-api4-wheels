@@ -1,0 +1,15 @@
+schema_version = 1
+repository = "RyougiKukoc/rksfunc"
+repository_id = 616254139
+distribution = "rksfunc"
+import_name = "rksfunc"
+project_subdirectory = "."
+default_ref = "main"
+requesters = ["RyougiKukoc"]
+required_files = [
+  "rksfunc/__init__.py",
+  "rksfunc/KrigBilateral.glsl",
+  "*.dist-info/licenses/LICENSES.md",
+  "*.dist-info/licenses/LICENSES/LGPL-3.0-or-later.txt",
+  "*.dist-info/licenses/LICENSES/GPL-3.0-or-later.txt",
+]
