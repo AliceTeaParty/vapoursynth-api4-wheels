@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Python module registration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "repository", "repository_id", "distribution", "import_name", "project_subdirectory", "default_ref", "requesters", "required_files"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+    "repository_id": {"type": "integer", "minimum": 1},
+    "distribution": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+    "import_name": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"},
+    "project_subdirectory": {"type": "string", "minLength": 1},
+    "default_ref": {"type": "string", "minLength": 1},
+    "requesters": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Za-z0-9-]+(\\[bot\\])?$"}},
+    "required_files": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  }
+}

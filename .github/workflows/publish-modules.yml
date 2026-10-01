@@ -1,0 +1,82 @@
+name: Publish - Python module
+run-name: "Publish module - ${{ inputs.module }} from build ${{ inputs.build_run_id }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: Registered module
+        required: true
+        type: choice
+        options: [rksfunc, rkstool]
+      build_run_id:
+        description: Successful manual Package - Python modules run on main
+        required: true
+        type: string
+      expected_sha256:
+        description: Exact wheel SHA256 reviewed in the build summary
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: module-publish-${{ inputs.module }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'AliceTeaParty/vapoursynth-api4-wheels' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            modules
+            scripts
+            tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r scripts/requirements-modules.txt
+      - name: Check the selected central build before downloading artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+          MODULE: ${{ inputs.module }}
+        run: python scripts/publish_module.py preflight --run-id "$BUILD_RUN_ID" --module "$MODULE"
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.build_run_id }}
+          name: module-source-plan
+          path: .work/module-plans
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.build_run_id }}
+          name: module-wheel-${{ inputs.module }}
+          path: .work/module-wheel
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.build_run_id }}
+          pattern: module-validation-${{ inputs.module }}-*
+          merge-multiple: true
+          path: .work/module-validation
+      - name: Publish the validated wheel without rebuilding upstream code
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+          MODULE: ${{ inputs.module }}
+          EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
+        run: >-
+          python scripts/publish_module.py publish --run-id "$BUILD_RUN_ID" --module "$MODULE"
+          --plan ".work/module-plans/$MODULE.json" --wheel-dir .work/module-wheel
+          --validation-dir .work/module-validation --expected-sha256 "$EXPECTED_SHA256"

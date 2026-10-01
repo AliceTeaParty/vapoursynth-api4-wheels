@@ -1,0 +1,8 @@
+{
+  "api_version": "1",
+  "module": "rksfunc",
+  "source_ref": "0000000000000000000000000000000000000000",
+  "source_sha": "0000000000000000000000000000000000000000",
+  "expected_version": "1.1.4",
+  "request_id": "replace-with-module-version-and-source-sha"
+}

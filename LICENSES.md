@@ -1,7 +1,8 @@
 # License and Third-Party Notices
 
-This repository aggregates independently licensed VapourSynth plugins. It is
-not offered under one repository-wide license. The applicable license for a
+This repository aggregates independently maintained VapourSynth plugins and
+Python modules. It is not offered under one repository-wide license.
+The applicable license for a
 plugin is the license file in that plugin directory; its source and binary
 packages include the declared license file. This document records the audited
 upstream source and license for each subtree.
@@ -23,7 +24,27 @@ upstream source and license for each subtree.
 | `plugins/vapoursynth-tcanny` | [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | GPL-3.0 |
 | `plugins/vapoursynth-misc` | [vapoursynth/vs-miscfilters-obsolete](https://github.com/vapoursynth/vs-miscfilters-obsolete) | LGPL-2.1 |
 
-## Embedded third-party code
+## Python modules
+
+Module source is checked out from the registered upstream during CI; it is not
+vendored or relicensed by this repository. The upstream owners have authorized
+this module packaging integration. Neither rksfunc nor rkstool currently
+declares a project-wide license for its Python code; hosting here does not
+introduce a blanket grant for that source. Refer to the original repositories
+for applicable notices and permission for other uses.
+
+| Registration | Upstream | Third-party notices |
+| --- | --- | --- |
+| `modules/rksfunc` | [RyougiKukoc/rksfunc](https://github.com/RyougiKukoc/rksfunc) | `rksfunc/KrigBilateral.glsl`: original attribution to Shiandow, LGPL-3.0-or-later; upstream includes LGPL/GPL texts and `LICENSES.md` in the sdist and wheel |
+| `modules/rkstool` | [RyougiKukoc/rkstool](https://github.com/RyougiKukoc/rkstool) | No project-wide license is introduced by the wheel registration |
+
+KrigBilateral's original shader header is preserved. Its referenced source is
+[the igv gist](https://gist.github.com/igv/a015fc885d5c22e6891820ad89555637).
+The shader-specific LGPL notice does not describe the entire rksfunc project.
+The central build checks that the shader and upstream license materials are
+present in the wheel; it does not copy a central license over upstream files.
+
+## Embedded plugin third-party code
 
 `vapoursynth-dfttest`, `vapoursynth-dfttest2`, and `vapoursynth-tcanny`
 include Agner Fog Vector Class Library sources under Apache-2.0. The original

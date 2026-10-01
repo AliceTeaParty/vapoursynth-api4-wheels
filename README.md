@@ -5,8 +5,15 @@ VapourSynth API4 ports. Original upstream projects are imported with
 `git subtree`; the API4 and packaging work is kept as a separate, squashed
 commit for each plugin.
 
-Only Windows and Linux x86_64 are supported. macOS and ARM wheels are not
-published.
+Native plugin wheels support Windows and Linux x86_64. macOS and ARM native
+plugin wheels are not published.
+
+Python modules are registered separately under `modules/`. Their original
+repositories own source and packaging metadata; CI checks out a fixed upstream
+commit instead of importing a subtree. Module preview builds and publication
+are separate manual workflows. See [modules/README.md](modules/README.md)
+for rksfunc, rkstool, the shared update interface and third-party contribution
+instructions. Module runtime requirements remain those of their upstreams.
 
 ## Relationship to vs-wheels
 
@@ -162,6 +169,10 @@ helper does not invoke pip or delete files itself.
 ## Repository layout
 
 - `plugins/<name>`: upstream subtree plus this project's squashed patch
+- `modules/<name>/module.toml`: upstream module registration; temporary source
+  and wheel directories are ignored by Git
+- `.github/workflows/package-modules.yml`: manual shared module preview builds
+- `.github/workflows/publish-modules.yml`: manual publication of a verified wheel
 - `.github/workflows/package-<name>.yml`: build, test, and release workflow
 - `scripts/generate_index.py`: GitHub Release to PEP 503 index generator
 

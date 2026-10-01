@@ -1,0 +1,181 @@
+name: Package - Python modules
+run-name: "Modules preview - ${{ inputs.module }} ${{ inputs.request_id }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_version:
+        description: API version
+        default: "1"
+        type: string
+      module:
+        description: Registered module (all cannot use source overrides)
+        required: true
+        type: choice
+        options: [rksfunc, rkstool, all]
+      source_ref:
+        description: Upstream ref (empty uses registration default)
+        default: ""
+        type: string
+      source_sha:
+        description: Optional expected full upstream commit SHA
+        default: ""
+        type: string
+      expected_version:
+        description: Optional expected upstream project.version
+        default: ""
+        type: string
+      request_id:
+        description: Correlation id from the requester
+        default: ""
+        type: string
+      request:
+        description: Optional reviewed modules/id/updates/version.json
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.sources.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            modules
+            scripts
+            tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r scripts/requirements-modules.txt
+      - id: sources
+        name: Resolve registered sources without running upstream code
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          API_VERSION: ${{ inputs.api_version }}
+          MODULE: ${{ inputs.module }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          REQUEST_ID: ${{ inputs.request_id }}
+          REQUEST: ${{ inputs.request }}
+          ACTOR: ${{ github.actor }}
+        run: >-
+          python scripts/build_module.py resolve --api-version "$API_VERSION"
+          --module "$MODULE" --source-ref "$SOURCE_REF" --source-sha "$SOURCE_SHA"
+          --expected-version "$EXPECTED_VERSION" --request-id "$REQUEST_ID"
+          --request "$REQUEST" --actor "$ACTOR" --output .work/module-plans
+      - uses: actions/upload-artifact@v4
+        with:
+          name: module-source-plan
+          path: .work/module-plans/*.json
+          if-no-files-found: error
+          retention-days: 30
+
+  build:
+    needs: resolve
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            modules
+            scripts
+            tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r scripts/requirements-modules.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: module-source-plan
+          path: .work/module-plans
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repository }}
+          ref: ${{ matrix.source_sha }}
+          path: modules/${{ matrix.module }}/src
+          persist-credentials: false
+          submodules: false
+      - name: Build from the unchanged upstream pyproject.toml
+        env:
+          MODULE: ${{ matrix.module }}
+        run: >-
+          python scripts/build_module.py build
+          --plan ".work/module-plans/$MODULE.json"
+          --source "modules/$MODULE/src" --output "modules/$MODULE/dist"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: module-wheel-${{ matrix.module }}
+          path: modules/${{ matrix.module }}/dist/*.whl
+          if-no-files-found: error
+          retention-days: 30
+
+  validate:
+    needs: [resolve, build]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        source: ${{ fromJSON(needs.resolve.outputs.matrix).include }}
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.12", "3.13"]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            modules
+            scripts
+            tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -r scripts/requirements-modules.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: module-source-plan
+          path: .work/module-plans
+      - uses: actions/download-artifact@v4
+        with:
+          name: module-wheel-${{ matrix.source.module }}
+          path: modules/${{ matrix.source.module }}/dist
+      - name: Validate wheel metadata, resources and RECORD
+        env:
+          MODULE: ${{ matrix.source.module }}
+          LABEL: ${{ matrix.os }}-${{ matrix.python }}
+        run: >-
+          python scripts/validate_module_wheel.py
+          --plan ".work/module-plans/$MODULE.json"
+          --wheel-dir "modules/$MODULE/dist" --output ".work/validated/$LABEL.json"
+      - name: Verify the installed wheel outside the source directory
+        env:
+          MODULE: ${{ matrix.source.module }}
+          LABEL: ${{ matrix.os }}-${{ matrix.python }}
+        run: |
+          set -euo pipefail
+          python -m pip install --no-deps modules/"$MODULE"/dist/*.whl
+          python -I scripts/smoke_installed_module.py \
+            --plan ".work/module-plans/$MODULE.json" --manifest ".work/validated/$LABEL.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: module-validation-${{ matrix.source.module }}-${{ matrix.os }}-${{ matrix.python }}
+          path: .work/validated/*.json
+          if-no-files-found: error
+          retention-days: 30
