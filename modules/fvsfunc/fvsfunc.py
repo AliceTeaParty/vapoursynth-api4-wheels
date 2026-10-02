@@ -1,3 +1,4 @@
+import importlib
 import vapoursynth as vs
 import re
 from functools import partial
@@ -29,6 +30,102 @@ from functools import partial
 
 
 core = vs.core
+_DFTTEST2_UNSET = object()
+_dfttest2_module = _DFTTEST2_UNSET
+_NNEDI3_CORE_ORDER = ('nnedi3vk', 'nnedi3cl', 'znedi3')
+_NNEDI3_ALLOWED = {
+    'nnedi3vk': {'field', 'dh', 'planes', 'nsize', 'nns', 'qual', 'etype', 'pscrn', 'device_index', 'list_device', 'num_streams'},
+    'nnedi3cl': {'field', 'dh', 'planes', 'nsize', 'nns', 'qual', 'etype', 'pscrn', 'device', 'list_device', 'info'},
+    'znedi3': {'field', 'dh', 'planes', 'nsize', 'nns', 'qual', 'etype', 'pscrn', 'opt', 'int16_prescreener', 'int16_predictor', 'exp', 'show_mask'},
+}
+
+
+def _get_dfttest2():
+    global _dfttest2_module
+    if _dfttest2_module is _DFTTEST2_UNSET:
+        try:
+            _dfttest2_module = importlib.import_module('dfttest2')
+        except ModuleNotFoundError:
+            _dfttest2_module = None
+    return _dfttest2_module
+
+
+def _dfttest_preferring_dfttest2(clip, **kwargs):
+    dfttest2 = _get_dfttest2()
+    call_kwargs = {key: value for key, value in kwargs.items() if value is not None}
+    sbsize = int(call_kwargs.get('sbsize', 16))
+    tbsize = int(call_kwargs.get('tbsize', 3))
+    cpu_shape = sbsize == 16 and tbsize in (1, 3, 5, 7)
+
+    if dfttest2 is not None:
+        if cpu_shape:
+            if hasattr(core, 'dfttest2_nvrtc'):
+                backend = dfttest2.Backend.NVRTC
+            elif hasattr(core, 'dfttest2_cpu'):
+                backend = dfttest2.Backend.CPU
+            else:
+                backend = None
+        elif hasattr(core, 'dfttest2_cuda'):
+            backend = dfttest2.Backend.cuFFT
+        else:
+            backend = None
+
+        if backend is not None:
+            return dfttest2.DFTTest(clip, backend=backend, **call_kwargs)
+
+    return clip.dfttest.DFTTest(**call_kwargs)
+
+
+def _normalize_nnedi3_core(preferred):
+    if preferred is None:
+        return None
+
+    aliases = {
+        'auto': None,
+        'default': None,
+        'nnedi3vk': 'nnedi3vk',
+        'vk': 'nnedi3vk',
+        'nnedi3cl': 'nnedi3cl',
+        'cl': 'nnedi3cl',
+        'znedi3': 'znedi3',
+        'cpu': 'znedi3',
+        'nnedi3': 'znedi3',
+    }
+    key = preferred.lower()
+    if key not in aliases:
+        raise vs.Error(f'JIVTC: unsupported nnedi3_core={preferred!r}')
+    return aliases[key]
+
+
+def _ordered_nnedi3_cores(preferred):
+    preferred = _normalize_nnedi3_core(preferred)
+    if preferred is None:
+        return list(_NNEDI3_CORE_ORDER)
+    return [preferred] + [name for name in _NNEDI3_CORE_ORDER if name != preferred]
+
+
+def _call_nnedi3(clip, nnedi3_core=None, device=None, **kwargs):
+    errors = []
+
+    for name in _ordered_nnedi3_cores(nnedi3_core):
+        try:
+            if name == 'nnedi3vk':
+                call_kwargs = {key: value for key, value in kwargs.items() if key in _NNEDI3_ALLOWED[name] and value is not None}
+                if device is not None and 'device_index' not in call_kwargs:
+                    call_kwargs['device_index'] = device
+                return core.nnedi3vk.NNEDI3(clip, **call_kwargs)
+            if name == 'nnedi3cl':
+                call_kwargs = {key: value for key, value in kwargs.items() if key in _NNEDI3_ALLOWED[name] and value is not None}
+                if device is not None and 'device' not in call_kwargs:
+                    call_kwargs['device'] = device
+                return core.nnedi3cl.NNEDI3CL(clip, **call_kwargs)
+
+            call_kwargs = {key: value for key, value in kwargs.items() if key in _NNEDI3_ALLOWED[name] and value is not None}
+            return core.znedi3.nnedi3(clip, **call_kwargs)
+        except (AttributeError, RuntimeError, vs.Error) as exc:
+            errors.append(f'{name}: {exc}')
+
+    raise vs.Error('JIVTC: no nnedi3 backend could be initialized (' + '; '.join(dict.fromkeys(errors)) + ')')
 
 
 """
@@ -179,8 +276,8 @@ def GradFun3(src, thr=None, radius=None, elast=None, mask=None, mode=None, ampo=
 
     def dfttest_mod(src, ref, radius, thr, elast, planes):
         hrad = max(radius * 3 // 4, 1)
-        last = core.dfttest.DFTTest(src, sigma=thr * 12, sbsize=hrad * 4,
-                                    sosize=hrad * 3, tbsize=1, planes=planes)
+        last = _dfttest_preferring_dfttest2(src, sigma=thr * 12, sbsize=hrad * 4,
+                                            sosize=hrad * 3, tbsize=1, planes=planes)
         last = mvf.LimitFilter(last, ref, thr=thr, elast=elast, planes=planes)
         return last
 
@@ -611,7 +708,7 @@ string bobber:         Can be used to supply a custom bobber.
 bool show (false):     If set to true, mark those frames that were recalculated.
 
 """
-def JIVTC(src, pattern, thr=10, draft=False, ivtced=None, bobber=None, show=False, tff=None):
+def JIVTC(src, pattern, thr=10, draft=False, ivtced=None, bobber=None, show=False, tff=None, nnedi3_core=None, device=None):
 
     def calculate(n, f, ivtced, bobbed):
         diffprev = f[0].props.EvenDiff
@@ -634,7 +731,7 @@ def JIVTC(src, pattern, thr=10, draft=False, ivtced=None, bobber=None, show=Fals
 
     ivtced = defivtc if ivtced is None else ivtced
     if bobber is None:
-        bobbed = core.yadifmod.Yadifmod(ivtced, edeint=core.nnedi3.nnedi3(ivtced, 2), order=0, mode=1)
+        bobbed = core.yadifmod.Yadifmod(ivtced, edeint=_call_nnedi3(ivtced, nnedi3_core=nnedi3_core, device=device, field=2), order=0, mode=1)
     else:
         bobbed = bobber(ivtced)
 
@@ -839,12 +936,12 @@ def AutoDeblock(src, edgevalue=24, db1=1, db2=6, db3=15, deblocky=True, deblocku
     orig_d = orig.rgvs.RemoveGrain(4).rgvs.RemoveGrain(4)
 
     predeblock = haf.Deblock_QED(src.rgvs.RemoveGrain(2).rgvs.RemoveGrain(2))
-    fast = core.dfttest.DFTTest(predeblock, tbsize=1)
+    fast = _dfttest_preferring_dfttest2(predeblock, tbsize=1)
 
     unfiltered = src
-    weakdeblock = core.dfttest.DFTTest(predeblock, sigma=db1, tbsize=1, planes=planes)
-    mediumdeblock = core.dfttest.DFTTest(predeblock, sigma=db2, tbsize=1, planes=planes)
-    strongdeblock = core.dfttest.DFTTest(predeblock, sigma=db3, tbsize=1, planes=planes)
+    weakdeblock = _dfttest_preferring_dfttest2(predeblock, sigma=db1, tbsize=1, planes=planes)
+    mediumdeblock = _dfttest_preferring_dfttest2(predeblock, sigma=db2, tbsize=1, planes=planes)
+    strongdeblock = _dfttest_preferring_dfttest2(predeblock, sigma=db3, tbsize=1, planes=planes)
 
     difforig = core.std.PlaneStats(orig, orig_d, prop='Orig')
     diffnext = core.std.PlaneStats(src, src.std.DeleteFrames([0]), prop='YNext')
