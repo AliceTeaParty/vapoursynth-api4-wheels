@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "vstaambk"
+wheel_version = "0.3.0.post1"
+import_name = "vsTAAmbk"
+runtime_kind = "module"
+upstream_url = "https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk"
+upstream_revision = "fef19f85c96c0d7e281627942c358ee1b92d7dbe"
+upstream_import_commit = "51627e28e665385de04bd5e47e98391374a22231"
+vendored_url = "https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk/blob/master/vsTAAmbk.py"
+vendored_revision = "fef19f85c96c0d7e281627942c358ee1b92d7dbe"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/TAAmbk/vsTAAmbk.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "31f72118d9acb584a9b6335a6840b85196c5fa94", "962b01c4c6928cb01a57621531c0a96d61338f51", "4333dc71bbdc54e119ffb35d0b62a437909138f2", "67a7bac3d365dcca5200054cb1fe37cdfab7d295"]
+license_observation = "Not separately declared"
+
+[runtime_sha256]
+"vsTAAmbk.py" = "1843f14d7736b4d07eeec938351d5982238a6fd08090c2bce30cde64da0ab5ec"
