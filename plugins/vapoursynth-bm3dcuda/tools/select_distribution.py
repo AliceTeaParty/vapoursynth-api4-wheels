@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT = ROOT / "pyproject.toml"
 VARIANT_MARKER = ROOT / "bm3dcuda_variant.txt"
 PACKAGES = {
-    "cpu": "bm3dcuda-cpu",
+    "cpu": "vapoursynth-bm3dcpu",
     "cu121": "vapoursynth-bm3dcuda-cu121",
     "cu129": "vapoursynth-bm3dcuda-cu129",
 }

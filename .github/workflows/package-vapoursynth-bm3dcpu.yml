@@ -1,10 +1,10 @@
-name: Package - bm3dcuda-cpu
+name: Package - vapoursynth-bm3dcpu
 
 on:
   push:
     branches: [main]
     tags:
-      - "bm3dcuda-cpu-v*"
+      - "vapoursynth-bm3dcpu-v*"
     paths:
       - plugins/vapoursynth-bm3dcuda/**
       - .github/workflows/package-vapoursynth-bm3dcpu.yml
@@ -86,7 +86,7 @@ jobs:
         run: |
           $env:BM3DCUDA_CPU_PREBUILT_URL = Join-Path $PWD 'dist\release-assets-windows\bm3dcuda-cpu-win64.zip'
           $env:BM3DCUDA_VARIANT = 'cpu'
-          & "$env:pythonLocation\python.exe" -m pip uninstall -y bm3dcuda-cpu vapoursynth-bm3dcuda
+          & "$env:pythonLocation\python.exe" -m pip uninstall -y vapoursynth-bm3dcpu vapoursynth-bm3dcuda
           & "$env:pythonLocation\python.exe" -m pip install --force-reinstall --no-deps --no-build-isolation -v .
           & "$env:pythonLocation\python.exe" tools\smoke_installed_wheel.py --exercise-cpu-filter
       - uses: actions/upload-artifact@v4
@@ -177,7 +177,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          python -m pip uninstall -y bm3dcuda-cpu vapoursynth-bm3dcuda
+          python -m pip uninstall -y vapoursynth-bm3dcpu vapoursynth-bm3dcuda
           export BM3DCUDA_CPU_PREBUILT_URL="$GITHUB_WORKSPACE/plugins/vapoursynth-bm3dcuda/dist/release-assets-linux/bm3dcuda-cpu-linux-x86_64.zip"
           export BM3DCUDA_VARIANT=cpu
           python -m pip install --force-reinstall --no-deps -v .
@@ -186,7 +186,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          python -m pip uninstall -y bm3dcuda-cpu vapoursynth-bm3dcuda
+          python -m pip uninstall -y vapoursynth-bm3dcpu vapoursynth-bm3dcuda
           mkdir -p /tmp/unrelated-pkgconfig
           export PKG_CONFIG_PATH=/tmp/unrelated-pkgconfig
           export BM3DCUDA_FORCE_BUILD=1
@@ -196,7 +196,7 @@ jobs:
 
   publish:
     name: Publish - GitHub Release
-    if: startsWith(github.ref, 'refs/tags/bm3dcuda-cpu-v')
+    if: startsWith(github.ref, 'refs/tags/vapoursynth-bm3dcpu-v')
     needs: [windows, linux-runtime-smoke]
     runs-on: ubuntu-24.04
     steps:

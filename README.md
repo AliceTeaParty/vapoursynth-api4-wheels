@@ -57,22 +57,20 @@ python -m pip install \
 ```
 
 Packages still need their normal Python dependencies from PyPI, which is why
-this example uses `--extra-index-url`. Pip considers both indexes; this option
-does not prioritize our index over PyPI.
+the project index is supplied with `--extra-index-url`.
 
-The CPU-only BM3D distribution is now named `bm3dcuda-cpu` to avoid the
-same-name API3 package `vapoursynth-bm3dcpu` on PyPI. Existing users must
-uninstall the old distribution before installing the renamed package, because
-the two distributions own the same plugin files:
+For `vapoursynth-bm3dcpu`, use the exclusive project index and exact version
+below. PyPI's same-name 2.17 package uses API3; `--extra-index-url` does not
+prioritize our API4 2.16 build over that higher version.
 
 ```console
-python -m pip uninstall -y vapoursynth-bm3dcpu
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ bm3dcuda-cpu
+python -m pip install "VapourSynth>=77"
+python -m pip install --force-reinstall --no-deps --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-bm3dcpu==2.16"
 ```
 
-The VapourSynth API remains `core.bm3dcpu`. To restrict plugin selection to our
-index, install `VapourSynth>=77` first, then install `bm3dcuda-cpu` with
-`--no-deps --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/`.
+The temporary `bm3dcuda-cpu` rename has been withdrawn. If you installed that
+package, run `python -m pip uninstall -y bm3dcuda-cpu` before the commands
+above, because both distributions own the same plugin files.
 
 ## Packages
 
@@ -84,7 +82,7 @@ index, install `VapourSynth>=77` first, then install `bm3dcuda-cpu` with
 | [HomeOfVapourSynthEvolution/VapourSynth-DFTTest](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-DFTTest) | `vapoursynth-dfttest` |
 | [Khanattila/KNLMeansCL](https://github.com/Khanattila/KNLMeansCL) | `vapoursynth-knlm` |
 | [HomeOfVapourSynthEvolution/VapourSynth-Retinex](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-Retinex) | `vapoursynth-retinex` |
-| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `bm3dcuda-cpu` /<br> `vapoursynth-bm3dcuda-cu121` /<br> `vapoursynth-bm3dcuda-cu129` |
+| [WolframRhodium/VapourSynth-BM3DCUDA](https://github.com/WolframRhodium/VapourSynth-BM3DCUDA) | `vapoursynth-bm3dcpu` /<br> `vapoursynth-bm3dcuda-cu121` /<br> `vapoursynth-bm3dcuda-cu129` |
 | [AmusementClub/vs-dfttest2](https://github.com/AmusementClub/vs-dfttest2) | `vapoursynth-dfttest2-cpu` /<br> `vapoursynth-dfttest2-cu121` /<br> `vapoursynth-dfttest2-cu129` |
 | [AmusementClub/vs-mlrt](https://github.com/AmusementClub/vs-mlrt) | `vs-mlrt-generic` /<br> `vs-mlrt-cu121` /<br> `vs-mlrt-cu129` (Entry packages) |
 | [dubhatervapoursynth/vapoursynth-tcomb](https://github.com/dubhatervapoursynth/vapoursynth-tcomb) | `vapoursynth-tcomb` |
@@ -103,14 +101,7 @@ the variants place plugins at the same paths.
 
 ### BM3DCUDA
 
-**CPU package rename:** `vapoursynth-bm3dcpu` → `bm3dcuda-cpu`.
-The renamed API4 package is published as
-[`bm3dcuda-cpu 2.16`](https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/bm3dcuda-cpu-v2.16).
-For an existing installation, uninstall `vapoursynth-bm3dcpu` before installing
-`bm3dcuda-cpu`, using the migration commands in [Install](#install).
-The DLL remains `bm3dcpu.dll`, and scripts still call `core.bm3dcpu`.
-
-- `bm3dcuda-cpu` is for CPU-only systems or users who only need the
+- `vapoursynth-bm3dcpu` is for CPU-only systems or users who only need the
   `core.bm3dcpu` backend. It requires an AVX2-capable CPU.
 - `vapoursynth-bm3dcuda-cu121` is for NVIDIA users on the older CUDA 12.1
   runtime line. It installs both `core.bm3dcpu` and the `core.bm3dcuda_rtc` backend (`core.bm3dcuda` is not included).
