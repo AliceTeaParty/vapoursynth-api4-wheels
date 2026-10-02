@@ -8,7 +8,7 @@ requires = [
 build-backend = "hatchling.build"
 
 [project]
-name = "vapoursynth-bm3dcpu"
+name = "bm3dcuda-cpu"
 version = "2.16"
 description = "BM3D CPU and CUDA RTC plugins for VapourSynth"
 readme = "README.md"

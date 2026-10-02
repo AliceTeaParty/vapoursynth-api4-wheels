@@ -102,7 +102,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force dist\cpu-release | Out-Null
-          gh release download vapoursynth-bm3dcpu-v2.16 --pattern bm3dcuda-cpu-win64.zip --dir dist\cpu-release --repo $env:GITHUB_REPOSITORY
+          gh release download bm3dcuda-cpu-v2.16 --pattern bm3dcuda-cpu-win64.zip --dir dist\cpu-release --repo $env:GITHUB_REPOSITORY
           $env:BM3DCUDA_VARIANT = '${{ matrix.variant }}'
           $env:BM3DCUDA_CPU_PREBUILT_URL = Join-Path $PWD 'dist\cpu-release\bm3dcuda-cpu-win64.zip'
           $env:BM3DCUDA_CUDA_PREBUILT_URL = Join-Path $PWD 'dist\release-assets-windows\bm3dcuda-${{ matrix.variant }}-win64.zip'

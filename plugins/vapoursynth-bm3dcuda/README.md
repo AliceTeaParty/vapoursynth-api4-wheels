@@ -24,29 +24,38 @@ The repository publishes three user-facing distributions:
 
 | Distribution | Intended user | Installed plugins | Release assets used |
 | --- | --- | --- | --- |
-| `vapoursynth-bm3dcpu` | Machines without an NVIDIA GPU, or users who only want the CPU backend. | `bm3dcpu.dll` on Windows; `bm3dcpu.so` on Linux x86_64 | `vapoursynth-bm3dcpu-v2.16` release |
+| `bm3dcuda-cpu` | Machines without an NVIDIA GPU, or users who only want the CPU backend. | `bm3dcpu.dll` on Windows; `bm3dcpu.so` on Linux x86_64 | `bm3dcuda-cpu-v2.16` release |
 | `vapoursynth-bm3dcuda-cu121` | NVIDIA users whose driver supports CUDA 12.1. | CPU and CUDA 12.1 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | `vapoursynth-bm3dcuda-cu121-v2.16` release |
 | `vapoursynth-bm3dcuda-cu129` | NVIDIA users whose driver supports CUDA 12.9. | CPU and CUDA 12.9 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | `vapoursynth-bm3dcuda-cu129-v2.16` release |
 
 The CUDA variants deliberately include the CPU backend as well, so scripts can
 use `core.bm3dcpu` and `core.bm3dcuda_rtc` from the same installation. Users
-without an NVIDIA GPU should install `vapoursynth-bm3dcpu`.
+without an NVIDIA GPU should install `bm3dcuda-cpu`.
 
 ## Installation
 
-Install from the project package index:
+Install one variant from the project package index:
 
 ```powershell
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcpu
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcuda-cu121
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcuda-cu129
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ bm3dcuda-cpu
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcuda-cu121
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcuda-cu129
 ```
+
+The CPU distribution was renamed from `vapoursynth-bm3dcpu` to `bm3dcuda-cpu`
+to avoid PyPI's same-name API3 package. Before migrating an existing install,
+run `python -m pip uninstall -y vapoursynth-bm3dcpu`, then install
+`bm3dcuda-cpu`. Do not keep both distributions installed: they share plugin
+files. The plugin namespace remains `core.bm3dcpu`.
+
+CPU version `2.16` maps to Release tag `bm3dcuda-cpu-v2.16`. The source build
+hook downloads that release's native payload by default.
 
 The variants install the same native plugin filenames. Uninstall the current
 variant before switching:
 
 ```powershell
-pip uninstall vapoursynth-bm3dcpu vapoursynth-bm3dcuda-cu121 vapoursynth-bm3dcuda-cu129
+pip uninstall bm3dcuda-cpu vapoursynth-bm3dcuda-cu121 vapoursynth-bm3dcuda-cu129
 ```
 
 The build hook downloads the matching GitHub Release asset and places the

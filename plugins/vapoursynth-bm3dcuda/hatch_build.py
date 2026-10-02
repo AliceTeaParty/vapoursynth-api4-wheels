@@ -22,7 +22,7 @@ DEFAULT_REPOSITORY = "AliceTeaParty/vapoursynth-api4-wheels"
 CUDA_VARIANTS = {"cu121", "cu129"}
 SUPPORTED_VARIANTS = {"cpu", *CUDA_VARIANTS}
 RELEASE_TAGS = {
-    "cpu": "vapoursynth-bm3dcpu-v2.16",
+    "cpu": "bm3dcuda-cpu-v2.16",
     "cu121": "vapoursynth-bm3dcuda-cu121-v2.16",
     "cu129": "vapoursynth-bm3dcuda-cu129-v2.16",
 }
