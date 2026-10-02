@@ -103,6 +103,13 @@ the variants place plugins at the same paths.
 
 ### BM3DCUDA
 
+**CPU package rename:** `vapoursynth-bm3dcpu` → `bm3dcuda-cpu`.
+The renamed API4 package is published as
+[`bm3dcuda-cpu 2.16`](https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/bm3dcuda-cpu-v2.16).
+For an existing installation, uninstall `vapoursynth-bm3dcpu` before installing
+`bm3dcuda-cpu`, using the migration commands in [Install](#install).
+The DLL remains `bm3dcpu.dll`, and scripts still call `core.bm3dcpu`.
+
 - `bm3dcuda-cpu` is for CPU-only systems or users who only need the
   `core.bm3dcpu` backend. It requires an AVX2-capable CPU.
 - `vapoursynth-bm3dcuda-cu121` is for NVIDIA users on the older CUDA 12.1
