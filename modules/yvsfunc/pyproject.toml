@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "yvsfunc"
+version = "0.3.0.post1"
+description = "yvsfunc from the RyougiKukoc script collection"
+requires-python = ">=3.12"
+readme = "WHEEL-README.md"
+dependencies = []
+license-files = ["COPYING"]
+
+[project.urls]
+Upstream = "https://github.com/YomikoR/yvsfunc"
+Collection = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+Wheels = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/modules/yvsfunc"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["yvsfunc"]
+
+[tool.hatch.build.targets.wheel.extra-metadata]
+"provenance.toml" = "provenance.toml"
+
+[tool.hatch.build.targets.sdist]
+include = ["/yvsfunc", "/pyproject.toml", "/provenance.toml", "/WHEEL-README.md", "/COPYING"]

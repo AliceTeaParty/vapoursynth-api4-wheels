@@ -1,0 +1,27 @@
+schema_version = 1
+management = "subtree"
+distribution = "yvsfunc"
+wheel_version = "0.3.0.post1"
+import_name = "yvsfunc"
+runtime_kind = "package"
+upstream_url = "https://github.com/YomikoR/yvsfunc"
+upstream_revision = "ee3309efe2543c6680619f6deb64496102e7eb64"
+upstream_import_commit = "fd80ac44f424dcfd62d4d8ac0279868209eb32ad"
+vendored_url = "https://github.com/RyougiKukoc/yvsfunc-with-toml.git"
+vendored_revision = "ee3309efe2543c6680619f6deb64496102e7eb64"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/yvsfunc/yvsfunc"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "962b01c4c6928cb01a57621531c0a96d61338f51", "86573d7e29177763bccfe19e25914eb8767b3849"]
+license_observation = "WTFPL"
+
+[runtime_sha256]
+"yvsfunc/__init__.py" = "300a33f4b909353bd2fd75cab5326aea6ce7dd68fba091fc4334ed4399d35777"
+"yvsfunc/denoise.py" = "55e84cd4c389384b0aaab7dba5b73b7ba1fb762089e59dfb32a1b13f41fc8efb"
+"yvsfunc/frames.py" = "d0787bb92f3412791d35251c1c58f8908af4ef3842db10a77c4c2bf850442e3e"
+"yvsfunc/misc.py" = "98053e03e409f61b76f2bcfb3248e2eb838d067b47814eb2eecf4a35d85d634a"
+"yvsfunc/nphelper.py" = "7a75bbca88b7627f077227801fa6aadcac09d07cda3852258f875efaadb41465"
+"yvsfunc/planes.py" = "115b40fa39ae22fdc266cf2ff5c7e677c2acc1d4a7c3e7e49b24f7dc39d08a8f"
+"yvsfunc/preview.py" = "d1562512be84b18ac748f20a79451485206452f7b2a52e62cff32dce0cb00999"
+"yvsfunc/resample.py" = "392922ff77d6f590237107af2e15a1e857fac7272144954a96efc5bf907ffdc0"
