@@ -44,6 +44,25 @@ The shader-specific LGPL notice does not describe the entire rksfunc project.
 The central build checks that the shader and upstream license materials are
 present in the wheel; it does not copy a central license over upstream files.
 
+## Collection component sources
+
+The `vs-collection-rk` entry depends on independently packaged component
+wheels. Their canonical upstream source trees, source headers and any license
+files are retained in `modules/<component>/`. This packaging does not relicense
+the collection as one work. See [VERSIONS.md](VERSIONS.md) and each
+`provenance.toml` for the complete upstream, gist/fork and Collection chain.
+
+| Component | Retained upstream license material |
+| --- | --- |
+| havsfunc | Canonical upstream `LICENSE`: Unlicense, recovered from the specified original repository commit |
+| getfnative | Canonical upstream `LICENSE`: GNU LGPL version 2.1 text |
+| kagefunc | Canonical upstream `LICENSE`: MIT |
+| yvsfunc | Canonical upstream `COPYING`: WTFPL version 2 |
+| sdering-fix, csmod, nnedi3-resample, nnedi3-rpow2, mvsfunc, muvsfunc, fvsfunc, vstaambk | Original source headers and provenance retained; no separate repository-wide license is assigned here |
+
+Each component wheel includes its available license files and its provenance
+record. The entry package owns only its metadata package and dependency pins.
+
 ## Embedded plugin third-party code
 
 `vapoursynth-dfttest`, `vapoursynth-dfttest2`, and `vapoursynth-tcanny`

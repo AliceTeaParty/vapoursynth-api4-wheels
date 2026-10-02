@@ -1,0 +1,470 @@
+{
+  "schema_version": 1,
+  "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+  "havsfunc_layers": {
+    "baseline_sha256": "229fc191c5e7447c867076a0a3e3b008b5b06d04dfa6517796aec949363d8bac",
+    "gist_sha256": "fe2e5351771b2b53d08d3a04a56a35118770dbb37e03a49a52f3e8a61df03cea",
+    "collection_sha256": "6ecda37981aa41d728657b48a1b322498b8c511c7fd4b7c0858bdbbfaa26472f",
+    "initial_collection_equals_gist": true,
+    "upstream_to_gist": {
+      "added": 42,
+      "removed": 12
+    },
+    "gist_to_collection": {
+      "added": 1554,
+      "removed": 88
+    },
+    "upstream_to_collection": {
+      "added": 1581,
+      "removed": 85
+    }
+  },
+  "components": [
+    {
+      "module": "sdering-fix",
+      "path": "modules/sdering-fix",
+      "distribution": "sdering-fix",
+      "version": "0.3.0.post1",
+      "runtime_kind": "module",
+      "import_name": "sdering_fix",
+      "install_path": "sdering_fix.py",
+      "upstream_url": "https://gist.github.com/RyougiKukoc/c3832d96a8dce6f609f6e29888af94a6",
+      "upstream_revision": "257d981098f67479bf029acda0fdeffa7c38ee08",
+      "import_commit": "1a45353bc479070662af616ce3bbc8313636d42f",
+      "vendored_url": "https://gist.github.com/RyougiKukoc/c3832d96a8dce6f609f6e29888af94a6",
+      "vendored_revision": "257d981098f67479bf029acda0fdeffa7c38ee08",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/sdering_fix",
+      "collection_runtime_source": "scripts/sdering_fix/sdering_fix.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91"
+      ],
+      "intermediate_commits": [],
+      "license": "Not separately declared",
+      "runtime_sha256": {
+        "sdering_fix.py": "967909471956d9570f6b95a7ad73bc284db0a6589b300863af04c9bf4430a4b5"
+      },
+      "upstream_runtime_sha256": {
+        "sdering_fix.py": "967909471956d9570f6b95a7ad73bc284db0a6589b300863af04c9bf4430a4b5"
+      },
+      "license_files": [],
+      "patch_commit": "285a913c1314b4ddd531127f6d4f539f28ed0ac6",
+      "upstream_tree_sha": "2e67aab78ccac887e122811bd6a0e9f22225dffc"
+    },
+    {
+      "module": "csmod",
+      "path": "modules/csmod",
+      "distribution": "csmod",
+      "version": "0.3.0.post1",
+      "runtime_kind": "module",
+      "import_name": "CSMOD",
+      "install_path": "CSMOD.py",
+      "upstream_url": "https://github.com/fdar0536/VapourSynth-Contra-Sharpen-mod",
+      "upstream_revision": "b9ff7253bf217dded071b88fb8a6d212aceb81f4",
+      "import_commit": "03e969984742a71409376c4de6898b6a5975355f",
+      "vendored_url": "https://github.com/fdar0536/VapourSynth-Contra-Sharpen-mod/blob/master/CSMOD.py",
+      "vendored_revision": "b9ff7253bf217dded071b88fb8a6d212aceb81f4",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/CSMOD",
+      "collection_runtime_source": "scripts/CSMOD/CSMOD.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "962b01c4c6928cb01a57621531c0a96d61338f51",
+        "67a7bac3d365dcca5200054cb1fe37cdfab7d295"
+      ],
+      "intermediate_commits": [],
+      "license": "Not separately declared",
+      "runtime_sha256": {
+        "CSMOD.py": "33816f846fb74d0db2bdfdb888834ef097a9dc0d1d2245dbacc1673c529d3d29"
+      },
+      "upstream_runtime_sha256": {
+        "CSMOD.py": "be8cc2ca509d7a8ff515cd460f3aa6f962d58f246bcfe62c48930542e670cf2a"
+      },
+      "license_files": [],
+      "patch_commit": "bfb8abc11413dd32afea6ca3b03c4e4b63099f28",
+      "upstream_tree_sha": "1efaebce2add4448e0808134200372e89d9ff8db"
+    },
+    {
+      "module": "nnedi3-resample",
+      "path": "modules/nnedi3-resample",
+      "distribution": "nnedi3-resample",
+      "version": "2.post1",
+      "runtime_kind": "module",
+      "import_name": "nnedi3_resample",
+      "install_path": "nnedi3_resample.py",
+      "upstream_url": "https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample",
+      "upstream_revision": "314c6446a65c2e25fd7a997051b09830f361675e",
+      "import_commit": "d146a460436349d8bf52569a3965907164bf1b17",
+      "vendored_url": "https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample/blob/master/nnedi3_resample.py",
+      "vendored_revision": "314c6446a65c2e25fd7a997051b09830f361675e",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/nnedi3_resample",
+      "collection_runtime_source": "scripts/nnedi3_resample/nnedi3_resample.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "962b01c4c6928cb01a57621531c0a96d61338f51"
+      ],
+      "intermediate_commits": [],
+      "license": "Not separately declared",
+      "runtime_sha256": {
+        "nnedi3_resample.py": "7e33767f11308d00998d3c1a473540d99af9e534edf292fd93ee7f46e1e7b9e0"
+      },
+      "upstream_runtime_sha256": {
+        "nnedi3_resample.py": "f6bd9321499d5b4e5dc67c3d117088af203db313280af67465b54519e2c7402c"
+      },
+      "license_files": [],
+      "patch_commit": "4948a7ebbdf6b4ff9246af59d720f31960bc75fc",
+      "upstream_tree_sha": "4634014a3ed76b65f8b9be048dbf6278c4fea10a"
+    },
+    {
+      "module": "nnedi3-rpow2",
+      "path": "modules/nnedi3-rpow2",
+      "distribution": "nnedi3-rpow2",
+      "version": "1.1.0.post1",
+      "runtime_kind": "module",
+      "import_name": "nnedi3_rpow2",
+      "install_path": "nnedi3_rpow2.py",
+      "upstream_url": "https://gist.github.com/4re/342624c9e1a144a696c6",
+      "upstream_revision": "68ec4bdff1e51a3832b163198ed7ea00e1c1ab46",
+      "import_commit": "17d595f7441a123c71ee75bfd065b723fe8ed897",
+      "vendored_url": "https://gist.github.com/RyougiKukoc/6c9225aa3f010ef65d341cc5f770cf23",
+      "vendored_revision": "4e6c2fac9d3159f1f1c93e2a92d492ce7b69b1b3",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/nnedi3_rpow2",
+      "collection_runtime_source": "scripts/nnedi3_rpow2/nnedi3_rpow2.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "962b01c4c6928cb01a57621531c0a96d61338f51"
+      ],
+      "intermediate_commits": [
+        "2afe972e5e09b0278924a146a137dffd494e2926",
+        "4e6c2fac9d3159f1f1c93e2a92d492ce7b69b1b3"
+      ],
+      "license": "Not separately declared",
+      "runtime_sha256": {
+        "nnedi3_rpow2.py": "7c295a176922f23e83fbe7fe19bebbd8983f3d06943338d3468248f23cc4f724"
+      },
+      "upstream_runtime_sha256": {
+        "nnedi3_rpow2.py": "8bf7aa7d3958e4f6e4b967a32e9908f458a95c56b08483e30f9098fa0807694a"
+      },
+      "license_files": [],
+      "patch_commit": "76c37e37c47c69fe0c68f77994f9e34f6112fad1",
+      "upstream_tree_sha": "0dc4ba26e89fe5116667e759251b3b801b83d4bf"
+    },
+    {
+      "module": "havsfunc",
+      "path": "modules/havsfunc",
+      "distribution": "havsfunc",
+      "version": "33.post1",
+      "runtime_kind": "module",
+      "import_name": "havsfunc",
+      "install_path": "havsfunc.py",
+      "upstream_url": "https://github.com/HomeOfVapourSynthEvolution/havsfunc",
+      "upstream_revision": "7f0a9a7a37b60a05b9f408024d203e511e544a61",
+      "import_commit": "602c6cddca4a1f19c99b16527a383cc066905548",
+      "vendored_url": "https://gist.github.com/RyougiKukoc/ea451bd51d0dc33ba5e0c4d5566653cf",
+      "vendored_revision": "4e0d21258869283ce04568dda0173e4c8b890668",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/havsfunc",
+      "collection_runtime_source": "scripts/havsfunc/havsfunc.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "9837b539bb72b552f237b0b0b6661273af577794",
+        "31f72118d9acb584a9b6335a6840b85196c5fa94",
+        "962b01c4c6928cb01a57621531c0a96d61338f51",
+        "ad675718831c9bbf9441a9412411dd7b1bc77905",
+        "4333dc71bbdc54e119ffb35d0b62a437909138f2"
+      ],
+      "intermediate_commits": [
+        "41bb799e474a7e0622e6b26b1c155e3fb038bac3",
+        "9b828140c9c12f0b59578ecc474084ca72bb17da",
+        "e6835a88fe2f39fef6a7f341051c6f29dfcb7877",
+        "390cc5ca91d220fea391d7d64999eb8aa3868b02",
+        "51e165c341a8fa28be5744976214058ee60ee8e6",
+        "4dfcab770b8a6646756fd3f960e7c2b0dccd5761",
+        "f7e3255fa7695df375a953a8e2f4823dbf45da9b",
+        "fce05624e3e5e009dc5e77ea2dc5f0d889d947dc",
+        "2871b0523e26ea33fe0b1878228432190fc98616",
+        "4e0d21258869283ce04568dda0173e4c8b890668"
+      ],
+      "license": "Unlicense",
+      "runtime_sha256": {
+        "havsfunc.py": "6ecda37981aa41d728657b48a1b322498b8c511c7fd4b7c0858bdbbfaa26472f"
+      },
+      "upstream_runtime_sha256": {
+        "havsfunc.py": "229fc191c5e7447c867076a0a3e3b008b5b06d04dfa6517796aec949363d8bac"
+      },
+      "license_files": [
+        "LICENSE"
+      ],
+      "patch_commit": "1c88bf06cf806c16e08b38fdf3c4814f586de407",
+      "upstream_tree_sha": "06942a3daf98ddda1941eda4d3847bbe9a177a7d"
+    },
+    {
+      "module": "getfnative",
+      "path": "modules/getfnative",
+      "distribution": "getfnative",
+      "version": "0.3.0.post1",
+      "runtime_kind": "module",
+      "import_name": "getfnative",
+      "install_path": "getfnative.py",
+      "upstream_url": "https://github.com/YomikoR/GetFnative",
+      "upstream_revision": "9edcd58346fbffa46f6735637f91ae24dfabcb74",
+      "import_commit": "eee47fdb06b71ee33e22a7709d30aa163c26bf4f",
+      "vendored_url": "https://github.com/YomikoR/GetFnative/blob/main/getfnative.py",
+      "vendored_revision": "9edcd58346fbffa46f6735637f91ae24dfabcb74",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/getfnative",
+      "collection_runtime_source": "scripts/getfnative/getfnative.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91"
+      ],
+      "intermediate_commits": [],
+      "license": "LGPL-2.1",
+      "runtime_sha256": {
+        "getfnative.py": "df259a92eb4ad54bdf7d0ca6f7002e0995483e816fb6692439493e1579e4a62f"
+      },
+      "upstream_runtime_sha256": {
+        "getfnative.py": "df259a92eb4ad54bdf7d0ca6f7002e0995483e816fb6692439493e1579e4a62f"
+      },
+      "license_files": [
+        "LICENSE"
+      ],
+      "patch_commit": "bc147d8926095ae436e45f43e67b49092c101b7b",
+      "upstream_tree_sha": "1bb0f7a249af09f2ba5ae5cdd4b37691a6c609f9"
+    },
+    {
+      "module": "mvsfunc",
+      "path": "modules/mvsfunc",
+      "distribution": "mvsfunc",
+      "version": "11.post1",
+      "runtime_kind": "package",
+      "import_name": "mvsfunc",
+      "install_path": "mvsfunc",
+      "upstream_url": "https://github.com/HomeOfVapourSynthEvolution/mvsfunc",
+      "upstream_revision": "865c7486ca860d323754ec4774bc4cca540a7076",
+      "import_commit": "b0884169d8b99ac049b1dc0ed625bf959bed4b93",
+      "vendored_url": "https://github.com/HomeOfVapourSynthEvolution/mvsfunc",
+      "vendored_revision": "865c7486ca860d323754ec4774bc4cca540a7076",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/mvsfunc",
+      "collection_runtime_source": "scripts/mvsfunc/mvsfunc",
+      "collection_commits": [
+        "f90d66e8775f373c52f5b44502bf5c9ca0caffcc"
+      ],
+      "intermediate_commits": [],
+      "license": "Not separately declared",
+      "runtime_sha256": {
+        "mvsfunc/__init__.py": "a08e2bc2d1b255ffa373ef52a63506da6a926e72a4d115aaabe5e95272016d89",
+        "mvsfunc/_metadata.py": "654d75ba830a969d5940e1d6a18a7801a0a8b9860fd9aa85688f954ee0d5bd53",
+        "mvsfunc/mvsfunc.py": "1adeb385d19bac1f8c541b655d1f98a38e18c9a0065d4483c25184c22908a984",
+        "mvsfunc/py.typed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "upstream_runtime_sha256": {
+        "mvsfunc/__init__.py": "a08e2bc2d1b255ffa373ef52a63506da6a926e72a4d115aaabe5e95272016d89",
+        "mvsfunc/_metadata.py": "654d75ba830a969d5940e1d6a18a7801a0a8b9860fd9aa85688f954ee0d5bd53",
+        "mvsfunc/mvsfunc.py": "1adeb385d19bac1f8c541b655d1f98a38e18c9a0065d4483c25184c22908a984",
+        "mvsfunc/py.typed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "license_files": [],
+      "patch_commit": "8b8d2a30d2c466a3d22a21fc1569e29f571d2360",
+      "upstream_tree_sha": "f2c3dac2f664623225bd5e515c27b8beb6010019"
+    },
+    {
+      "module": "muvsfunc",
+      "path": "modules/muvsfunc",
+      "distribution": "muvsfunc",
+      "version": "0.3.0.post1",
+      "runtime_kind": "module",
+      "import_name": "muvsfunc",
+      "install_path": "muvsfunc.py",
+      "upstream_url": "https://github.com/WolframRhodium/muvsfunc",
+      "upstream_revision": "d278cd3a68250a4d9562c6ec2b401f1a76c324a3",
+      "import_commit": "62f5893814685afee21ca1bc9876c97721fbb73a",
+      "vendored_url": "https://github.com/WolframRhodium/muvsfunc/blob/master/muvsfunc.py",
+      "vendored_revision": "d278cd3a68250a4d9562c6ec2b401f1a76c324a3",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/muvsfunc",
+      "collection_runtime_source": "scripts/muvsfunc/muvsfunc.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "9837b539bb72b552f237b0b0b6661273af577794",
+        "962b01c4c6928cb01a57621531c0a96d61338f51"
+      ],
+      "intermediate_commits": [],
+      "license": "Not separately declared",
+      "runtime_sha256": {
+        "muvsfunc.py": "bd0b8e560a82de2cb408aaf9fa69351aa44e2ec37ec5a89b9ecd8c0a043cdac3"
+      },
+      "upstream_runtime_sha256": {
+        "muvsfunc.py": "9e40aa0993b34b22a83812b7d3c8c4be06a7594ff3a9b90fb6406cb15af1d8ac"
+      },
+      "license_files": [],
+      "patch_commit": "ee3bb3e7df770fc76359803a07c1115f09c92894",
+      "upstream_tree_sha": "9f8ee83bb6264a069d2625ce3a82665e7565329d"
+    },
+    {
+      "module": "fvsfunc",
+      "path": "modules/fvsfunc",
+      "distribution": "fvsfunc",
+      "version": "0.3.0.post1",
+      "runtime_kind": "module",
+      "import_name": "fvsfunc",
+      "install_path": "fvsfunc.py",
+      "upstream_url": "https://github.com/Irrational-Encoding-Wizardry/fvsfunc",
+      "upstream_revision": "076dbde68227f6cca91304a447b2a02b0e95413e",
+      "import_commit": "64191bb0dd8ea15bd9ababc74f7ccea3479abbe8",
+      "vendored_url": "https://github.com/Irrational-Encoding-Wizardry/fvsfunc/blob/master/fvsfunc.py",
+      "vendored_revision": "076dbde68227f6cca91304a447b2a02b0e95413e",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/fvsfunc",
+      "collection_runtime_source": "scripts/fvsfunc/fvsfunc.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "9837b539bb72b552f237b0b0b6661273af577794",
+        "962b01c4c6928cb01a57621531c0a96d61338f51"
+      ],
+      "intermediate_commits": [],
+      "license": "Not separately declared",
+      "runtime_sha256": {
+        "fvsfunc.py": "16bcf5545ed66a5c4bdd6cc551a6b34f41ae5395c1dfa441d098728915c1475c"
+      },
+      "upstream_runtime_sha256": {
+        "fvsfunc.py": "1e7f3d9bf293b9bd771bf0886b7ba3f3bed07c1eda47d384ed61fd363a2b715c"
+      },
+      "license_files": [],
+      "patch_commit": "84f83a60a2404817f951550b6606969ee0de7f79",
+      "upstream_tree_sha": "665a1dc158696119e37b5e70de11b79145735bdb"
+    },
+    {
+      "module": "vstaambk",
+      "path": "modules/vstaambk",
+      "distribution": "vstaambk",
+      "version": "0.3.0.post1",
+      "runtime_kind": "module",
+      "import_name": "vsTAAmbk",
+      "install_path": "vsTAAmbk.py",
+      "upstream_url": "https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk",
+      "upstream_revision": "fef19f85c96c0d7e281627942c358ee1b92d7dbe",
+      "import_commit": "51627e28e665385de04bd5e47e98391374a22231",
+      "vendored_url": "https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk/blob/master/vsTAAmbk.py",
+      "vendored_revision": "fef19f85c96c0d7e281627942c358ee1b92d7dbe",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/TAAmbk",
+      "collection_runtime_source": "scripts/TAAmbk/vsTAAmbk.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "31f72118d9acb584a9b6335a6840b85196c5fa94",
+        "962b01c4c6928cb01a57621531c0a96d61338f51",
+        "4333dc71bbdc54e119ffb35d0b62a437909138f2",
+        "67a7bac3d365dcca5200054cb1fe37cdfab7d295"
+      ],
+      "intermediate_commits": [],
+      "license": "Not separately declared",
+      "runtime_sha256": {
+        "vsTAAmbk.py": "1843f14d7736b4d07eeec938351d5982238a6fd08090c2bce30cde64da0ab5ec"
+      },
+      "upstream_runtime_sha256": {
+        "vsTAAmbk.py": "39b9b4069fc06e130d710859cd7fbaa21c58dc2e15ece6226bfe3feb9f78fb6e"
+      },
+      "license_files": [],
+      "patch_commit": "906a1e5b61d5b44936dc48bdcd316677aaed0337",
+      "upstream_tree_sha": "02dcaf5a0af2994edabf5b05357787f3f4f0cd5d"
+    },
+    {
+      "module": "kagefunc",
+      "path": "modules/kagefunc",
+      "distribution": "kagefunc",
+      "version": "0.3.0.post1",
+      "runtime_kind": "module",
+      "import_name": "kagefunc",
+      "install_path": "kagefunc.py",
+      "upstream_url": "https://github.com/Irrational-Encoding-Wizardry/kagefunc",
+      "upstream_revision": "96947a1bda5639a4e0b89202e964a15bc337521d",
+      "import_commit": "774f85fcbf56c16f59b78e0abbca13dcfd9cd0bb",
+      "vendored_url": "https://github.com/Irrational-Encoding-Wizardry/kagefunc/blob/master/kagefunc.py",
+      "vendored_revision": "96947a1bda5639a4e0b89202e964a15bc337521d",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/kagefunc",
+      "collection_runtime_source": "scripts/kagefunc/kagefunc.py",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "67a7bac3d365dcca5200054cb1fe37cdfab7d295"
+      ],
+      "intermediate_commits": [],
+      "license": "MIT",
+      "runtime_sha256": {
+        "kagefunc.py": "b98cc5891d3a0e94cc6e75f38941226117d7d2ffe423e5d66ba009ff604004d9"
+      },
+      "upstream_runtime_sha256": {
+        "kagefunc.py": "b613ee3690f7b4f1aa0e6cf66d80633c59cb1b550b2f5d860ddfdc887f48f806"
+      },
+      "license_files": [
+        "LICENSE"
+      ],
+      "patch_commit": "e4ea32257081ba9137db135df2c956247881882d",
+      "upstream_tree_sha": "f755d8d4f404abbe8856841671ed37b990c685a2"
+    },
+    {
+      "module": "yvsfunc",
+      "path": "modules/yvsfunc",
+      "distribution": "yvsfunc",
+      "version": "0.3.0.post1",
+      "runtime_kind": "package",
+      "import_name": "yvsfunc",
+      "install_path": "yvsfunc",
+      "upstream_url": "https://github.com/YomikoR/yvsfunc",
+      "upstream_revision": "ee3309efe2543c6680619f6deb64496102e7eb64",
+      "import_commit": "fd80ac44f424dcfd62d4d8ac0279868209eb32ad",
+      "vendored_url": "https://github.com/RyougiKukoc/yvsfunc-with-toml.git",
+      "vendored_revision": "ee3309efe2543c6680619f6deb64496102e7eb64",
+      "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
+      "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
+      "collection_source_root": "scripts/yvsfunc",
+      "collection_runtime_source": "scripts/yvsfunc/yvsfunc",
+      "collection_commits": [
+        "99759cf98ea1feb3c7a4830ab18644e07e750e91",
+        "962b01c4c6928cb01a57621531c0a96d61338f51",
+        "86573d7e29177763bccfe19e25914eb8767b3849"
+      ],
+      "intermediate_commits": [],
+      "license": "WTFPL",
+      "runtime_sha256": {
+        "yvsfunc/__init__.py": "300a33f4b909353bd2fd75cab5326aea6ce7dd68fba091fc4334ed4399d35777",
+        "yvsfunc/denoise.py": "55e84cd4c389384b0aaab7dba5b73b7ba1fb762089e59dfb32a1b13f41fc8efb",
+        "yvsfunc/frames.py": "d0787bb92f3412791d35251c1c58f8908af4ef3842db10a77c4c2bf850442e3e",
+        "yvsfunc/misc.py": "98053e03e409f61b76f2bcfb3248e2eb838d067b47814eb2eecf4a35d85d634a",
+        "yvsfunc/nphelper.py": "7a75bbca88b7627f077227801fa6aadcac09d07cda3852258f875efaadb41465",
+        "yvsfunc/planes.py": "115b40fa39ae22fdc266cf2ff5c7e677c2acc1d4a7c3e7e49b24f7dc39d08a8f",
+        "yvsfunc/preview.py": "d1562512be84b18ac748f20a79451485206452f7b2a52e62cff32dce0cb00999",
+        "yvsfunc/resample.py": "392922ff77d6f590237107af2e15a1e857fac7272144954a96efc5bf907ffdc0"
+      },
+      "upstream_runtime_sha256": {
+        "yvsfunc/__init__.py": "300a33f4b909353bd2fd75cab5326aea6ce7dd68fba091fc4334ed4399d35777",
+        "yvsfunc/denoise.py": "55e84cd4c389384b0aaab7dba5b73b7ba1fb762089e59dfb32a1b13f41fc8efb",
+        "yvsfunc/frames.py": "d0787bb92f3412791d35251c1c58f8908af4ef3842db10a77c4c2bf850442e3e",
+        "yvsfunc/misc.py": "17d0aaf177aef98cb66ddf71f5ee3893492bf6bbdca8ee85a2be502eccbecd15",
+        "yvsfunc/nphelper.py": "7a75bbca88b7627f077227801fa6aadcac09d07cda3852258f875efaadb41465",
+        "yvsfunc/planes.py": "115b40fa39ae22fdc266cf2ff5c7e677c2acc1d4a7c3e7e49b24f7dc39d08a8f",
+        "yvsfunc/preview.py": "d1562512be84b18ac748f20a79451485206452f7b2a52e62cff32dce0cb00999",
+        "yvsfunc/resample.py": "c41f33a46be7b6c2ac4d24b5009525a835817d47d7ac7f730bc2c3a0c019f233"
+      },
+      "license_files": [
+        "COPYING"
+      ],
+      "patch_commit": "1eab14ba306ee832738cb489a7835dfae606d9f1",
+      "upstream_tree_sha": "12fccf67d2a4fd70e4765761c4e6a6fd2a7449b7"
+    }
+  ]
+}

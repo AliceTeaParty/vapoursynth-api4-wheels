@@ -1,0 +1,105 @@
+name: Package - vs-collection-rk
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            modules
+            scripts
+            tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r scripts/requirements-modules.txt hatchling==1.32.4
+      - uses: actions/checkout@v4
+        with:
+          repository: RyougiKukoc/VapourSynth-Scripts-Collection
+          ref: 14091484381778fe55102b58ac584e38f5e0fc6a
+          path: .work/collection-baseline
+          persist-credentials: false
+      - name: Verify the recorded migration and fix the source plan
+        run: python scripts/build_collection.py plan --baseline .work/collection-baseline
+      - name: Build the component and entry wheels
+        run: python scripts/build_collection.py build
+      - name: Build the old monolithic wheel for migration verification
+        run: python -m build --wheel --no-isolation --outdir .work/legacy-wheel .work/collection-baseline
+      - uses: actions/upload-artifact@v4
+        with:
+          name: collection-source-plan
+          path: .work/collection-plan.json
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: collection-wheels
+          path: dist/collection/*.whl
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: collection-legacy-wheel
+          path: .work/legacy-wheel/*.whl
+          if-no-files-found: error
+          retention-days: 30
+
+  validate:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.12", "3.13"]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            modules
+            scripts
+            tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -r scripts/requirements-modules.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: collection-source-plan
+          path: .work
+      - uses: actions/download-artifact@v4
+        with:
+          name: collection-wheels
+          path: dist/collection
+      - uses: actions/download-artifact@v4
+        with:
+          name: collection-legacy-wheel
+          path: .work/legacy-wheel
+      - name: Verify wheels, entry resolution and monolith migration
+        env:
+          LABEL: ${{ matrix.os }}-${{ matrix.python }}
+        run: >-
+          python scripts/build_collection.py validate --install
+          --legacy-wheel .work/legacy-wheel/vs_collection_rk-0.3.0-py3-none-any.whl
+          --output ".work/validated/$LABEL.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: collection-validation-${{ matrix.os }}-${{ matrix.python }}
+          path: .work/validated/*.json
+          if-no-files-found: error
+          retention-days: 30
