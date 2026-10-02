@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "csmod"
+version = "0.3.0.post1"
+description = "CSMOD from the RyougiKukoc script collection"
+requires-python = ">=3.12"
+readme = "WHEEL-README.md"
+dependencies = []
+license-files = []
+
+[project.urls]
+Upstream = "https://github.com/fdar0536/VapourSynth-Contra-Sharpen-mod"
+Collection = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+Wheels = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/modules/csmod"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["CSMOD.py"]
+
+[tool.hatch.build.targets.wheel.extra-metadata]
+"provenance.toml" = "provenance.toml"
+
+[tool.hatch.build.targets.sdist]
+include = ["/CSMOD.py", "/pyproject.toml", "/provenance.toml", "/WHEEL-README.md"]
