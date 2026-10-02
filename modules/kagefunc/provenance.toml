@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "kagefunc"
+wheel_version = "0.3.0.post1"
+import_name = "kagefunc"
+runtime_kind = "module"
+upstream_url = "https://github.com/Irrational-Encoding-Wizardry/kagefunc"
+upstream_revision = "96947a1bda5639a4e0b89202e964a15bc337521d"
+upstream_import_commit = "774f85fcbf56c16f59b78e0abbca13dcfd9cd0bb"
+vendored_url = "https://github.com/Irrational-Encoding-Wizardry/kagefunc/blob/master/kagefunc.py"
+vendored_revision = "96947a1bda5639a4e0b89202e964a15bc337521d"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/kagefunc/kagefunc.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "67a7bac3d365dcca5200054cb1fe37cdfab7d295"]
+license_observation = "MIT"
+
+[runtime_sha256]
+"kagefunc.py" = "b98cc5891d3a0e94cc6e75f38941226117d7d2ffe423e5d66ba009ff604004d9"

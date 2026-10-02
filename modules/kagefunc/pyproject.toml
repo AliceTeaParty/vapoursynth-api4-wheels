@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kagefunc"
+version = "0.3.0.post1"
+description = "kagefunc from the RyougiKukoc script collection"
+requires-python = ">=3.12"
+readme = "WHEEL-README.md"
+dependencies = []
+license-files = ["LICENSE"]
+
+[project.urls]
+Upstream = "https://github.com/Irrational-Encoding-Wizardry/kagefunc"
+Collection = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+Wheels = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/modules/kagefunc"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["kagefunc.py"]
+
+[tool.hatch.build.targets.wheel.extra-metadata]
+"provenance.toml" = "provenance.toml"
+
+[tool.hatch.build.targets.sdist]
+include = ["/kagefunc.py", "/pyproject.toml", "/provenance.toml", "/WHEEL-README.md", "/LICENSE"]
