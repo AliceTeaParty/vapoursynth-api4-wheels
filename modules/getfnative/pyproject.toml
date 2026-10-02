@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "getfnative"
+version = "0.3.0.post1"
+description = "getfnative from the RyougiKukoc script collection"
+requires-python = ">=3.12"
+readme = "WHEEL-README.md"
+dependencies = []
+license-files = ["LICENSE"]
+
+[project.urls]
+Upstream = "https://github.com/YomikoR/GetFnative"
+Collection = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+Wheels = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/modules/getfnative"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["getfnative.py"]
+
+[tool.hatch.build.targets.wheel.extra-metadata]
+"provenance.toml" = "provenance.toml"
+
+[tool.hatch.build.targets.sdist]
+include = ["/getfnative.py", "/pyproject.toml", "/provenance.toml", "/WHEEL-README.md", "/LICENSE"]

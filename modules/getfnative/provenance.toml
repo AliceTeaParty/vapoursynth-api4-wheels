@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "getfnative"
+wheel_version = "0.3.0.post1"
+import_name = "getfnative"
+runtime_kind = "module"
+upstream_url = "https://github.com/YomikoR/GetFnative"
+upstream_revision = "9edcd58346fbffa46f6735637f91ae24dfabcb74"
+upstream_import_commit = "eee47fdb06b71ee33e22a7709d30aa163c26bf4f"
+vendored_url = "https://github.com/YomikoR/GetFnative/blob/main/getfnative.py"
+vendored_revision = "9edcd58346fbffa46f6735637f91ae24dfabcb74"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/getfnative/getfnative.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91"]
+license_observation = "LGPL-2.1"
+
+[runtime_sha256]
+"getfnative.py" = "df259a92eb4ad54bdf7d0ca6f7002e0995483e816fb6692439493e1579e4a62f"
