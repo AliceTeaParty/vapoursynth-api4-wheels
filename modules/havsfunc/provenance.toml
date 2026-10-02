@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "havsfunc"
+wheel_version = "33.post1"
+import_name = "havsfunc"
+runtime_kind = "module"
+upstream_url = "https://github.com/HomeOfVapourSynthEvolution/havsfunc"
+upstream_revision = "7f0a9a7a37b60a05b9f408024d203e511e544a61"
+upstream_import_commit = "602c6cddca4a1f19c99b16527a383cc066905548"
+vendored_url = "https://gist.github.com/RyougiKukoc/ea451bd51d0dc33ba5e0c4d5566653cf"
+vendored_revision = "4e0d21258869283ce04568dda0173e4c8b890668"
+intermediate_commits = ["41bb799e474a7e0622e6b26b1c155e3fb038bac3", "9b828140c9c12f0b59578ecc474084ca72bb17da", "e6835a88fe2f39fef6a7f341051c6f29dfcb7877", "390cc5ca91d220fea391d7d64999eb8aa3868b02", "51e165c341a8fa28be5744976214058ee60ee8e6", "4dfcab770b8a6646756fd3f960e7c2b0dccd5761", "f7e3255fa7695df375a953a8e2f4823dbf45da9b", "fce05624e3e5e009dc5e77ea2dc5f0d889d947dc", "2871b0523e26ea33fe0b1878228432190fc98616", "4e0d21258869283ce04568dda0173e4c8b890668"]
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/havsfunc/havsfunc.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "9837b539bb72b552f237b0b0b6661273af577794", "31f72118d9acb584a9b6335a6840b85196c5fa94", "962b01c4c6928cb01a57621531c0a96d61338f51", "ad675718831c9bbf9441a9412411dd7b1bc77905", "4333dc71bbdc54e119ffb35d0b62a437909138f2"]
+license_observation = "Unlicense"
+
+[runtime_sha256]
+"havsfunc.py" = "6ecda37981aa41d728657b48a1b322498b8c511c7fd4b7c0858bdbbfaa26472f"
