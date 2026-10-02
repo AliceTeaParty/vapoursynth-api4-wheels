@@ -9,7 +9,7 @@ from pathlib import Path
 
 from packaging.requirements import Requirement
 
-from module_common import ROOT, SHA, project_metadata, relative_path, require
+from module_common import CENTRAL_REPOSITORY, ROOT, SHA, project_metadata, relative_path, require
 
 REGISTRY_PATH = "modules/collection.json"
 WORKFLOW = ".github/workflows/package-vs-collection-rk.yml"
@@ -84,6 +84,7 @@ def make_plans(registry: dict, commit: str, reader) -> list[dict]:
             "schema_version": 1, "kind": "collection-component", "module": item["module"],
             "distribution": item["distribution"], "import_name": item["import_name"],
             "runtime_kind": item["runtime_kind"], "path": item["path"], "central_sha": commit,
+            "repository": CENTRAL_REPOSITORY, "source_sha": commit,
             "pyproject_sha256": sha256(project), "provenance_sha256": sha256(provenance_bytes),
             "runtime_sha256": hashes, "required_files": required, **metadata,
         })
@@ -104,6 +105,7 @@ def make_plans(registry: dict, commit: str, reader) -> list[dict]:
         "schema_version": 1, "kind": "collection-entry", "module": "vs-collection-rk",
         "distribution": registry["distribution"], "import_name": entry["import_name"],
         "runtime_kind": "package", "path": entry["path"], "central_sha": commit,
+        "repository": CENTRAL_REPOSITORY, "source_sha": commit,
         "pyproject_sha256": sha256(project), "required_files": ["vs_collection_rk/__init__.py", "vs_collection_rk/_registry.json"],
         "runtime_sha256": {
             "vs_collection_rk/__init__.py": sha256(reader(entry["path"] + "/vs_collection_rk/__init__.py")),

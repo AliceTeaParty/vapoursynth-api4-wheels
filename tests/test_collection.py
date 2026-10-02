@@ -54,6 +54,9 @@ class CollectionTests(unittest.TestCase):
         self.assertTrue(all(plan["dependencies"] == [] for plan in plans[:-1]))
         self.assertEqual(len(plans[-1]["dependencies"]), len(registry["components"]))
         self.assertTrue(all(plan["requires_python"] == ">=3.12" for plan in plans))
+        # Shared installed-wheel summaries must identify the central source;
+        # canonical upstream identities remain in component provenance.
+        self.assertTrue(all(plan["repository"] == "AliceTeaParty/vapoursynth-api4-wheels" and plan["source_sha"] == "a"*40 for plan in plans))
 
     def test_runtime_change_or_unpinned_entry_dependency_is_rejected(self):
         registry = load_collection()
