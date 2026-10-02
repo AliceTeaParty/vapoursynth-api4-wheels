@@ -1,0 +1,74 @@
+name: Publish - vs-collection-rk
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful manual collection preview on main
+        required: true
+        type: string
+      expected_version:
+        description: Entry version reviewed in that preview
+        required: true
+        default: "0.4.0"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-vs-collection-rk
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'AliceTeaParty/vapoursynth-api4-wheels' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            modules
+            scripts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r scripts/requirements-modules.txt
+      - name: Check the selected preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.build_run_id }}
+          VERSION: ${{ inputs.expected_version }}
+        run: python scripts/publish_collection.py preflight --run-id "$RUN_ID" --expected-version "$VERSION"
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.build_run_id }}
+          name: collection-source-plan
+          path: .work
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.build_run_id }}
+          name: collection-wheels
+          path: dist/collection
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.build_run_id }}
+          pattern: collection-validation-*
+          merge-multiple: true
+          path: .work/collection-validation
+      - name: Publish the complete validated wheel set
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.build_run_id }}
+          VERSION: ${{ inputs.expected_version }}
+        run: >-
+          python scripts/publish_collection.py publish --run-id "$RUN_ID" --expected-version "$VERSION"
+          --plan .work/collection-plan.json --wheel-dir dist/collection
+          --validation-dir .work/collection-validation

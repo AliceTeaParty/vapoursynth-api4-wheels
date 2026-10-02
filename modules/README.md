@@ -1,16 +1,20 @@
 # Python modules
 
-Modules keep their source, version, dependencies and build backend in their
-original repositories. This directory contains registrations, not source
-mirrors or submodules. CI checks out a fixed commit in `modules/<id>/src/`
-and writes the wheel to `modules/<id>/dist/`; both are ignored by Git.
+This directory supports two maintenance models. rksfunc and rkstool keep
+source authority in their original repositories: CI checks out a fixed commit
+in `modules/<id>/src/` and writes wheels to `modules/<id>/dist/`; both are ignored
+by Git. The Collection components are tracked subtrees maintained in this
+repository, with their own pyproject.toml and provenance records.
 
 | Module | Source |
 | --- | --- |
 | rksfunc | https://github.com/RyougiKukoc/rksfunc |
 | rkstool | https://github.com/RyougiKukoc/rkstool |
 
-VapourSynth-Scripts-Collection is not registered in this phase.
+`vs-collection-rk` installs 12 centrally maintained components. Their build,
+manual publication, source history and old-package migration are described in
+[COLLECTION.md](COLLECTION.md). The workflows below remain the external-source
+interface for rksfunc/rkstool and future modules using that maintenance model.
 
 ## Manual preview from the wheels repository
 

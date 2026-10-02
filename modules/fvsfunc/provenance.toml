@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "fvsfunc"
+wheel_version = "0.3.0.post1"
+import_name = "fvsfunc"
+runtime_kind = "module"
+upstream_url = "https://github.com/Irrational-Encoding-Wizardry/fvsfunc"
+upstream_revision = "076dbde68227f6cca91304a447b2a02b0e95413e"
+upstream_import_commit = "64191bb0dd8ea15bd9ababc74f7ccea3479abbe8"
+vendored_url = "https://github.com/Irrational-Encoding-Wizardry/fvsfunc/blob/master/fvsfunc.py"
+vendored_revision = "076dbde68227f6cca91304a447b2a02b0e95413e"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/fvsfunc/fvsfunc.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "9837b539bb72b552f237b0b0b6661273af577794", "962b01c4c6928cb01a57621531c0a96d61338f51"]
+license_observation = "Not separately declared"
+
+[runtime_sha256]
+"fvsfunc.py" = "16bcf5545ed66a5c4bdd6cc551a6b34f41ae5395c1dfa441d098728915c1475c"

@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "nnedi3-rpow2"
+wheel_version = "1.1.0.post1"
+import_name = "nnedi3_rpow2"
+runtime_kind = "module"
+upstream_url = "https://gist.github.com/4re/342624c9e1a144a696c6"
+upstream_revision = "68ec4bdff1e51a3832b163198ed7ea00e1c1ab46"
+upstream_import_commit = "17d595f7441a123c71ee75bfd065b723fe8ed897"
+vendored_url = "https://gist.github.com/RyougiKukoc/6c9225aa3f010ef65d341cc5f770cf23"
+vendored_revision = "4e6c2fac9d3159f1f1c93e2a92d492ce7b69b1b3"
+intermediate_commits = ["2afe972e5e09b0278924a146a137dffd494e2926", "4e6c2fac9d3159f1f1c93e2a92d492ce7b69b1b3"]
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/nnedi3_rpow2/nnedi3_rpow2.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "962b01c4c6928cb01a57621531c0a96d61338f51"]
+license_observation = "Not separately declared"
+
+[runtime_sha256]
+"nnedi3_rpow2.py" = "7c295a176922f23e83fbe7fe19bebbd8983f3d06943338d3468248f23cc4f724"

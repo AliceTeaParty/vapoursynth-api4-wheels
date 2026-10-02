@@ -8,12 +8,14 @@ commit for each plugin.
 Native plugin wheels support Windows and Linux x86_64. macOS and ARM native
 plugin wheels are not published.
 
-Python modules are registered separately under `modules/`. Their original
-repositories own source and packaging metadata; CI checks out a fixed upstream
-commit instead of importing a subtree. Module preview builds and publication
-are separate manual workflows. See [modules/README.md](modules/README.md)
-for rksfunc, rkstool, the shared update interface and third-party contribution
-instructions. Module runtime requirements remain those of their upstreams.
+Python modules are maintained separately under `modules/`. rksfunc and rkstool
+keep source authority in their original repositories and use fixed-commit CI
+checkouts. The 12 components of `vs-collection-rk` are central-owned subtrees;
+each preserves its canonical upstream baseline and one combined Collection
+patch. The entry package installs their exact wheel versions together.
+See [modules/README.md](modules/README.md), [Collection maintenance](modules/COLLECTION.md)
+and the separate module table in [VERSIONS.md](VERSIONS.md). Builds and
+publication use separate manual workflows.
 
 ## Relationship to vs-wheels
 
@@ -184,6 +186,9 @@ helper does not invoke pip or delete files itself.
 - `plugins/<name>`: upstream subtree plus this project's squashed patch
 - `modules/<name>/module.toml`: upstream module registration; temporary source
   and wheel directories are ignored by Git
+- `modules/collection.json`: current Collection component and entry versions
+- `modules/collection-history.json`: initial canonical imports and combined patches
+- `VERSIONS.md`: separate native-plugin and Python-module version records
 - `.github/workflows/package-modules.yml`: manual shared module preview builds
 - `.github/workflows/publish-modules.yml`: manual publication of a verified wheel
 - `.github/workflows/package-<name>.yml`: build, test, and release workflow

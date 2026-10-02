@@ -1,0 +1,23 @@
+schema_version = 1
+management = "subtree"
+distribution = "mvsfunc"
+wheel_version = "11.post1"
+import_name = "mvsfunc"
+runtime_kind = "package"
+upstream_url = "https://github.com/HomeOfVapourSynthEvolution/mvsfunc"
+upstream_revision = "865c7486ca860d323754ec4774bc4cca540a7076"
+upstream_import_commit = "b0884169d8b99ac049b1dc0ed625bf959bed4b93"
+vendored_url = "https://github.com/HomeOfVapourSynthEvolution/mvsfunc"
+vendored_revision = "865c7486ca860d323754ec4774bc4cca540a7076"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/mvsfunc/mvsfunc"
+collection_commits = ["f90d66e8775f373c52f5b44502bf5c9ca0caffcc"]
+license_observation = "Not separately declared"
+
+[runtime_sha256]
+"mvsfunc/__init__.py" = "a08e2bc2d1b255ffa373ef52a63506da6a926e72a4d115aaabe5e95272016d89"
+"mvsfunc/_metadata.py" = "654d75ba830a969d5940e1d6a18a7801a0a8b9860fd9aa85688f954ee0d5bd53"
+"mvsfunc/mvsfunc.py" = "1adeb385d19bac1f8c541b655d1f98a38e18c9a0065d4483c25184c22908a984"
+"mvsfunc/py.typed" = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"

@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "muvsfunc"
+wheel_version = "0.3.0.post1"
+import_name = "muvsfunc"
+runtime_kind = "module"
+upstream_url = "https://github.com/WolframRhodium/muvsfunc"
+upstream_revision = "d278cd3a68250a4d9562c6ec2b401f1a76c324a3"
+upstream_import_commit = "62f5893814685afee21ca1bc9876c97721fbb73a"
+vendored_url = "https://github.com/WolframRhodium/muvsfunc/blob/master/muvsfunc.py"
+vendored_revision = "d278cd3a68250a4d9562c6ec2b401f1a76c324a3"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/muvsfunc/muvsfunc.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "9837b539bb72b552f237b0b0b6661273af577794", "962b01c4c6928cb01a57621531c0a96d61338f51"]
+license_observation = "Not separately declared"
+
+[runtime_sha256]
+"muvsfunc.py" = "bd0b8e560a82de2cb408aaf9fa69351aa44e2ec37ec5a89b9ecd8c0a043cdac3"

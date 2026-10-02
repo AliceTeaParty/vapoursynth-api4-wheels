@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "sdering-fix"
+wheel_version = "0.3.0.post1"
+import_name = "sdering_fix"
+runtime_kind = "module"
+upstream_url = "https://gist.github.com/RyougiKukoc/c3832d96a8dce6f609f6e29888af94a6"
+upstream_revision = "257d981098f67479bf029acda0fdeffa7c38ee08"
+upstream_import_commit = "1a45353bc479070662af616ce3bbc8313636d42f"
+vendored_url = "https://gist.github.com/RyougiKukoc/c3832d96a8dce6f609f6e29888af94a6"
+vendored_revision = "257d981098f67479bf029acda0fdeffa7c38ee08"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/sdering_fix/sdering_fix.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91"]
+license_observation = "Not separately declared"
+
+[runtime_sha256]
+"sdering_fix.py" = "967909471956d9570f6b95a7ad73bc284db0a6589b300863af04c9bf4430a4b5"
