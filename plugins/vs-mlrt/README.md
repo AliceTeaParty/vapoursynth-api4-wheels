@@ -8,9 +8,9 @@ and Linux x86_64.
 Install exactly one entry package from the repository index:
 
 ```text
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-mlrt-generic
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-mlrt-cu121
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-mlrt-cu129
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vs-mlrt-generic==16.2.6+alice.1"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vs-mlrt-cu121==16.2.6+alice.1"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vs-mlrt-cu129==16.2.6+alice.1"
 ```
 
 Requirements are Python 3.12+, VapourSynth R75+, and Windows or Linux x86_64.
@@ -25,8 +25,8 @@ import vsmlrt
 out = vsmlrt.DPIR(clip, strength=5.0, backend=vsmlrt.Backend.TRT(fp16=True))
 ```
 
-The `16.2.6` entry packages depend on the tested `16.2.2` component wheels.
-This entry-only release is aligned with upstream `AmusementClub/vs-mlrt` tag `v16.2.test1`, commit
+The `16.2.6+alice.1` entry packages depend on the tested `16.2.2+alice.1` component wheels.
+The Python wrapper is aligned with upstream `AmusementClub/vs-mlrt` tag `v16.2.test1`, commit
 `9e4d0c9dbbcaa28275772d30520330e69a58307c`.
 
 ## Package Composition

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vapoursynth-retinex"
-version = "4.1"
+version = "4.1+alice.1"
 description = "Retinex dynamic range compression and color constancy plugin for VapourSynth"
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
@@ -15,7 +15,7 @@ dependencies = ["VapourSynth>=77"]
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-retinex"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-retinex-v4.1"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-retinex-v4.1+alice.1"
 
 [tool.hatch.build.targets.sdist]
 include = [

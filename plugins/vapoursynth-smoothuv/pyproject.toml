@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vapoursynth-smoothuv"
-version = "3.1"
+version = "3.1+alice.1"
 description = "SmoothUV VapourSynth plugin and RainbowSmooth helper script"
 readme = "readme.rst"
 license = { text = "GNU GPL (exact upstream version should be confirmed before publication)" }
@@ -15,7 +15,7 @@ dependencies = ["VapourSynth>=77"]
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-smoothuv"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-smoothuv-v3.1"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-smoothuv-v3.1+alice.1"
 
 [tool.hatch.build.targets.sdist]
 include = [

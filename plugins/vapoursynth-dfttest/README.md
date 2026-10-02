@@ -16,14 +16,13 @@ Installation
 
 On Windows or Linux x86_64, the preferred install path is pip:
 
-    pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest
-
+    pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-dfttest==1.1+alice.1"
 The Python package installs the native plugin under
 `vapoursynth/plugins/dfttest/` with a `manifest.vs`, so current VapourSynth
 autoloads it as `core.dfttest.DFTTest`.
 
 The VCS build hook maps `project.version = 1.1` to the default GitHub Release
-tag `vapoursynth-dfttest-v1.1` and first reuses the tested native package asset for the current
+tag `vapoursynth-dfttest-v1.1+alice.1` and first reuses the tested native package asset for the current
 platform:
 
     Windows: dfttest-msys2-ucrt64.zip

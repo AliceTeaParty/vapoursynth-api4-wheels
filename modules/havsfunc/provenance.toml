@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "havsfunc"
-wheel_version = "33.post1"
+wheel_version = "33.post1+alice.1"
 import_name = "havsfunc"
 runtime_kind = "module"
 upstream_url = "https://github.com/HomeOfVapourSynthEvolution/havsfunc"

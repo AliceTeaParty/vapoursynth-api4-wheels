@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vapoursynth-nnedi3cl"
-version = "8.1"
+version = "8.1+alice.1"
 description = "NNEDI3CL VapourSynth plugin packaged for pip installation"
 readme = "README.md"
 license = { text = "GPL-2.0-or-later" }
@@ -15,7 +15,7 @@ dependencies = ["VapourSynth>=77"]
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-nnedi3cl"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-nnedi3cl-v8.1"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-nnedi3cl-v8.1+alice.1"
 
 [tool.hatch.build.targets.sdist]
 include = [

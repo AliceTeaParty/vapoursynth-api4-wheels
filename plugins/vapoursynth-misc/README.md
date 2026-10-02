@@ -47,7 +47,7 @@ misc/
 The manifest loads the platform-native `miscfilters` module, while the VapourSynth namespace remains `core.misc`.
 
 The Release tag is always `vapoursynth-misc-v<project.version>`; version `2.1`
-maps to `vapoursynth-misc-v2.1`.
+maps to `vapoursynth-misc-v2.1+alice.1`.
 
 ## Source build notes
 

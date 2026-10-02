@@ -183,8 +183,8 @@ jobs:
           test "$(wc -l < assets.txt)" -eq 4
           grep -Ex 'vs-cfl-msys2-ucrt64\.zip' assets.txt
           grep -Ex 'vs-cfl-linux-x86_64\.zip' assets.txt
-          grep -Ex 'vs_cfl-1\.0\.2-py3-none-win_amd64\.whl' assets.txt
-          grep -Ex 'vs_cfl-1\.0\.2-py3-none-manylinux_2_27_x86_64\.whl' assets.txt
+          grep -Ex 'vs_cfl-1\.0\.2\+alice\.1-py3-none-win_amd64\.whl' assets.txt
+          grep -Ex 'vs_cfl-1\.0\.2\+alice\.1-py3-none-manylinux_2_27_x86_64\.whl' assets.txt
       - name: Create or update one release after both platform gates
         shell: bash
         env:

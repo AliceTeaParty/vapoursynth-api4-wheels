@@ -11,7 +11,7 @@
     "canonical_source_url": "https://gist.github.com/RyougiKukoc/c3832d96a8dce6f609f6e29888af94a6",
     "source_revision": "257d981098f67479bf029acda0fdeffa7c38ee08",
     "distribution": "sdering-fix",
-    "wheel_version": "0.3.0.post1",
+    "wheel_version": "0.3.0.post1+alice.1",
     "vendored_revision": "257d981098f67479bf029acda0fdeffa7c38ee08",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "285a913c1314b4ddd531127f6d4f539f28ed0ac6"
@@ -28,7 +28,7 @@
     "canonical_source_url": "https://github.com/fdar0536/VapourSynth-Contra-Sharpen-mod",
     "source_revision": "b9ff7253bf217dded071b88fb8a6d212aceb81f4",
     "distribution": "csmod",
-    "wheel_version": "0.3.0.post1",
+    "wheel_version": "0.3.0.post1+alice.1",
     "vendored_revision": "b9ff7253bf217dded071b88fb8a6d212aceb81f4",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "bfb8abc11413dd32afea6ca3b03c4e4b63099f28"
@@ -45,7 +45,7 @@
     "canonical_source_url": "https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample",
     "source_revision": "314c6446a65c2e25fd7a997051b09830f361675e",
     "distribution": "nnedi3-resample",
-    "wheel_version": "2.post1",
+    "wheel_version": "2.post1+alice.1",
     "vendored_revision": "314c6446a65c2e25fd7a997051b09830f361675e",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "4948a7ebbdf6b4ff9246af59d720f31960bc75fc"
@@ -62,7 +62,7 @@
     "canonical_source_url": "https://gist.github.com/4re/342624c9e1a144a696c6",
     "source_revision": "68ec4bdff1e51a3832b163198ed7ea00e1c1ab46",
     "distribution": "nnedi3-rpow2",
-    "wheel_version": "1.1.0.post1",
+    "wheel_version": "1.1.0.post1+alice.1",
     "vendored_revision": "4e6c2fac9d3159f1f1c93e2a92d492ce7b69b1b3",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "76c37e37c47c69fe0c68f77994f9e34f6112fad1"
@@ -79,7 +79,7 @@
     "canonical_source_url": "https://github.com/HomeOfVapourSynthEvolution/havsfunc",
     "source_revision": "7f0a9a7a37b60a05b9f408024d203e511e544a61",
     "distribution": "havsfunc",
-    "wheel_version": "33.post1",
+    "wheel_version": "33.post1+alice.1",
     "vendored_revision": "4e0d21258869283ce04568dda0173e4c8b890668",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "1c88bf06cf806c16e08b38fdf3c4814f586de407"
@@ -96,7 +96,7 @@
     "canonical_source_url": "https://github.com/YomikoR/GetFnative",
     "source_revision": "9edcd58346fbffa46f6735637f91ae24dfabcb74",
     "distribution": "getfnative",
-    "wheel_version": "0.3.0.post1",
+    "wheel_version": "0.3.0.post1+alice.1",
     "vendored_revision": "9edcd58346fbffa46f6735637f91ae24dfabcb74",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "bc147d8926095ae436e45f43e67b49092c101b7b"
@@ -113,7 +113,7 @@
     "canonical_source_url": "https://github.com/HomeOfVapourSynthEvolution/mvsfunc",
     "source_revision": "865c7486ca860d323754ec4774bc4cca540a7076",
     "distribution": "mvsfunc",
-    "wheel_version": "11.post1",
+    "wheel_version": "11.post1+alice.1",
     "vendored_revision": "865c7486ca860d323754ec4774bc4cca540a7076",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "8b8d2a30d2c466a3d22a21fc1569e29f571d2360"
@@ -130,7 +130,7 @@
     "canonical_source_url": "https://github.com/WolframRhodium/muvsfunc",
     "source_revision": "d278cd3a68250a4d9562c6ec2b401f1a76c324a3",
     "distribution": "muvsfunc",
-    "wheel_version": "0.3.0.post1",
+    "wheel_version": "0.3.0.post1+alice.1",
     "vendored_revision": "d278cd3a68250a4d9562c6ec2b401f1a76c324a3",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "ee3bb3e7df770fc76359803a07c1115f09c92894"
@@ -147,7 +147,7 @@
     "canonical_source_url": "https://github.com/Irrational-Encoding-Wizardry/fvsfunc",
     "source_revision": "076dbde68227f6cca91304a447b2a02b0e95413e",
     "distribution": "fvsfunc",
-    "wheel_version": "0.3.0.post1",
+    "wheel_version": "0.3.0.post1+alice.1",
     "vendored_revision": "076dbde68227f6cca91304a447b2a02b0e95413e",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "84f83a60a2404817f951550b6606969ee0de7f79"
@@ -164,7 +164,7 @@
     "canonical_source_url": "https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk",
     "source_revision": "fef19f85c96c0d7e281627942c358ee1b92d7dbe",
     "distribution": "vstaambk",
-    "wheel_version": "0.3.0.post1",
+    "wheel_version": "0.3.0.post1+alice.1",
     "vendored_revision": "fef19f85c96c0d7e281627942c358ee1b92d7dbe",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "906a1e5b61d5b44936dc48bdcd316677aaed0337"
@@ -181,7 +181,7 @@
     "canonical_source_url": "https://github.com/Irrational-Encoding-Wizardry/kagefunc",
     "source_revision": "96947a1bda5639a4e0b89202e964a15bc337521d",
     "distribution": "kagefunc",
-    "wheel_version": "0.3.0.post1",
+    "wheel_version": "0.3.0.post1+alice.1",
     "vendored_revision": "96947a1bda5639a4e0b89202e964a15bc337521d",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "e4ea32257081ba9137db135df2c956247881882d"
@@ -198,7 +198,7 @@
     "canonical_source_url": "https://github.com/YomikoR/yvsfunc",
     "source_revision": "ee3309efe2543c6680619f6deb64496102e7eb64",
     "distribution": "yvsfunc",
-    "wheel_version": "0.3.0.post1",
+    "wheel_version": "0.3.0.post1+alice.1",
     "vendored_revision": "ee3309efe2543c6680619f6deb64496102e7eb64",
     "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
     "local_patch_commit": "1eab14ba306ee832738cb489a7835dfae606d9f1"

@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "nnedi3-rpow2"
-wheel_version = "1.1.0.post1"
+wheel_version = "1.1.0.post1+alice.1"
 import_name = "nnedi3_rpow2"
 runtime_kind = "module"
 upstream_url = "https://gist.github.com/4re/342624c9e1a144a696c6"

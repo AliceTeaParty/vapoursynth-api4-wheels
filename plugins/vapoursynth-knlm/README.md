@@ -13,14 +13,14 @@ This fork can be installed as a VapourSynth API4 plugin package on Windows or
 Linux x86_64:
 
 ```powershell
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-knlm
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-knlm==1.1.2+alice.1"
 ```
 
 The VCS build first tries to reuse the tested platform Release payload:
 
 ```text
-https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-knlm-v1.1.2/knlmeanscl-msys2-ucrt64.zip
-https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-knlm-v1.1.2/knlmeanscl-linux-x86_64.zip
+https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-knlm-v1.1.2+alice.1/knlmeanscl-msys2-ucrt64.zip
+https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-knlm-v1.1.2+alice.1/knlmeanscl-linux-x86_64.zip
 ```
 
 If the matching Release asset is unavailable, the build hook runs a native

@@ -215,8 +215,8 @@ jobs:
           test "$(wc -l < assets.txt)" -eq 4
           grep -Ex 'retinex-msys2-ucrt64.zip' assets.txt
           grep -Ex 'retinex-linux-x86_64.zip' assets.txt
-          grep -Ex 'vapoursynth_retinex-4\.1-py3-none-win_amd64\.whl' assets.txt
-          grep -Ex 'vapoursynth_retinex-4\.1-py3-none-manylinux_2_27_x86_64\.whl' assets.txt
+          grep -Ex 'vapoursynth_retinex-4\.1\+alice\.1-py3-none-win_amd64\.whl' assets.txt
+          grep -Ex 'vapoursynth_retinex-4\.1\+alice\.1-py3-none-manylinux_2_27_x86_64\.whl' assets.txt
 
       - name: Publish GitHub release assets
         env:

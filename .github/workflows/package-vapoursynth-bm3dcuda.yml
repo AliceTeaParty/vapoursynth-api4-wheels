@@ -96,13 +96,20 @@ jobs:
           $dll = "dist\windows-${{ matrix.variant }}\bm3dcuda\bm3dcuda_rtc.dll"
           dumpbin /dependents $dll
           & "$env:pythonLocation\python.exe" -c "import zipfile; z=zipfile.ZipFile(r'$zip'); names=set(z.namelist()); assert 'bm3dcuda/manifest.vs' in names and 'bm3dcuda/bm3dcuda_rtc.dll' in names; assert 'bm3dcuda/bm3dcpu.dll' not in names"
+      - name: Build CPU payload from the same source revision
+        run: >-
+          "%pythonLocation%\python.exe" tools\ci_build_windows.py
+          --variant cpu
+          --dist-dir dist\windows-cpu
+      - name: Pack CPU payload for the merged wheel
+        run: >-
+          "%pythonLocation%\python.exe" tools\package_plugin_zip.py
+          --variant cpu
+          --input-dir dist\windows-cpu
+          --output dist\cpu-release\bm3dcuda-cpu-win64.zip
       - name: Build the merged Windows wheel
         shell: powershell
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          New-Item -ItemType Directory -Force dist\cpu-release | Out-Null
-          gh release download vapoursynth-bm3dcpu-v2.16 --pattern bm3dcuda-cpu-win64.zip --dir dist\cpu-release --repo $env:GITHUB_REPOSITORY
           $env:BM3DCUDA_VARIANT = '${{ matrix.variant }}'
           $env:BM3DCUDA_CPU_PREBUILT_URL = Join-Path $PWD 'dist\cpu-release\bm3dcuda-cpu-win64.zip'
           $env:BM3DCUDA_CUDA_PREBUILT_URL = Join-Path $PWD 'dist\release-assets-windows\bm3dcuda-${{ matrix.variant }}-win64.zip'

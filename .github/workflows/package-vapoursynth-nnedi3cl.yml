@@ -293,8 +293,8 @@ jobs:
           expected=(
             nnedi3cl-linux-x86_64.zip
             nnedi3cl-msys2-ucrt64.zip
-            vapoursynth_nnedi3cl-8.1-py3-none-manylinux_2_27_x86_64.whl
-            vapoursynth_nnedi3cl-8.1-py3-none-win_amd64.whl
+            vapoursynth_nnedi3cl-8.1+alice.1-py3-none-manylinux_2_27_x86_64.whl
+            vapoursynth_nnedi3cl-8.1+alice.1-py3-none-win_amd64.whl
           )
           actual=(release-assets/*)
           test "${#actual[@]}" -eq "${#expected[@]}"

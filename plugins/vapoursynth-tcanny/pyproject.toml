@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vapoursynth-tcanny"
-version = "14.1"
+version = "14.1+alice.1"
 description = "TCanny edge detection plugin for VapourSynth"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -15,7 +15,7 @@ dependencies = ["VapourSynth>=77"]
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-tcanny"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-tcanny-v14.1"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-tcanny-v14.1+alice.1"
 "Upstream" = "https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny"
 
 [tool.hatch.build.targets.sdist]

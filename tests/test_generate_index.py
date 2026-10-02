@@ -15,7 +15,7 @@ class GenerateIndexTests(unittest.TestCase):
     def test_modules_share_the_index_with_native_plugins(self) -> None:
         releases = [{"draft": False, "assets": [
             {"name": name, "digest": "sha256:abc123", "browser_download_url": "https://example.invalid/" + name}
-            for name in ("rksfunc-1.1.5-py3-none-any.whl", "rkstool-1.1.2-py3-none-any.whl", "vs_nlq-1.2.0-py3-none-win_amd64.whl", "source-manifest.json")
+            for name in ("rksfunc-1.1.5-py3-none-any.whl", "rkstool-1.1.2-py3-none-any.whl", "vs_nlq-1.2.0+alice.1-py3-none-win_amd64.whl", "source-manifest.json")
         ]}]
         projects = generate_index.collect_wheels(releases)
         self.assertEqual(set(projects), {"rksfunc", "rkstool", "vs-nlq"})
@@ -33,7 +33,7 @@ class GenerateIndexTests(unittest.TestCase):
                 "draft": False,
                 "assets": [
                     {
-                        "name": "vs_nlq-1.2.0-py3-none-win_amd64.whl",
+                        "name": "vs_nlq-1.2.0+alice.1-py3-none-win_amd64.whl",
                         "digest": "sha256:abc123",
                         "browser_download_url": "https://example.invalid/wheel.whl",
                     },

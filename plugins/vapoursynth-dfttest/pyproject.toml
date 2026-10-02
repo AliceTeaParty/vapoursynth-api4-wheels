@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vapoursynth-dfttest"
-version = "1.1"
+version = "1.1+alice.1"
 description = "DFTTest frequency-domain denoiser plugin for VapourSynth"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -15,7 +15,7 @@ dependencies = ["VapourSynth>=79"]
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-dfttest"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-dfttest-v1.1"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-dfttest-v1.1+alice.1"
 
 [tool.hatch.build.targets.sdist]
 include = [

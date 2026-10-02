@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -22,9 +23,8 @@ DEFAULT_REPOSITORY = "AliceTeaParty/vapoursynth-api4-wheels"
 CUDA_VARIANTS = {"cu121", "cu129"}
 SUPPORTED_VARIANTS = {"cpu", *CUDA_VARIANTS}
 RELEASE_TAGS = {
-    "cpu": "vapoursynth-dfttest2-cpu-v10.2",
-    "cu121": "vapoursynth-dfttest2-cu121-v10.2",
-    "cu129": "vapoursynth-dfttest2-cu129-v10.2",
+    variant: f"vapoursynth-dfttest2-{variant}-v{tomllib.loads((ROOT / 'pyproject.toml').read_text(encoding='utf-8'))['project']['version']}"
+    for variant in SUPPORTED_VARIANTS
 }
 VARIANT_MARKER = ROOT / ".dfttest2-variant"
 

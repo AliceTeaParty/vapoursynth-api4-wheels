@@ -180,8 +180,8 @@ jobs:
           test "$(wc -l < assets.txt)" -eq 4
           grep -Ex 'tcanny-windows-x86_64\.zip' assets.txt
           grep -Ex 'tcanny-linux-x86_64\.zip' assets.txt
-          grep -Ex 'vapoursynth_tcanny-14\.1-py3-none-win_amd64\.whl' assets.txt
-          grep -Ex 'vapoursynth_tcanny-14\.1-py3-none-manylinux_2_27_x86_64\.whl' assets.txt
+          grep -Ex 'vapoursynth_tcanny-14\.1\+alice\.1-py3-none-win_amd64\.whl' assets.txt
+          grep -Ex 'vapoursynth_tcanny-14\.1\+alice\.1-py3-none-manylinux_2_27_x86_64\.whl' assets.txt
       - name: Publish all verified assets once
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

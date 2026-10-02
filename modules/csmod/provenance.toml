@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "csmod"
-wheel_version = "0.3.0.post1"
+wheel_version = "0.3.0.post1+alice.1"
 import_name = "CSMOD"
 runtime_kind = "module"
 upstream_url = "https://github.com/fdar0536/VapourSynth-Contra-Sharpen-mod"

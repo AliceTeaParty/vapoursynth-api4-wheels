@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mvsfunc"
-version = "11.post1"
+version = "11.post1+alice.1"
 description = "mvsfunc from the RyougiKukoc script collection"
 requires-python = ">=3.12"
 readme = "WHEEL-README.md"

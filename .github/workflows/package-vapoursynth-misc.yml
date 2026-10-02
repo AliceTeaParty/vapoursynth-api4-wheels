@@ -239,8 +239,8 @@ jobs:
           expected=(
             misc-msys2-ucrt64.zip
             misc-linux-x86_64.zip
-            vapoursynth_misc-2.1-py3-none-win_amd64.whl
-            vapoursynth_misc-2.1-py3-none-manylinux_2_27_x86_64.whl
+            vapoursynth_misc-2.1+alice.1-py3-none-win_amd64.whl
+            vapoursynth_misc-2.1+alice.1-py3-none-manylinux_2_27_x86_64.whl
           )
           for asset in "${expected[@]}"; do test -f "release-assets/$asset"; done
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then

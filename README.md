@@ -55,19 +55,20 @@ The package index is hosted on GitHub Pages:
 ```console
 python -m pip install \
   --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ \
-  vs-nlq
+  "vs-nlq==1.2.0+alice.1"
 ```
 
 Packages still need their normal Python dependencies from PyPI, which is why
 the project index is supplied with `--extra-index-url`.
 
-For `vapoursynth-bm3dcpu`, use the exclusive project index and exact version
-below. PyPI's same-name 2.17 package uses API3; `--extra-index-url` does not
-prioritize our API4 2.16 build over that higher version.
+All centrally maintained wheels use the PEP 440 local label `+alice.1`.
+Use the exact versions below when installing with `--extra-index-url`: pip
+compares candidates across both indexes and does not prioritize this index.
+For example, `2.16+alice.1` is still older than `2.17`; the suffix alone does
+not prevent installing a different same-name PyPI package.
 
 ```console
-python -m pip install "VapourSynth>=77"
-python -m pip install --force-reinstall --no-deps --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-bm3dcpu==2.16"
+python -m pip install --force-reinstall --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-bm3dcpu==2.16+alice.1"
 ```
 
 The temporary `bm3dcuda-cpu` rename has been withdrawn. If you installed that
@@ -92,6 +93,72 @@ above, because both distributions own the same plugin files.
 | [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | `vs-cfl` |
 | [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | `vapoursynth-tcanny` |
 | [vapoursynth/vs-miscfilters-obsolete](https://github.com/vapoursynth/vs-miscfilters-obsolete) | `vapoursynth-misc` |
+
+## Wheel versions
+
+These are the versions configured for the next manual release, not a claim
+that all assets are already published. rksfunc and rkstool retain their
+upstream versions; all other distributions carry our local build label.
+
+| Distribution | Version |
+| --- | --- |
+| `csmod` | `0.3.0.post1+alice.1` |
+| `fvsfunc` | `0.3.0.post1+alice.1` |
+| `getfnative` | `0.3.0.post1+alice.1` |
+| `havsfunc` | `33.post1+alice.1` |
+| `kagefunc` | `0.3.0.post1+alice.1` |
+| `muvsfunc` | `0.3.0.post1+alice.1` |
+| `mvsfunc` | `11.post1+alice.1` |
+| `nnedi3-resample` | `2.post1+alice.1` |
+| `nnedi3-rpow2` | `1.1.0.post1+alice.1` |
+| `sdering-fix` | `0.3.0.post1+alice.1` |
+| `vapoursynth-bm3dcpu` | `2.16+alice.1` |
+| `vapoursynth-bm3dcuda-cu121` | `2.16+alice.1` |
+| `vapoursynth-bm3dcuda-cu129` | `2.16+alice.1` |
+| `vapoursynth-dfttest` | `1.1+alice.1` |
+| `vapoursynth-dfttest2-cpu` | `10.2+alice.1` |
+| `vapoursynth-dfttest2-cu121` | `10.2+alice.1` |
+| `vapoursynth-dfttest2-cu129` | `10.2+alice.1` |
+| `vapoursynth-fft3dfilter` | `2.1+alice.1` |
+| `vapoursynth-knlm` | `1.1.2+alice.1` |
+| `vapoursynth-misc` | `2.1+alice.1` |
+| `vapoursynth-nnedi3cl` | `8.1+alice.1` |
+| `vapoursynth-retinex` | `4.1+alice.1` |
+| `vapoursynth-smoothuv` | `3.1+alice.1` |
+| `vapoursynth-tcanny` | `14.1+alice.1` |
+| `vapoursynth-tcomb` | `4.2+alice.1` |
+| `vs-cfl` | `1.0.2+alice.1` |
+| `vs-collection-rk` | `0.4.0+alice.1` |
+| `vs-cublas-cu121` | `16.2.2+alice.1` |
+| `vs-cudnn-cu121` | `16.2.2+alice.1` |
+| `vs-mlrt` | `16.2.2+alice.1` |
+| `vs-mlrt-cu121` | `16.2.6+alice.1` |
+| `vs-mlrt-cu129` | `16.2.6+alice.1` |
+| `vs-mlrt-generic` | `16.2.6+alice.1` |
+| `vs-mlrt-models` | `16.2.2+alice.1` |
+| `vs-ncnn` | `16.2.2+alice.1` |
+| `vs-nlq` | `1.2.0+alice.1` |
+| `vs-ov` | `16.2.2+alice.1` |
+| `vs-tensorrt-builder-cu121` | `16.2.2+alice.1` |
+| `vs-tensorrt-builder-cu129-base` | `16.2.2+alice.1` |
+| `vs-tensorrt-builder-cu129-modern` | `16.2.2+alice.1` |
+| `vs-tensorrt-core-cu121` | `16.2.2+alice.1` |
+| `vs-tensorrt-core-cu129` | `16.2.2+alice.1` |
+| `vs-tensorrt-rtx-cu129` | `16.2.2+alice.1` |
+| `vs-trt-cu121` | `16.2.2+alice.1` |
+| `vs-trt-cu129` | `16.2.2+alice.1` |
+| `vs-trt-rtx-cu129` | `16.2.2+alice.1` |
+| `vs-trtexec-cu121` | `16.2.2+alice.1` |
+| `vs-trtexec-cu129` | `16.2.2+alice.1` |
+| `vstaambk` | `0.3.0.post1+alice.1` |
+| `yvsfunc` | `0.3.0.post1+alice.1` |
+| `rksfunc` | `1.1.5` (upstream) |
+| `rkstool` | `1.1.2` (upstream) |
+
+vs-mlrt entry packages and their component/model packages have separate
+version sequences. Every internal requirement pins the exact version in
+this table, including `+alice.1`. The legacy `vs-mlrt` source package is
+listed for completeness; new installs use one of the three entry packages.
 
 ## Choosing a variant
 
@@ -168,7 +235,7 @@ For example:
 ```console
 python -m pip install --extra-index-url \
   https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ \
-  vs-mlrt-generic
+  "vs-mlrt-generic==16.2.6+alice.1"
 ```
 
 To remove a vs-mlrt installation and its installed component wheels, run:

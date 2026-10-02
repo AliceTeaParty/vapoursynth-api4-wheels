@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vapoursynth-fft3dfilter"
-version = "2.1"
+version = "2.1+alice.1"
 description = "FFT3DFilter frequency-domain denoising and sharpening plugin for VapourSynth"
 readme = "README.md"
 license = { text = "GPL-2.0-only" }
@@ -15,12 +15,12 @@ dependencies = ["VapourSynth>=79"]
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-fft3dfilter"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-fft3dfilter-v2.1"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-fft3dfilter-v2.1+alice.1"
 
 [tool.fft3dfilter.release]
 # This source marker is authoritative for the Release-backed VCS installer.
 # It is intentionally consulted before legacy R<version>/v<version> guesses.
-tag = "vapoursynth-fft3dfilter-v2.1"
+tag = "vapoursynth-fft3dfilter-v2.1+alice.1"
 
 [tool.hatch.build.targets.sdist]
 include = [

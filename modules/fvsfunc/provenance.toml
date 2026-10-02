@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "fvsfunc"
-wheel_version = "0.3.0.post1"
+wheel_version = "0.3.0.post1+alice.1"
 import_name = "fvsfunc"
 runtime_kind = "module"
 upstream_url = "https://github.com/Irrational-Encoding-Wizardry/fvsfunc"

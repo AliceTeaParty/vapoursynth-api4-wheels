@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "vapoursynth-misc"
-version = "2.1"
+version = "2.1+alice.1"
 description = "Miscellaneous VapourSynth filters: SCDetect, AverageFrames, and Hysteresis"
 readme = "README.md"
 license = { file = "LICENSE" }
