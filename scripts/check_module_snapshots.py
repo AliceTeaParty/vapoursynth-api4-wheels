@@ -32,6 +32,7 @@ def main() -> None:
             "expected_version": snapshot["version"], "request_id": f"snapshot-{module}",
         }, github, actor=cfg["requesters"][0], central_sha=git_sha())
         require(plan["dependencies"] == [], "registered seed module snapshot must retain empty runtime dependencies")
+        require(plan["requires_python"] == snapshot["requires_python"], "snapshot Python compatibility range changed")
         work = ROOT / ".work/snapshots"
         plan_file = work / f"{module}.json"
         write_json(plan_file, plan)

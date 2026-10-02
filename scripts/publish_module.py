@@ -84,9 +84,19 @@ def release_state(github: GitHub, tag: str) -> dict | None:
     try:
         return github.request(f"repos/{CENTRAL_REPOSITORY}/releases/tags/{urllib.parse.quote(tag, safe='')}")
     except GitHubError as error:
-        if error.status == 404:
-            return None
-        raise
+        if error.status != 404:
+            raise
+    # The tag endpoint returns published releases only. Authenticated release
+    # listings also contain drafts, including drafts whose tag is not created.
+    page = 1
+    matches = []
+    while True:
+        releases = github.request(f"repos/{CENTRAL_REPOSITORY}/releases?per_page=100&page={page}")
+        matches.extend(release for release in releases if release.get("draft") and release.get("tag_name") == tag)
+        require(len(matches) <= 1, f"multiple drafts use {tag}; resolve the ambiguity before retrying")
+        if len(releases) < 100:
+            return matches[0] if matches else None
+        page += 1
 
 
 def asset_matches(asset: dict, digest: str) -> bool:
@@ -114,14 +124,19 @@ def publish_release(github: GitHub, wheel: Path, manifest_file: Path, manifest: 
     prerelease = Version(manifest["version"]).is_prerelease
     expected = {wheel.name: manifest["sha256"], "source-manifest.json": digest_file(manifest_file)}
     release = release_state(github, tag)
+    publication_ref = github.request(f"repos/{CENTRAL_REPOSITORY}")["default_branch"]
     if release is None:
+        # GITHUB_TOKEN cannot create tags at old commits whose workflows differ
+        # from the current default branch. The manifest retains central_sha and
+        # the build run; the release tag records publication on the default ref.
         release = github.request(f"repos/{CENTRAL_REPOSITORY}/releases", method="POST", data={
-            "tag_name": tag, "target_commitish": manifest["central_sha"],
+            "tag_name": tag, "target_commitish": publication_ref,
             "name": f"{manifest['distribution']} {manifest['version']}",
             "body": (
                 f"Manually published Python module wheel.\n\n"
                 f"Source: https://github.com/{manifest['repository']}/tree/{manifest['source_sha']}\n\n"
                 f"Verified build: {manifest['build_run_url']}\n\n"
+                f"Build configuration: {manifest['central_sha']}\n\n"
                 "Runtime dependencies remain user-managed as declared by upstream.\n"
                 "See source-manifest.json for hashes, source and validation results."
             ),
@@ -129,6 +144,14 @@ def publish_release(github: GitHub, wheel: Path, manifest_file: Path, manifest: 
         })
     assets = {asset["name"]: asset for asset in release["assets"]}
     require(len(assets) == len(release["assets"]) and set(assets) <= set(expected), "unexpected or duplicate assets in module release")
+    if release["draft"]:
+        # GitHub can leave an empty starter asset after a failed upload. Only
+        # remove that incomplete state; never replace an uploaded asset.
+        for name, asset in list(assets.items()):
+            if asset.get("state") == "starter":
+                require(type(asset.get("id")) is int and asset["id"] > 0, "invalid starter asset id")
+                github.request(f"repos/{CENTRAL_REPOSITORY}/releases/assets/{asset['id']}", method="DELETE")
+                del assets[name]
     if wheel.name in assets:
         require(asset_matches(assets[wheel.name], manifest["sha256"]), "version already contains a different wheel; bump upstream version")
     if "source-manifest.json" in assets:
@@ -138,13 +161,17 @@ def publish_release(github: GitHub, wheel: Path, manifest_file: Path, manifest: 
         return release["html_url"], "already_published"
     for name, path in ((wheel.name, wheel), ("source-manifest.json", manifest_file)):
         if name not in assets:
-            subprocess.run(["gh", "release", "upload", tag, str(path), "--repo", CENTRAL_REPOSITORY], check=True)
+            upload_url = f"https://uploads.github.com/repos/{CENTRAL_REPOSITORY}/releases/{release['id']}/assets?name={urllib.parse.quote(name, safe='')}"
+            subprocess.run([
+                "gh", "api", "--method", "POST", upload_url,
+                "-H", "Content-Type: application/octet-stream", "--input", str(path), "--silent",
+            ], check=True)
     release = github.request(f"repos/{CENTRAL_REPOSITORY}/releases/{release['id']}")
     assets = {asset["name"]: asset for asset in release["assets"]}
     require(set(assets) == set(expected) and len(assets) == len(release["assets"]), "draft release assets are incomplete")
     require(asset_matches(assets[wheel.name], manifest["sha256"]), "uploaded wheel digest mismatch")
     assert_existing_manifest(assets["source-manifest.json"], manifest)
-    release = github.request(f"repos/{CENTRAL_REPOSITORY}/releases/{release['id']}", method="PATCH", data={"draft": False, "prerelease": prerelease, "make_latest": "false"})
+    release = github.request(f"repos/{CENTRAL_REPOSITORY}/releases/{release['id']}", method="PATCH", data={"draft": False, "prerelease": prerelease, "make_latest": "false", "target_commitish": publication_ref})
     return release["html_url"], "published"
 
 
