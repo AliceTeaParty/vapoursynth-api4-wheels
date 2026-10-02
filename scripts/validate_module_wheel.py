@@ -26,9 +26,8 @@ from module_common import check_plan, digest_file, load_registry, read_json, rel
 def validate_wheel(wheel: Path, plan: dict) -> dict:
     name, version, build, tags = parse_wheel_filename(wheel.name)
     require(name == plan["distribution"] and version == Version(plan["version"]), "wheel filename name/version disagrees with source")
-    allowed_tags = {"py3-none-any", "py2-none-any"}
     wheel_tags = {str(tag) for tag in tags}
-    require(not build and "py3-none-any" in wheel_tags and wheel_tags <= allowed_tags, "API v1 accepts pure Python wheels with Python 3, no ABI/platform requirement and no build tags")
+    require(not build and wheel_tags == {"py3-none-any"}, "API v1 requires a py3-none-any wheel; declare the actual requires-python range upstream")
     with zipfile.ZipFile(wheel) as archive:
         entries = archive.infolist()
         names = [entry.filename for entry in entries]

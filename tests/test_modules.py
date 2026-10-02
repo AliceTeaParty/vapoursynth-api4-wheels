@@ -7,6 +7,7 @@ import csv
 import hashlib
 import io
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -26,7 +27,7 @@ from validate_module_wheel import validate_wheel
 
 SOURCE_SHA = "a" * 40
 CENTRAL_SHA = "b" * 40
-PYPROJECT = b'[build-system]\nrequires=["hatchling>=1.26"]\nbuild-backend="hatchling.build"\n[project]\nname="demo"\nversion="1.0"\ndependencies=[]\n'
+PYPROJECT = b'[build-system]\nrequires=["hatchling>=1.26"]\nbuild-backend="hatchling.build"\n[project]\nname="demo"\nversion="1.0"\nrequires-python=">=3.10"\ndependencies=[]\n'
 
 
 def registration() -> dict:
@@ -86,7 +87,7 @@ def wheel_files():
     return {
         "demo/__init__.py": b"import intentionally_missing_demo_runtime_dependency\n",
         "demo/data.glsl": b"// fixture shader\n",
-        "demo-1.0.dist-info/METADATA": b"Metadata-Version: 2.4\nName: demo\nVersion: 1.0\n\n",
+        "demo-1.0.dist-info/METADATA": b"Metadata-Version: 2.4\nName: demo\nVersion: 1.0\nRequires-Python: >=3.10\n\n",
         "demo-1.0.dist-info/WHEEL": b"Wheel-Version: 1.0\nGenerator: test\nRoot-Is-Purelib: true\nTag: py3-none-any\n",
     }
 
@@ -115,11 +116,31 @@ def write_wheel(directory: Path, files=None, *, bad_record=False, duplicate=Fals
 class RegistryAndSourceTests(unittest.TestCase):
     def test_existing_modules_keep_original_authority(self):
         registry = common.load_registry()
-        self.assertEqual(set(registry), {"rksfunc", "rkstool"})
+        self.assertTrue({"rksfunc", "rkstool"}.issubset(registry))
         self.assertEqual(registry["rksfunc"]["repository"], "RyougiKukoc/rksfunc")
         self.assertEqual(registry["rkstool"]["repository"], "RyougiKukoc/rkstool")
         self.assertIn("rksfunc/KrigBilateral.glsl", registry["rksfunc"]["required_files"])
         self.assertTrue(any("LGPL-3.0-or-later.txt" in value for value in registry["rksfunc"]["required_files"]))
+
+    def test_additional_registration_keeps_seed_module_checks_working(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for module in ("rksfunc", "rkstool"):
+                target = root / "modules" / module / "module.toml"
+                target.parent.mkdir(parents=True)
+                shutil.copyfile(common.ROOT / "modules" / module / "module.toml", target)
+            target = root / "modules/third-module/module.toml"
+            target.parent.mkdir()
+            target.write_text(
+                'schema_version=1\nrepository="example/third-module"\nrepository_id=123456\n'
+                'distribution="third-module"\nimport_name="third_module"\nproject_subdirectory="."\n'
+                'default_ref="main"\nrequesters=["owner"]\nrequired_files=["third_module/__init__.py"]\n',
+                encoding="utf-8",
+            )
+            registry = common.load_registry(root)
+            self.assertEqual(registry["third-module"]["distribution"], "third-module")
+            with patch.object(common, "load_registry", return_value=registry):
+                self.test_existing_modules_keep_original_authority()
 
     def test_request_rejects_repository_commands_and_publish_switches(self):
         for key in ("repository", "command", "publish", "download_url"):
@@ -158,7 +179,7 @@ class RegistryAndSourceTests(unittest.TestCase):
         plan = source_plan()
         self.assertEqual(plan["source_sha"], SOURCE_SHA)
         self.assertEqual(plan["dependencies"], [])
-        self.assertEqual(plan["requires_python"], "")
+        self.assertEqual(plan["requires_python"], ">=3.10")
         self.assertEqual(plan["pyproject_sha256"], hashlib.sha256(PYPROJECT).hexdigest())
 
     def test_source_race_repo_identity_actor_and_version_are_rejected(self):
@@ -196,6 +217,19 @@ class RegistryAndSourceTests(unittest.TestCase):
 
 
 class WheelTests(unittest.TestCase):
+    def test_python2_tag_and_missing_python_requirement_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            wheel = write_wheel(root)
+            incompatible = wheel.with_name(wheel.name.replace("py3-none-any", "py2.py3-none-any"))
+            wheel.rename(incompatible)
+            with self.assertRaisesRegex(ValueError, "py3-none-any"):
+                validate_wheel(incompatible, source_plan())
+            files = wheel_files()
+            files["demo-1.0.dist-info/METADATA"] = files["demo-1.0.dist-info/METADATA"].replace(b"Requires-Python: >=3.10\n", b"")
+            with self.assertRaisesRegex(ValueError, "Requires-Python"):
+                validate_wheel(write_wheel(root, files), source_plan())
+
     def test_pure_module_is_valid_and_runtime_import_is_not_claimed(self):
         with tempfile.TemporaryDirectory() as temp:
             manifest = validate_wheel(write_wheel(Path(temp)), source_plan())
@@ -258,6 +292,39 @@ class WheelTests(unittest.TestCase):
 
 
 class PublisherTests(unittest.TestCase):
+    def test_draft_lookup_paginates_and_rejects_ambiguous_drafts(self):
+        tag = "module-demo-v1.0"
+        other = {"id": 1, "tag_name": "other", "draft": True}
+        draft = {"id": 9, "tag_name": tag, "draft": True}
+
+        class ListingAPI:
+            def __init__(self, duplicate=False):
+                self.pages = []
+                self.duplicate = duplicate
+
+            def request(self, path, **kwargs):
+                if "/releases/tags/" in path:
+                    raise common.GitHubError("GET", path, 404)
+                page = int(path.rsplit("=", 1)[1])
+                self.pages.append(page)
+                if page == 1:
+                    return [other] * 99 + ([draft] if self.duplicate else [other])
+                return [draft]
+
+        api = ListingAPI()
+        self.assertEqual(publisher.release_state(api, tag), draft)
+        self.assertEqual(api.pages, [1, 2])
+        with self.assertRaisesRegex(ValueError, "multiple drafts"):
+            publisher.release_state(ListingAPI(duplicate=True), tag)
+
+    def test_draft_lookup_does_not_hide_authentication_failures(self):
+        class DeniedAPI:
+            def request(self, path, **kwargs):
+                raise common.GitHubError("GET", path, 403)
+
+        with self.assertRaises(common.GitHubError):
+            publisher.release_state(DeniedAPI(), "module-demo-v1.0")
+
     def test_only_successful_manual_default_branch_runs_are_accepted(self):
         with patch.object(publisher, "load_registry", return_value={"demo": registration()}):
             self.assertEqual(publisher.verify_run(SourceAPI(), "1234", "demo")["id"], 1234)
@@ -311,15 +378,24 @@ class PublisherTests(unittest.TestCase):
             manifest.update(build_run_url="https://example.invalid/run", build_run_id=1234)
             manifest_file = root / "source-manifest.json"
             common.write_json(manifest_file, manifest)
-            state = {"release": None, "uploads": [], "fail_manifest_once": True}
+            state = {"release": None, "uploads": [], "fail_manifest_once": True, "creates": 0}
 
             class ReleaseAPI:
                 def request(self, path, method="GET", data=None):
+                    if path == f"repos/{common.CENTRAL_REPOSITORY}":
+                        return {"default_branch": "main"}
                     if "/releases/tags/" in path:
-                        if state["release"] is None:
+                        if state["release"] is None or state["release"]["draft"]:
                             raise common.GitHubError("GET", path, 404)
                         return copy.deepcopy(state["release"])
+                    if "/releases?" in path:
+                        return [copy.deepcopy(state["release"])] if state["release"] else []
+                    if method == "DELETE":
+                        asset_id = int(path.rsplit("/", 1)[1])
+                        state["release"]["assets"] = [asset for asset in state["release"]["assets"] if asset["id"] != asset_id]
+                        return None
                     if method == "POST":
+                        state["creates"] += 1
                         self_data = data
                         state["release"] = {"id": 99, "draft": True, "assets": [], "html_url": "https://example.invalid/release", **self_data}
                     elif method == "PATCH":
@@ -328,13 +404,16 @@ class PublisherTests(unittest.TestCase):
 
             def upload(command, **kwargs):
                 self.assertNotIn("--clobber", command)
-                file = Path(command[4])
+                self.assertIn("/releases/99/assets?name=", command[4])
+                file = Path(command[command.index("--input") + 1])
                 if file.name == "source-manifest.json" and state["fail_manifest_once"]:
                     state["fail_manifest_once"] = False
+                    state["release"]["assets"].append({"id": 999, "name": file.name, "state": "starter", "size": 0})
                     raise subprocess.CalledProcessError(1, command)
                 state["uploads"].append(file.name)
                 state["release"]["assets"].append({
                     "id": 100 + len(state["uploads"]), "size": file.stat().st_size,
+                    "state": "uploaded",
                     "name": file.name, "digest": "sha256:" + common.digest_file(file),
                     "browser_download_url": f"https://github.com/{common.CENTRAL_REPOSITORY}/releases/download/tag/{file.name}",
                 })
@@ -347,6 +426,8 @@ class PublisherTests(unittest.TestCase):
                 self.assertEqual(state["uploads"], [wheel.name])
                 self.assertEqual(publisher.publish_release(api, wheel, manifest_file, manifest)[1], "published")
                 self.assertEqual(state["uploads"], [wheel.name, "source-manifest.json"])
+                self.assertEqual(state["creates"], 1)
+                self.assertEqual(state["release"]["target_commitish"], "main")
                 self.assertEqual(publisher.publish_release(api, wheel, manifest_file, manifest)[1], "already_published")
                 self.assertEqual(len(state["uploads"]), 2)
                 state["release"]["assets"][0]["digest"] = "sha256:" + "0" * 64

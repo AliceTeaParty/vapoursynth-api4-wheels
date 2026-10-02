@@ -1,4 +1,4 @@
 [
-  {"module": "rksfunc", "source_sha": "d29dc6ec22f29312157d72de9b02295b5a3071c0", "version": "1.1.4", "missing_runtime_import": "vapoursynth"},
-  {"module": "rkstool", "source_sha": "873518b7ba93401e379786f38f0425f2890a3ac3", "version": "1.1.1", "missing_runtime_import": "vapoursynth"}
+  {"module": "rksfunc", "source_sha": "1e0ae676e8a992709194c35087a2ba93b48c7c55", "version": "1.1.5", "requires_python": ">=3.10", "missing_runtime_import": "vapoursynth"},
+  {"module": "rkstool", "source_sha": "8879f6108e61f0e70afbb4dac70826c5cb026dbb", "version": "1.1.2", "requires_python": ">=3.10", "missing_runtime_import": "vapoursynth"}
 ]

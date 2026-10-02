@@ -31,11 +31,11 @@ checks do not claim a successful import or exercise external tools/GPU filters.
 There are no dependency stubs, automatic runtime installations or rewritten
 upstream metadata.
 
-Existing upstreams do not declare `requires-python`, so Hatchling currently
-emits `py2.py3-none-any` rather than `py3-none-any`. The pipeline preserves
-that existing upstream metadata and accepts pure wheels containing the Python 3
-tag. Validation covers Python 3.12 and 3.13; it does not establish Python 2 or
-unlisted Python/platform support.
+Modules must emit `py3-none-any` wheels. rksfunc and rkstool declare
+`requires-python = ">=3.10"`, matching their Python 3.10 language features;
+their runtime dependency lists remain empty. The pipeline rejects Python 2
+tags and verifies that wheel metadata preserves the upstream Python range.
+The regular installation matrix covers Python 3.12 and 3.13.
 
 A preview creates Actions artifacts only, retained for 30 days:
 
@@ -119,9 +119,15 @@ rebuild; feature-branch previews cannot bypass that publication condition.
 The publish job downloads the exact tested wheel and does not execute upstream
 build hooks or import upstream packages. It creates
 `module-<id>-v<project.version>` with the wheel and `source-manifest.json`,
-assembling assets in a draft before exposing the Release. The tag targets the
-central build configuration commit; the manifest links the separate upstream
-source SHA, file hashes, build run and validation results.
+assembling assets in a draft before exposing the Release. The release tag uses
+the central default branch at publication, so the built-in token does not need
+permission to modify historical workflow files. The manifest retains the exact
+central build configuration commit, upstream source SHA, file hashes, build run
+and validation results.
+
+Retries find pending drafts through the authenticated, paginated release list
+and upload missing files by release ID. An incomplete GitHub `starter` upload
+may be removed from a draft and retried; uploaded files are never overwritten.
 
 There is no clobber or silent version rewrite. An already-published matching
 wheel is an idempotent success; a conflicting wheel, source or registration
