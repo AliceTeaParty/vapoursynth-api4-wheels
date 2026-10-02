@@ -11,7 +11,9 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 from collection_common import ROOT, load_collection, make_plans
 from build_collection import validate_set
-from module_common import read_json
+from module_common import CENTRAL_REPOSITORY, GitHubError, digest_file, read_json
+import publish_collection as publisher
+from unittest.mock import patch
 from validate_module_wheel import validate_wheel
 from test_modules import source_plan as fixture_plan, wheel_files, write_wheel
 
@@ -92,6 +94,63 @@ class CollectionTests(unittest.TestCase):
             write_wheel(Path(temp))
             with self.assertRaisesRegex(ValueError, "incomplete"):
                 validate_set(plan, Path(temp))
+
+    def test_group_release_recovers_without_exposing_an_incomplete_set(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp)
+            files = []
+            for name in ("component-1-py3-none-any.whl", "entry-1-py3-none-any.whl"):
+                path = directory / name
+                path.write_bytes(name.encode())
+                files.append({"wheel": name, "sha256": digest_file(path)})
+            manifest = {"version": "1.0", "registry_sha256": "a"*64, "central_sha": "b"*40,
+                        "build_run_url": "https://example.invalid/run", "wheels": files}
+            state = {"release": None, "creates": 0, "failed": False, "uploads": [], "published": False}
+
+            class API:
+                def request(self, path, method="GET", data=None):
+                    if path == f"repos/{CENTRAL_REPOSITORY}":
+                        return {"default_branch": "main"}
+                    if "/releases/tags/" in path:
+                        if state["release"] is None or state["release"]["draft"]:
+                            raise GitHubError(method, path, 404)
+                        return state["release"]
+                    if "/releases?" in path:
+                        return [state["release"]] if state["release"] else []
+                    if method == "POST":
+                        state["creates"] += 1
+                        state["release"] = {**data, "id": 99, "assets": [], "html_url": "https://example.invalid/release"}
+                    if method == "PATCH":
+                        self_names = {asset["name"] for asset in state["release"]["assets"]}
+                        assert self_names == {item["wheel"] for item in files} | {"collection-manifest.json"}
+                        state["published"] = True
+                        state["release"].update(data)
+                    return state["release"]
+
+            def upload(command, **kwargs):
+                path = Path(command[command.index("--input") + 1])
+                if len(state["uploads"]) == 1 and not state["failed"]:
+                    state["failed"] = True
+                    raise subprocess.CalledProcessError(1, command)
+                self.assertIn("/releases/99/assets?name=", command[4])
+                state["uploads"].append(path.name)
+                state["release"]["assets"].append({"name": path.name, "id": len(state["uploads"]),
+                    "size": path.stat().st_size, "digest": "sha256:"+digest_file(path), "state": "uploaded"})
+
+            def download(command, **kwargs):
+                return (directory / "collection-manifest.json").read_bytes()
+
+            with patch.object(publisher.subprocess, "run", side_effect=upload), patch.object(publisher.subprocess, "check_output", side_effect=download):
+                with self.assertRaises(subprocess.CalledProcessError):
+                    publisher.publish(API(), manifest, directory)
+                self.assertFalse(state["published"])
+                self.assertTrue(state["release"]["draft"])
+                publisher.publish(API(), manifest, directory)
+                self.assertTrue(state["published"])
+                self.assertEqual(state["creates"], 1)
+                self.assertEqual(len(state["uploads"]), 3)
+                publisher.publish(API(), manifest, directory)
+                self.assertEqual(len(state["uploads"]), 3)
 
 
 if __name__ == "__main__":
