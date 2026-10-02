@@ -12,12 +12,12 @@ packaging flow for `NNEDI3CL`.
 Recommended on Windows or Linux x86_64:
 
 ```powershell
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-nnedi3cl
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-nnedi3cl==8.1+alice.1"
 ```
 
 That install path builds a wheel from the repository metadata, but the build
 hook first tries to reuse the matching GitHub Release asset. Version `8.1`
-maps to release tag `vapoursynth-nnedi3cl-v8.1`:
+maps to release tag `vapoursynth-nnedi3cl-v8.1+alice.1`:
 
 ```text
 Windows: nnedi3cl-msys2-ucrt64.zip
@@ -36,8 +36,8 @@ Direct wheel install is also supported. Download the wheel from the repository
 Releases page and install it with:
 
 ```powershell
-pip install vapoursynth_nnedi3cl-8.1-py3-none-win_amd64.whl
-pip install vapoursynth_nnedi3cl-8.1-py3-none-manylinux_2_27_x86_64.whl
+pip install vapoursynth_nnedi3cl-8.1+alice.1-py3-none-win_amd64.whl
+pip install vapoursynth_nnedi3cl-8.1+alice.1-py3-none-manylinux_2_27_x86_64.whl
 ```
 
 The wheel installs the plugin package under:

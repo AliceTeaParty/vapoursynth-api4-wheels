@@ -50,7 +50,8 @@ class CustomBuildHook(BuildHookInterface):
         if not self._has_platform_release_payload():
             raise RuntimeError("vs-mlrt wheels support only Windows and Linux x86_64")
 
-        self._distribution_version = version
+        # Hatch passes the build target ("standard"), not the project version.
+        self._distribution_version = self.metadata.version
 
         payload_tag = self._detect_payload_tag()
         force_include = build_data.setdefault("force_include", {})

@@ -104,7 +104,7 @@ def load_registry(root: Path = ROOT) -> dict[str, dict[str, Any]]:
 def validate_ref(ref: str) -> None:
     require(
         isinstance(ref, str) and 0 < len(ref) <= 200
-        and bool(re.fullmatch(r"[A-Za-z0-9._/-]+", ref))
+        and bool(re.fullmatch(r"[A-Za-z0-9._/+\-]+", ref))
         and not ref.startswith(("-", "/")) and ".." not in ref
         and not ref.startswith("refs/pull/"),
         "invalid or unsupported source ref",
@@ -173,7 +173,6 @@ def project_metadata(content: bytes, distribution: str) -> dict[str, Any]:
     version = project.get("version")
     require(isinstance(version, str) and "version" not in project.get("dynamic", []), "API v1 requires a static project.version")
     version = str(Version(version))
-    require(not Version(version).local, "local versions are not supported for module releases")
     dependencies = project.get("dependencies", [])
     require(not project.get("optional-dependencies"), "API v1 optional-dependency metadata needs a reviewed extension")
     require(isinstance(dependencies, list) and all(isinstance(item, str) for item in dependencies), "invalid project.dependencies")

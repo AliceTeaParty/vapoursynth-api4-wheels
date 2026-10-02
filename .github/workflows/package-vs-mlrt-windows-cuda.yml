@@ -322,10 +322,9 @@ jobs:
           # A CUDA payload is self-contained: it carries the generic plugins and
           # their OpenVINO support DLLs, so an install downloads the model
           # payload plus this archive and nothing else.
+          # Raw vendor input, independent of the wheel distribution versions.
+          # Use the same bootstrap payload for branch and tag builds.
           $genericUrl = "https://github.com/RyougiKukoc/vs-mlrt-api4/releases/download/generic/vs-mlrt-windows-x64-generic.zip"
-          if ($env:GITHUB_REF_TYPE -eq "tag") {
-            $genericUrl = "https://github.com/${{ github.repository }}/releases/download/vs-mlrt-generic-v16.2.3/vs-mlrt-windows-x64-generic.zip"
-          }
           curl.exe -fsSL -o "$env:RUNNER_TEMP\generic.zip" $genericUrl
           Expand-Archive -LiteralPath "$env:RUNNER_TEMP\generic.zip" -DestinationPath generic-dependency -Force
           Get-ChildItem -LiteralPath "generic-dependency\vsmlrt" -File |

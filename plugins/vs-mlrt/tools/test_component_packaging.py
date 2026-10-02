@@ -1,9 +1,16 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path, PurePosixPath
+import platform
+import tempfile
 import tomllib
 import unittest
+from unittest.mock import patch
+import zipfile
+
+from hatchling.builders.wheel import WheelBuilder
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,10 +41,10 @@ class ComponentPackagingTests(unittest.TestCase):
         self.assertTrue(component_projects)
         for project in entry_projects:
             data = tomllib.loads(project.read_text(encoding="utf-8"))
-            self.assertEqual(data["project"]["version"], "16.2.6", project)
+            self.assertEqual(data["project"]["version"], "16.2.6+alice.1", project)
         for project in component_projects:
             data = tomllib.loads(project.read_text(encoding="utf-8"))
-            self.assertEqual(data["project"]["version"], "16.2.2", project)
+            self.assertEqual(data["project"]["version"], "16.2.2+alice.1", project)
 
     def test_executable_stack_detector(self):
         payload = bytearray(128)
@@ -110,9 +117,52 @@ class ComponentPackagingTests(unittest.TestCase):
             dependencies = data["project"]["dependencies"]
             internal = {value.split("==", 1)[0] for value in dependencies if value.startswith("vs-")}
             self.assertEqual(internal, required)
-            self.assertTrue(all("==16.2.2" in value for value in dependencies if value.startswith("vs-")))
+            self.assertTrue(all(value.endswith("==16.2.2+alice.1") for value in dependencies if value.startswith("vs-")))
             self.assertNotIn("vs-mlrt-generic", internal)
             self.assertEqual(data["project"]["scripts"]["rm_vsmlrt_helper"], "rm_vsmlrt_helper.cli:main")
+
+    def test_built_wheels_preserve_local_versions_and_dependency_closures(self):
+        # Payload bytes are fixtures: this tests packaging, not native execution.
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            stage = temporary / "stage"
+            mappings = module.WINDOWS_FILES if platform.system() == "Windows" else module.LINUX_FILES
+            for names in mappings.values():
+                for name in names:
+                    path = stage / name
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(b"packaging test payload\n")
+            models = temporary / "models.zip"
+            with zipfile.ZipFile(models, "w") as archive:
+                archive.writestr("models/test.onnx", b"packaging test model\n")
+            output = temporary / "wheels"
+            output.mkdir()
+            paths = [
+                *(ROOT / "packaging/components").glob("*/pyproject.toml"),
+                *(ROOT / "packaging/distributions").glob("*/pyproject.toml"),
+                ROOT / "packaging/payloads/models/pyproject.toml",
+            ]
+            with patch.dict(os.environ, {"VSMLRT_COMPONENT_SOURCE": str(stage), "VSMLRT_MODELS_PREBUILT_PATH": str(models)}):
+                for project in paths:
+                    list(WheelBuilder(str(project.parent)).build(directory=str(output), versions=["standard"]))
+            verify_module.verify(output)
+            projects = verify_module.project_metadata()
+            wheel = next(output.glob("vs_mlrt_cu129-*.whl"))
+            with zipfile.ZipFile(wheel) as archive:
+                contents = {name: archive.read(name) for name in archive.namelist()}
+            metadata = next(name for name in contents if name.endswith(".dist-info/METADATA"))
+            for before, after, error in [
+                (b"Version: 16.2.6+alice.1", b"Version: 16.2.6", "version/name"),
+                (b"==16.2.2+alice.1", b"==16.2.2", "dependencies"),
+            ]:
+                changed = contents[metadata].replace(before, after)
+                self.assertNotEqual(changed, contents[metadata])
+                bad = temporary / wheel.name
+                with zipfile.ZipFile(bad, "w") as archive:
+                    for name, data in contents.items():
+                        archive.writestr(name, changed if name == metadata else data)
+                with zipfile.ZipFile(bad) as archive, self.assertRaisesRegex(RuntimeError, error):
+                    verify_module.verify_metadata(bad, archive, projects)
 
 
 if __name__ == "__main__":

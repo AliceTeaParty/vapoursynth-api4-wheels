@@ -8,7 +8,7 @@ and Collection modifications with wheel packaging.
 
 ## Installed packages
 
-The entry distribution is `vs-collection-rk==0.4.0`. Its dependencies pin
+The entry distribution is `vs-collection-rk==0.4.0+alice.1`. Its dependencies pin
 the 12 component wheels exactly. Runtime imports remain `CSMOD`, `havsfunc`,
 `mvsfunc`, `vsTAAmbk` and the other original names. Components install the
 original single .py files or packages; the entry owns only `vs_collection_rk`.
@@ -31,7 +31,7 @@ and their original repositories and dependency policies are unchanged.
 After an explicit manual publication:
 
 ```shell
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.0
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.0+alice.1
 ```
 
 If the old monolithic vs-collection-rk distribution is installed, remove it
@@ -39,7 +39,7 @@ before installing the split entry:
 
 ```shell
 python -m pip uninstall vs-collection-rk
-python -m pip install --force-reinstall --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.0
+python -m pip install --force-reinstall --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.0+alice.1
 ```
 
 A plain in-place upgrade is unsafe because pip can install the new component

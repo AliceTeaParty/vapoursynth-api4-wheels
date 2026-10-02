@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vapoursynth-bm3dcpu"
-version = "2.16"
+version = "2.16+alice.1"
 description = "BM3D CPU and CUDA RTC plugins for VapourSynth"
 readme = "README.md"
 license = { file = "LICENSE" }

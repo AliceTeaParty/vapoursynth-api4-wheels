@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "nnedi3-resample"
-wheel_version = "2.post1"
+wheel_version = "2.post1+alice.1"
 import_name = "nnedi3_resample"
 runtime_kind = "module"
 upstream_url = "https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample"

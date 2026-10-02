@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vs-nlq"
-version = "1.2.0"
+version = "1.2.0+alice.1"
 description = "NLQ mapping plugin for VapourSynth"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -15,7 +15,7 @@ dependencies = ["VapourSynth>=77"]
 
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vs-nlq"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-nlq-v1.2.0"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vs-nlq-v1.2.0+alice.1"
 
 [tool.hatch.build.targets.sdist]
 include = [

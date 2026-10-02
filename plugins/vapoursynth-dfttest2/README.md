@@ -10,9 +10,9 @@ repository, but they are not part of the default Windows package.
 Install the matching Windows or Linux x86_64 wheel from the project index:
 
 ```powershell
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-cpu
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-cu121
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-dfttest2-cu129
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-dfttest2-cpu==10.2+alice.1"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-dfttest2-cu121==10.2+alice.1"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-dfttest2-cu129==10.2+alice.1"
 ```
 
 `vapoursynth-dfttest2-cpu` installs only the CPU plugin. The `cu121`

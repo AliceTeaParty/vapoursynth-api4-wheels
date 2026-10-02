@@ -12,7 +12,7 @@ The `rpu` param is an optional path to a RPU binary file.
 
 Install:
 ```
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-nlq
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vs-nlq==1.2.0+alice.1"
 ```
 
 Tagged releases publish Windows and Linux x86_64 package zips plus direct-install

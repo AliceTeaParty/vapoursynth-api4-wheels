@@ -10,7 +10,7 @@ on:
       expected_version:
         description: Entry version reviewed in that preview
         required: true
-        default: "0.4.0"
+        default: "0.4.0+alice.1"
         type: string
 
 permissions:

@@ -24,9 +24,9 @@ The repository publishes three user-facing distributions:
 
 | Distribution | Intended user | Installed plugins | Release assets used |
 | --- | --- | --- | --- |
-| `vapoursynth-bm3dcpu` | Machines without an NVIDIA GPU, or users who only want the CPU backend. | `bm3dcpu.dll` on Windows; `bm3dcpu.so` on Linux x86_64 | `vapoursynth-bm3dcpu-v2.16` release |
-| `vapoursynth-bm3dcuda-cu121` | NVIDIA users whose driver supports CUDA 12.1. | CPU and CUDA 12.1 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | `vapoursynth-bm3dcuda-cu121-v2.16` release |
-| `vapoursynth-bm3dcuda-cu129` | NVIDIA users whose driver supports CUDA 12.9. | CPU and CUDA 12.9 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | `vapoursynth-bm3dcuda-cu129-v2.16` release |
+| `vapoursynth-bm3dcpu` | Machines without an NVIDIA GPU, or users who only want the CPU backend. | `bm3dcpu.dll` on Windows; `bm3dcpu.so` on Linux x86_64 | `vapoursynth-bm3dcpu-v2.16+alice.1` release |
+| `vapoursynth-bm3dcuda-cu121` | NVIDIA users whose driver supports CUDA 12.1. | CPU and CUDA 12.1 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | `vapoursynth-bm3dcuda-cu121-v2.16+alice.1` release |
+| `vapoursynth-bm3dcuda-cu129` | NVIDIA users whose driver supports CUDA 12.9. | CPU and CUDA 12.9 static-NVRTC plugins (`.dll` on Windows, `.so` on Linux) | `vapoursynth-bm3dcuda-cu129-v2.16+alice.1` release |
 
 The CUDA variants deliberately include the CPU backend as well, so scripts can
 use `core.bm3dcpu` and `core.bm3dcuda_rtc` from the same installation. Users
@@ -38,9 +38,9 @@ Install from the project package index:
 
 ```powershell
 python -m pip install "VapourSynth>=77"
-python -m pip install --force-reinstall --no-deps --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-bm3dcpu==2.16"
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcuda-cu121
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-bm3dcuda-cu129
+python -m pip install --force-reinstall --no-deps --index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-bm3dcpu==2.16+alice.1"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-bm3dcuda-cu121==2.16+alice.1"
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-bm3dcuda-cu129==2.16+alice.1"
 ```
 
 For CPU installs, the exclusive index and exact version avoid PyPI's same-name

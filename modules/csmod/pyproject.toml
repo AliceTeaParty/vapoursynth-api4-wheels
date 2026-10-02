@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "csmod"
-version = "0.3.0.post1"
+version = "0.3.0.post1+alice.1"
 description = "CSMOD from the RyougiKukoc script collection"
 requires-python = ">=3.12"
 readme = "WHEEL-README.md"

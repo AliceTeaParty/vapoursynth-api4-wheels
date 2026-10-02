@@ -202,7 +202,6 @@ class RegistryAndSourceTests(unittest.TestCase):
         for data in (
             PYPROJECT.replace(b'name="demo"', b'name="other"'),
             PYPROJECT.replace(b'version="1.0"', b'dynamic=["version"]'),
-            PYPROJECT.replace(b'version="1.0"', b'version="1.0+local"'),
         ):
             with self.subTest(data=data), self.assertRaises(ValueError):
                 common.project_metadata(data, "demo")

@@ -205,15 +205,15 @@ After the matching GitHub Release assets are published, users can install from
 the repository with:
 
 ```text
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-retinex
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-retinex==4.1+alice.1"
 ```
 
 The package version is `4.1`, so the default source-install lookup expects the
-matching platform payload at tag `vapoursynth-retinex-v4.1`:
+matching platform payload at tag `vapoursynth-retinex-v4.1+alice.1`:
 
 ```text
-Windows: https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-retinex-v4.1/retinex-msys2-ucrt64.zip
-Linux x86_64: https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-retinex-v4.1/retinex-linux-x86_64.zip
+Windows: https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-retinex-v4.1+alice.1/retinex-msys2-ucrt64.zip
+Linux x86_64: https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/download/vapoursynth-retinex-v4.1+alice.1/retinex-linux-x86_64.zip
 ```
 
 During a Windows or Linux x86_64 source install, `hatch_build.py` first tries

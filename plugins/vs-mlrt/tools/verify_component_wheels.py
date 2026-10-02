@@ -5,10 +5,16 @@ from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 import re
 import struct
+import tomllib
 import zipfile
+
+from packaging.requirements import Requirement
+from packaging.utils import canonicalize_name, parse_wheel_filename
+from packaging.version import Version
 
 
 ASSET_LIMIT = 2 * 1024 ** 3
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ENTRY_FILES = {
     "rm_vsmlrt_helper/__init__.py",
     "rm_vsmlrt_helper/__main__.py",
@@ -39,6 +45,46 @@ REMOVED_CU129_PREFIXES = (
 
 def normalize(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def project_metadata() -> dict[str, dict]:
+    paths = [
+        *(PROJECT_ROOT / "packaging/components").glob("*/pyproject.toml"),
+        *(PROJECT_ROOT / "packaging/distributions").glob("*/pyproject.toml"),
+        PROJECT_ROOT / "packaging/payloads/models/pyproject.toml",
+    ]
+    projects = [tomllib.loads(path.read_text(encoding="utf-8"))["project"] for path in paths]
+    return {normalize(project["name"]): project for project in projects}
+
+
+def requirement_key(value: str) -> tuple:
+    req = Requirement(value)
+    return (canonicalize_name(req.name), frozenset(req.extras), req.specifier, str(req.marker), req.url)
+
+
+def verify_metadata(wheel: Path, archive: zipfile.ZipFile, projects: dict[str, dict]) -> None:
+    metadata_files = [name for name in archive.namelist() if name.endswith(".dist-info/METADATA")]
+    if len(metadata_files) != 1:
+        raise RuntimeError(f"{wheel.name}: expected exactly one METADATA file")
+    message = BytesParser().parsebytes(archive.read(metadata_files[0]))
+    name = normalize(message["Name"])
+    project = projects.get(name)
+    if project is None:
+        raise RuntimeError(f"{wheel.name}: unknown distribution {name}")
+    filename_name, filename_version, _, _ = parse_wheel_filename(wheel.name)
+    expected_version = Version(project["version"])
+    if filename_name != name or filename_version != expected_version or Version(message["Version"]) != expected_version:
+        raise RuntimeError(f"{wheel.name}: wheel version/name disagrees with project metadata")
+    requirements = message.get_all("Requires-Dist", [])
+    if {requirement_key(req) for req in requirements} != {
+        requirement_key(req) for req in project.get("dependencies", [])
+    }:
+        raise RuntimeError(f"{wheel.name}: wheel dependencies disagree with project metadata")
+    for value in requirements:
+        req = Requirement(value)
+        dependency = projects.get(normalize(req.name))
+        if dependency is not None and str(req.specifier) != f"=={dependency['version']}":
+            raise RuntimeError(f"{wheel.name}: internal dependency must pin its exact local version: {value}")
 
 
 def elf_requests_executable_stack(payload: bytes) -> bool:
@@ -82,12 +128,14 @@ def verify(
         raise RuntimeError(f"No wheels found in {wheelhouse}")
     packages: dict[str, tuple[Path, set[str]]] = {}
     archives: list[zipfile.ZipFile] = []
+    projects = project_metadata()
     try:
         for wheel in wheels:
             if wheel.stat().st_size >= ASSET_LIMIT:
                 raise RuntimeError(f"Wheel exceeds GitHub's 2 GiB asset limit: {wheel.name}")
             name, files, archive = wheel_info(wheel)
             archives.append(archive)
+            verify_metadata(wheel, archive, projects)
             if target_platform == "linux":
                 executable_stack = [
                     filename for filename in archive.namelist()

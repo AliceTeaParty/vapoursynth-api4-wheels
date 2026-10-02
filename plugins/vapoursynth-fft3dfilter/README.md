@@ -10,16 +10,16 @@ Windows x86_64 and Linux x86_64 users can install the package from the project
 index:
 
 ```powershell
-pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vapoursynth-fft3dfilter
+pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-fft3dfilter==2.1+alice.1"
 ```
 
 Version `2.1` is paired with Release tag
-`vapoursynth-fft3dfilter-v2.1`. The checked-in Release marker selects one of
+`vapoursynth-fft3dfilter-v2.1+alice.1`. The checked-in Release marker selects one of
 these platform-specific payloads:
 
 ```text
-vapoursynth-fft3dfilter-v2.1/fft3dfilter-msys2-ucrt64.zip  Windows x86_64
-vapoursynth-fft3dfilter-v2.1/fft3dfilter-linux-x86_64.zip  Linux x86_64
+vapoursynth-fft3dfilter-v2.1+alice.1/fft3dfilter-msys2-ucrt64.zip  Windows x86_64
+vapoursynth-fft3dfilter-v2.1+alice.1/fft3dfilter-linux-x86_64.zip  Linux x86_64
 ```
 
 The installed package places the matching native module and manifest under:

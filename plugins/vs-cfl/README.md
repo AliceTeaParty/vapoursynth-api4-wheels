@@ -63,7 +63,7 @@ MSYS2/UCRT64 + Meson 构建。可设置 `VS_CFL_FORCE_BUILD=1` 强制走本地�
 ## Release-backed pip install
 
 The package name is `vs-cfl`. Version `1.0.2` uses Release tag
-`vs-cfl-v1.0.2`.
+`vs-cfl-v1.0.2+alice.1`.
 On Linux x86_64, the documented installation downloads
 `vs-cfl-linux-x86_64.zip` first and installs its `vs_cfl/` payload under
 `vapoursynth/plugins/`:
