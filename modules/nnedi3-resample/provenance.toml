@@ -1,0 +1,20 @@
+schema_version = 1
+management = "subtree"
+distribution = "nnedi3-resample"
+wheel_version = "2.post1"
+import_name = "nnedi3_resample"
+runtime_kind = "module"
+upstream_url = "https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample"
+upstream_revision = "314c6446a65c2e25fd7a997051b09830f361675e"
+upstream_import_commit = "d146a460436349d8bf52569a3965907164bf1b17"
+vendored_url = "https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample/blob/master/nnedi3_resample.py"
+vendored_revision = "314c6446a65c2e25fd7a997051b09830f361675e"
+intermediate_commits = []
+collection_repository = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
+collection_revision = "14091484381778fe55102b58ac584e38f5e0fc6a"
+collection_runtime_source = "scripts/nnedi3_resample/nnedi3_resample.py"
+collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "962b01c4c6928cb01a57621531c0a96d61338f51"]
+license_observation = "Not separately declared"
+
+[runtime_sha256]
+"nnedi3_resample.py" = "7e33767f11308d00998d3c1a473540d99af9e534edf292fd93ee7f46e1e7b9e0"
