@@ -154,6 +154,14 @@ install checks. One `vs-mlrt-v<version>` GitHub Release will hold the complete
 Windows/Linux wheel set; the Pages workflow turns those assets into the PEP
 503 index.
 
+Run `Publish - vs-mlrt` manually with the successful Windows generic, Windows
+CUDA (`all`), and Linux (`all`) build run IDs and the expected entry version.
+The publisher checks that all three runs used the same source revision and
+that packaging/native sources have not changed. It downloads and assembles
+their wheels in Actions, verifies the complete dependency closures and hashes,
+then publishes the draft only after every uploaded asset matches. Interrupted
+uploads can be resumed without replacing previously uploaded content.
+
 The authoritative package inventory, binary provenance, release order,
 validation gates, and uninstall design are documented in
 [`../../docs/plans/vs-mlrt-release-and-uninstall.md`](../../docs/plans/vs-mlrt-release-and-uninstall.md).
