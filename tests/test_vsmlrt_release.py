@@ -1,8 +1,12 @@
 """Native build provenance and resumable, immutable vs-mlrt publication."""
 import copy
+import hashlib
+import io
 import sys
 import tempfile
 import unittest
+import zipfile
+from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -12,6 +16,50 @@ from module_common import CENTRAL_REPOSITORY_ID, digest_file, write_json
 
 
 class VsmlrtPublisherTests(unittest.TestCase):
+    def test_artifact_transfer_resumes_and_extracts_only_verified_wheels(self):
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr("dist/wheels/demo.whl", b"wheel bytes")
+            archive.writestr("dist/wheels/component-wheel-inventory-demo.json", b"{}")
+            archive.writestr("large-native-payload.zip", b"unused native archive")
+        payload = buffer.getvalue()
+        artifact = {"id": 123, "name": "test", "size_in_bytes": len(payload),
+                    "digest": "sha256:" + hashlib.sha256(payload).hexdigest()}
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "artifact"
+            offsets = []
+            def curl(args, **kwargs):
+                output = Path(args[args.index("--output") + 1])
+                offsets.append(output.stat().st_size if output.exists() else 0)
+                self.assertIn("--continue-at", args)
+                self.assertNotIn("signed-secret", " ".join(args))
+                self.assertIn("signed-secret", kwargs["input"])
+                if len(offsets) == 1:
+                    output.write_bytes(payload[:20])
+                    return SimpleNamespace(returncode=28)
+                with output.open("ab") as stream:
+                    stream.write(payload[20:])
+                return SimpleNamespace(returncode=0)
+            with patch.object(publisher, "artifact_download_url", return_value="https://example.invalid/signed-secret"), \
+                 patch.object(publisher.subprocess, "run", side_effect=curl), patch.object(publisher.time, "sleep"):
+                publisher.download_artifact(None, artifact, target)
+            self.assertEqual(offsets, [0, 20])
+            self.assertEqual((target / "dist/wheels/demo.whl").read_bytes(), b"wheel bytes")
+            self.assertFalse((target / "download.zip").exists())
+            self.assertFalse((target / "large-native-payload.zip").exists())
+
+    def test_corrupt_artifact_is_rejected_before_extraction(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "artifact"
+            def curl(args, **kwargs):
+                Path(args[args.index("--output") + 1]).write_bytes(b"bad")
+                return SimpleNamespace(returncode=0)
+            artifact = {"id": 123, "name": "test", "size_in_bytes": 3, "digest": "sha256:" + "0" * 64}
+            with patch.object(publisher, "artifact_download_url", return_value="https://example.invalid/blob"), \
+                 patch.object(publisher.subprocess, "run", side_effect=curl), self.assertRaisesRegex(ValueError, "digest mismatch"):
+                publisher.download_artifact(None, artifact, target)
+            self.assertEqual([path.name for path in target.iterdir()], ["download.zip"])
+
     def test_only_successful_manual_default_branch_worker_runs_are_accepted(self):
         workflow = publisher.WORKFLOWS["linux"]
         run = {"repository": {"id": CENTRAL_REPOSITORY_ID}, "path": f".github/workflows/{workflow}",

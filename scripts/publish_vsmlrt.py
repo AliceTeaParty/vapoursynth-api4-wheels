@@ -3,11 +3,18 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
+import shutil
 import subprocess
+import time
 import tomllib
+import urllib.error
 import urllib.parse
+import urllib.request
+import zipfile
 
 from module_common import CENTRAL_REPOSITORY, CENTRAL_REPOSITORY_ID, ROOT, SHA, GitHub, digest_file, read_json, require, write_json
 from publish_module import asset_matches, release_state
@@ -67,6 +74,71 @@ def load_assembler():
     return module
 
 
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def artifact_download_url(github: GitHub, artifact_id: int) -> str:
+    # Keep the repository token on api.github.com. The blob request uses only
+    # its short-lived signed URL, renewed on each resume attempt.
+    url = f"https://api.github.com/repos/{CENTRAL_REPOSITORY}/actions/artifacts/{artifact_id}/zip"
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "vsmlrt-release-publisher"}
+    if github.token:
+        headers["Authorization"] = f"Bearer {github.token}"
+    opener = urllib.request.build_opener(NoRedirect())
+    try:
+        with opener.open(urllib.request.Request(url, headers=headers), timeout=60):
+            raise RuntimeError("artifact API did not return a download redirect")
+    except urllib.error.HTTPError as error:
+        require(error.code == 302, f"artifact download API returned HTTP {error.code}")
+        location = error.headers.get("Location", "")
+        require(urllib.parse.urlsplit(location).scheme == "https", "artifact download must use HTTPS")
+        return location
+
+
+def download_artifact(github: GitHub, artifact: dict, target: Path) -> None:
+    require(type(artifact["id"]) is int and artifact["id"] > 0, "invalid artifact ID")
+    require(bool(re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("digest", ""))), "artifact lacks a SHA-256 digest")
+    target.mkdir(parents=True)
+    archive_path = target / "download.zip"
+    print(f"Downloading {artifact['name']} ({artifact['size_in_bytes']} bytes)", flush=True)
+    for attempt in range(1, 7):
+        offset = archive_path.stat().st_size if archive_path.exists() else 0
+        print(f"  attempt {attempt}, resuming at {offset} bytes", flush=True)
+        location = artifact_download_url(github, artifact["id"])
+        result = subprocess.run([
+            "curl", "--fail", "--silent", "--show-error", "--location",
+            "--connect-timeout", "30", "--speed-time", "60", "--speed-limit", "1024",
+            "--max-time", "900", "--continue-at", "-", "--output", str(archive_path), "--config", "-",
+        ], input="url = " + json.dumps(location) + "\n", text=True)
+        if result.returncode == 0:
+            break
+        if attempt < 6:
+            time.sleep(5)
+    else:
+        raise RuntimeError(f"artifact download failed after six resume attempts: {artifact['name']}")
+    require(archive_path.stat().st_size == artifact["size_in_bytes"], "downloaded artifact size mismatch")
+    require("sha256:" + digest_file(archive_path) == artifact["digest"], "downloaded artifact digest mismatch")
+    with zipfile.ZipFile(archive_path) as archive:
+        selected = set()
+        for member in archive.infolist():
+            name = PurePosixPath(member.filename)
+            if member.is_dir() or not (name.suffix == ".whl" or name.name.startswith("component-wheel-inventory-")):
+                continue
+            require(not name.is_absolute() and ".." not in name.parts and "\\" not in member.filename and ":" not in member.filename,
+                    "unsafe artifact member path")
+            require(member.filename not in selected, "duplicate artifact member")
+            selected.add(member.filename)
+            path = target / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with archive.open(member) as source, path.open("xb") as destination:
+                shutil.copyfileobj(source, destination, 1024 * 1024)
+        require(bool(selected), "artifact has no wheel or inventory files")
+    archive_path.unlink()
+    print(f"Verified and extracted {artifact['name']}", flush=True)
+
+
 def download_and_assemble(github: GitHub, runs: dict[str, str], directory: Path) -> tuple[Path, dict]:
     require(not directory.exists(), "publication work directory must be new")
     default_branch = github.request(f"repos/{CENTRAL_REPOSITORY}")["default_branch"]
@@ -87,15 +159,7 @@ def download_and_assemble(github: GitHub, runs: dict[str, str], directory: Path)
             matches = [item for item in artifacts if item["name"] == name and not item["expired"]]
             require(len(matches) == 1, f"missing or ambiguous artifact: {name}")
             target = directory / relative
-            subprocess.run([
-                "gh", "run", "download", run_id, "--repo", CENTRAL_REPOSITORY,
-                "--name", name, "--dir", str(target),
-            ], check=True)
-            # Native archives are internal build evidence, not public wheel
-            # assets. Discard those copies before downloading the next variant.
-            for path in target.rglob("*"):
-                if path.is_file() and path.suffix != ".whl" and not path.name.startswith("component-wheel-inventory-"):
-                    path.unlink()
+            download_artifact(github, matches[0], target)
     canonical = directory / "canonical-shared"
     canonical.mkdir()
     selections = [
