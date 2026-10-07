@@ -71,9 +71,12 @@ class ReleaseAssemblyTests(unittest.TestCase):
             output = root / "output"
             with mock.patch.object(module.verify_module, "verify") as verify:
                 module.assemble([root / "inputs"], output, root / "canonical")
+                linked = root / "linked-output"
+                module.assemble([root / "inputs"], linked, root / "canonical", link=True)
 
             self.assertEqual((output / name).read_bytes(), canonical.read_bytes())
-            self.assertEqual(verify.call_count, 2)
+            self.assertTrue((linked / name).samefile(canonical))
+            self.assertEqual(verify.call_count, 4)
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,60 @@
+name: Publish - vs-mlrt
+
+on:
+  workflow_dispatch:
+    inputs:
+      windows_generic_run:
+        description: Successful manual Windows generic build run
+        type: string
+        required: true
+      windows_cuda_run:
+        description: Successful manual Windows CUDA build run (all variants)
+        type: string
+        required: true
+      linux_run:
+        description: Successful manual Linux build run (all variants)
+        type: string
+        required: true
+      expected_version:
+        description: Reviewed entry package version
+        type: string
+        required: true
+        default: '16.2.6+alice.1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-vs-mlrt
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'AliceTeaParty/vapoursynth-api4-wheels' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r scripts/requirements-modules.txt
+      - name: Verify build sources, assemble wheels and publish the complete set
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WINDOWS_GENERIC_RUN: ${{ inputs.windows_generic_run }}
+          WINDOWS_CUDA_RUN: ${{ inputs.windows_cuda_run }}
+          LINUX_RUN: ${{ inputs.linux_run }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+        run: >-
+          python scripts/publish_vsmlrt.py
+          --windows-generic-run "$WINDOWS_GENERIC_RUN"
+          --windows-cuda-run "$WINDOWS_CUDA_RUN"
+          --linux-run "$LINUX_RUN"
+          --expected-version "$EXPECTED_VERSION"

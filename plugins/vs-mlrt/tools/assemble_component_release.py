@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import shutil
 import zipfile
@@ -44,7 +45,7 @@ def logical_wheel_digest(path: Path) -> str:
     return result.hexdigest()
 
 
-def assemble(inputs: list[Path], output: Path, canonical_shared: Path | None = None) -> None:
+def assemble(inputs: list[Path], output: Path, canonical_shared: Path | None = None, *, link: bool = False) -> None:
     shutil.rmtree(output, ignore_errors=True)
     output.mkdir(parents=True)
     ordered_roots = ([canonical_shared] if canonical_shared else []) + inputs
@@ -67,7 +68,10 @@ def assemble(inputs: list[Path], output: Path, canonical_shared: Path | None = N
         if previous is None:
             by_name[source.name] = (source, sha256, logical)
     for name, (source, _, _) in by_name.items():
-        shutil.copy2(source, output / name)
+        if link:
+            os.link(source, output / name)
+        else:
+            shutil.copy2(source, output / name)
 
     inventories = sorted({path.resolve() for root in inputs for path in root.rglob("component-wheel-inventory-*.json")})
     required_inventories = {
