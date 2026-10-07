@@ -153,7 +153,7 @@ upstream versions; all other distributions carry our local build label.
 | `vstaambk` | `0.3.0.post1+alice.1` |
 | `yvsfunc` | `0.3.0.post1+alice.1` |
 | `rksfunc` | `1.1.5` (upstream) |
-| `rkstool` | `1.1.2` (upstream) |
+| `rkstool` | `1.1.3` (upstream) |
 
 vs-mlrt entry packages and their component/model packages have separate
 version sequences. Every internal requirement pins the exact version in
