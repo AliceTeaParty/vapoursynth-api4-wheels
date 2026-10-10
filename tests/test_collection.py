@@ -69,7 +69,8 @@ class CollectionTests(unittest.TestCase):
             make_plans(registry, "a"*40, edited_runtime)
         def edited_pin(path):
             data = (ROOT/path).read_bytes()
-            return data.replace(b"havsfunc==33.post1+alice.1", b"havsfunc>=33.post1") if path.endswith("vs-collection-rk/pyproject.toml") else data
+            version = next(item['version'] for item in registry['components'] if item['module'] == 'havsfunc')
+            return data.replace(f"havsfunc=={version}".encode(), b"havsfunc>=33.post1") if path.endswith("vs-collection-rk/pyproject.toml") else data
         with self.assertRaisesRegex(ValueError, "pin every component"):
             make_plans(registry, "a"*40, edited_pin)
 

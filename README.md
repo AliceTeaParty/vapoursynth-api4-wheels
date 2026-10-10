@@ -103,9 +103,9 @@ upstream versions; all other distributions carry our local build label.
 | Distribution | Version |
 | --- | --- |
 | `csmod` | `0.3.0.post1+alice.1` |
-| `fvsfunc` | `0.3.0.post1+alice.1` |
+| `fvsfunc` | `0.3.0.post2+alice.1` |
 | `getfnative` | `0.3.0.post1+alice.1` |
-| `havsfunc` | `33.post1+alice.1` |
+| `havsfunc` | `33.post2+alice.1` |
 | `kagefunc` | `0.3.0.post1+alice.1` |
 | `muvsfunc` | `0.3.0.post1+alice.1` |
 | `mvsfunc` | `11.post1+alice.1` |
@@ -128,7 +128,7 @@ upstream versions; all other distributions carry our local build label.
 | `vapoursynth-tcanny` | `14.1+alice.1` |
 | `vapoursynth-tcomb` | `4.2+alice.1` |
 | `vs-cfl` | `1.0.2+alice.1` |
-| `vs-collection-rk` | `0.4.0+alice.1` |
+| `vs-collection-rk` | `0.4.1+alice.1` |
 | `vs-cublas-cu121` | `16.2.2+alice.1` |
 | `vs-cudnn-cu121` | `16.2.2+alice.1` |
 | `vs-mlrt` | `16.2.2+alice.1` |
@@ -150,8 +150,8 @@ upstream versions; all other distributions carry our local build label.
 | `vs-trt-rtx-cu129` | `16.2.2+alice.1` |
 | `vs-trtexec-cu121` | `16.2.2+alice.1` |
 | `vs-trtexec-cu129` | `16.2.2+alice.1` |
-| `vstaambk` | `0.3.0.post1+alice.1` |
-| `yvsfunc` | `0.3.0.post1+alice.1` |
+| `vstaambk` | `0.3.0.post2+alice.1` |
+| `yvsfunc` | `0.3.0.post2+alice.1` |
 | `rksfunc` | `1.1.5` (upstream) |
 | `rkstool` | `1.1.3` (upstream) |
 

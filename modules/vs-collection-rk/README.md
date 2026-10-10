@@ -7,7 +7,7 @@ Python 3.12 or newer is required.
 
 Install from the central index after a manual publication:
 
-    python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.0+alice.1
+    python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.1+alice.1
 
 ## Migrating from the monolithic Collection package
 
@@ -16,7 +16,7 @@ entry package. A plain in-place upgrade can install component dependencies
 before removing the old distribution, whose RECORD still owns the same files.
 
     python -m pip uninstall vs-collection-rk
-    python -m pip install --force-reinstall --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.0+alice.1
+    python -m pip install --force-reinstall --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.1+alice.1
 
 The entry package owns only vs_collection_rk metadata. Each component owns its
 original runtime module/package. No component adds external runtime

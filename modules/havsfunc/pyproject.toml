@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "havsfunc"
-version = "33.post1+alice.1"
+version = "33.post2+alice.1"
 description = "havsfunc from the RyougiKukoc script collection"
 requires-python = ">=3.12"
 readme = "WHEEL-README.md"

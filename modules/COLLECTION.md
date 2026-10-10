@@ -8,7 +8,7 @@ and Collection modifications with wheel packaging.
 
 ## Installed packages
 
-The entry distribution is `vs-collection-rk==0.4.0+alice.1`. Its dependencies pin
+The entry distribution is `vs-collection-rk==0.4.1+alice.1`. Its dependencies pin
 the 12 component wheels exactly. Runtime imports remain `CSMOD`, `havsfunc`,
 `mvsfunc`, `vsTAAmbk` and the other original names. Components install the
 original single .py files or packages; the entry owns only `vs_collection_rk`.
@@ -31,7 +31,7 @@ and their original repositories and dependency policies are unchanged.
 After an explicit manual publication:
 
 ```shell
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.0+alice.1
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.1+alice.1
 ```
 
 If the old monolithic vs-collection-rk distribution is installed, remove it
@@ -39,7 +39,7 @@ before installing the split entry:
 
 ```shell
 python -m pip uninstall vs-collection-rk
-python -m pip install --force-reinstall --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.0+alice.1
+python -m pip install --force-reinstall --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.1+alice.1
 ```
 
 A plain in-place upgrade is unsafe because pip can install the new component
@@ -88,6 +88,48 @@ updates can change current runtime hashes without erasing that migration proof.
 The upstream layout is retained beneath each subtree, including upstream
 documentation and license files. Wheel file selection includes only the
 runtime payload, metadata and available license/provenance material.
+
+## EEDI3 controls
+
+EEDI3 uses `core.vszip.EEDI3` by default. `opencl=True` selects
+`core.eedi3vk2.EEDI3`, falling back only to `core.vszipcl.EEDI3` if loading,
+construction or frame evaluation fails. Both GPU failures produce an error;
+GPU mode never silently switches to CPU. Fallback emits a RuntimeWarning.
+Legacy `device=-1` / `opencl_device=-1` means the plugin's default device.
+
+`eedi3_core` explicitly overrides the Boolean mode: `vszip`/`cpu` fixes CPU,
+`vszipcl`/`cl` fixes OpenCL, and `eedi3vk2`/`eedi3vk`/`vk` uses Vulkan with
+OpenCL fallback. `None`/`auto` follows `opencl`. The legacy
+`yvsfunc.get_eedi3cl()` factory follows the same Vulkan-first GPU policy.
+
+| Entry | Backend/device controls | Algorithm parameters |
+| --- | --- | --- |
+| havsfunc.EEDI3zig | opencl, eedi3_core, device | native keyword arguments, including planes |
+| havsfunc.santiag | opencl, eedi3_core, device | existing scalar parameters and eedi3_args |
+| havsfunc.QTGMC / QTGMC_Interpolate / QTGMC_ApplySourceMatch | opencl, eedi3_core, device | eedi3_args; QTGMC controls field, planes and EdiMaxD |
+| havsfunc.dec_txt60mc / ivtc_txt30mc / ivtc_txt60mc | opencl, eedi3_core, device | eedi3_args, qtgmc_args |
+| vsTAAmbk.TAAmbk / AAEedi3 / AAEedi3SangNom | opencl, eedi3_core, opencl_device or device | existing scalar keywords and eedi3_args, including hp, vcheck and num_streams |
+| yvsfunc.get_eedi3 | opencl, eedi3_core, device | native keyword arguments |
+| yvsfunc.interpolate / intra_aa / aa2x / ee2x | eedi3 callable, or opencl, eedi3_core, device | eedi3_args when creating a callable |
+| fvsfunc.OverlayInter | opencl, eedi3_core, device | eedi3_args, qtgmc_args for its default QTGMC path |
+
+Existing algorithm choices are preserved: `santiag` and QTGMC still use NNEDI3
+unless their EEDI3 mode is selected; the credits helpers and OverlayInter can
+select it with `qtgmc_args={'EdiMode': 'EEDI3'}`. Draft/srcbob/custom-bobber
+routes continue to use their own interpolation path. A supplied yvsfunc EEDI3
+callable owns its settings; combining it with backend arguments raises an
+error rather than silently ignoring either set of controls. `ee2x` still needs
+an NNEDI3 callable to generate its independent guide.
+
+Examples:
+
+```python
+haf.santiag(clip, type='eedi3', opencl=True, eedi3_args={'num_streams': 2})
+taa.TAAmbk(clip, aatype=2, opencl=True, eedi3_args={'hp': True, 'num_streams': 2})
+yvf.aa2x(clip, opencl=True, eedi3_args={'mdis': 20})
+fvf.OverlayInter(clip, pattern=0, tff=True, opencl=True,
+                 qtgmc_args={'EdiMode': 'EEDI3'})
+```
 
 ## CI and manual publication
 

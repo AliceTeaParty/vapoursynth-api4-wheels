@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "distribution": "vs-collection-rk",
-  "version": "0.4.0+alice.1",
+  "version": "0.4.1+alice.1",
   "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
   "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
   "collection_version": "0.3.0",
@@ -146,7 +146,7 @@
       "module": "havsfunc",
       "path": "modules/havsfunc",
       "distribution": "havsfunc",
-      "version": "33.post1+alice.1",
+      "version": "33.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "havsfunc",
       "install_path": "havsfunc.py",
@@ -181,7 +181,7 @@
       ],
       "license": "Unlicense",
       "runtime_sha256": {
-        "havsfunc.py": "6ecda37981aa41d728657b48a1b322498b8c511c7fd4b7c0858bdbbfaa26472f"
+        "havsfunc.py": "635a7d78a8437a9cd6ac5dd8cb4186a4f5db19bbd5159283fb0ab8f488f5d048"
       },
       "upstream_runtime_sha256": {
         "havsfunc.py": "229fc191c5e7447c867076a0a3e3b008b5b06d04dfa6517796aec949363d8bac"
@@ -298,7 +298,7 @@
       "module": "fvsfunc",
       "path": "modules/fvsfunc",
       "distribution": "fvsfunc",
-      "version": "0.3.0.post1+alice.1",
+      "version": "0.3.0.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "fvsfunc",
       "install_path": "fvsfunc.py",
@@ -319,7 +319,7 @@
       "intermediate_commits": [],
       "license": "Not separately declared",
       "runtime_sha256": {
-        "fvsfunc.py": "16bcf5545ed66a5c4bdd6cc551a6b34f41ae5395c1dfa441d098728915c1475c"
+        "fvsfunc.py": "347a5397ec0f721f2ddd5f8e94900bb1ed3704e263e5b78d45d1bc7509dc5f2f"
       },
       "upstream_runtime_sha256": {
         "fvsfunc.py": "1e7f3d9bf293b9bd771bf0886b7ba3f3bed07c1eda47d384ed61fd363a2b715c"
@@ -331,7 +331,7 @@
       "module": "vstaambk",
       "path": "modules/vstaambk",
       "distribution": "vstaambk",
-      "version": "0.3.0.post1+alice.1",
+      "version": "0.3.0.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "vsTAAmbk",
       "install_path": "vsTAAmbk.py",
@@ -354,7 +354,7 @@
       "intermediate_commits": [],
       "license": "Not separately declared",
       "runtime_sha256": {
-        "vsTAAmbk.py": "1843f14d7736b4d07eeec938351d5982238a6fd08090c2bce30cde64da0ab5ec"
+        "vsTAAmbk.py": "aca0bc732822e5f5e46bc82a4cbf6234bc47e82357ee99b71739bd25f9d8b8ec"
       },
       "upstream_runtime_sha256": {
         "vsTAAmbk.py": "39b9b4069fc06e130d710859cd7fbaa21c58dc2e15ece6226bfe3feb9f78fb6e"
@@ -400,7 +400,7 @@
       "module": "yvsfunc",
       "path": "modules/yvsfunc",
       "distribution": "yvsfunc",
-      "version": "0.3.0.post1+alice.1",
+      "version": "0.3.0.post2+alice.1",
       "runtime_kind": "package",
       "import_name": "yvsfunc",
       "install_path": "yvsfunc",
@@ -428,7 +428,7 @@
         "yvsfunc/nphelper.py": "7a75bbca88b7627f077227801fa6aadcac09d07cda3852258f875efaadb41465",
         "yvsfunc/planes.py": "115b40fa39ae22fdc266cf2ff5c7e677c2acc1d4a7c3e7e49b24f7dc39d08a8f",
         "yvsfunc/preview.py": "d1562512be84b18ac748f20a79451485206452f7b2a52e62cff32dce0cb00999",
-        "yvsfunc/resample.py": "392922ff77d6f590237107af2e15a1e857fac7272144954a96efc5bf907ffdc0"
+        "yvsfunc/resample.py": "d4c46f961f99828f6ad33bbe3ebb4798d54a72c7345a5d35c6c090fb3af78ab8"
       },
       "upstream_runtime_sha256": {
         "yvsfunc/__init__.py": "300a33f4b909353bd2fd75cab5326aea6ce7dd68fba091fc4334ed4399d35777",

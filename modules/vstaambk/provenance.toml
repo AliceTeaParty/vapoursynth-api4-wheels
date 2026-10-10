@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "vstaambk"
-wheel_version = "0.3.0.post1+alice.1"
+wheel_version = "0.3.0.post2+alice.1"
 import_name = "vsTAAmbk"
 runtime_kind = "module"
 upstream_url = "https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk"
@@ -17,4 +17,4 @@ collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "31f72118d9acb
 license_observation = "Not separately declared"
 
 [runtime_sha256]
-"vsTAAmbk.py" = "1843f14d7736b4d07eeec938351d5982238a6fd08090c2bce30cde64da0ab5ec"
+"vsTAAmbk.py" = "aca0bc732822e5f5e46bc82a4cbf6234bc47e82357ee99b71739bd25f9d8b8ec"

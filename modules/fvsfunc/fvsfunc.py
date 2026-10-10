@@ -780,7 +780,8 @@ Original Header:
 # Based on ivtc_txt60mc 1.1 by Firesledge
 
 """
-def OverlayInter(src, pattern, pos=0, size=0, show=False, draft=False, bobber=None, ivtc=None, tff=None):
+def OverlayInter(src, pattern, pos=0, size=0, show=False, draft=False, bobber=None, ivtc=None, tff=None,
+                 opencl=False, device=None, eedi3_core=None, eedi3_args=None, qtgmc_args=None):
 
     try:
         import havsfunc as haf
@@ -803,7 +804,11 @@ def OverlayInter(src, pattern, pos=0, size=0, show=False, draft=False, bobber=No
     if draft:
         bobbed = haf.Bob(bobbed, tff=tff)
     elif bobber is None:
-        bobbed = haf.QTGMC(bobbed, Preset='very slow', SourceMatch=3, Lossless=2, TFF=tff)
+        options = dict(Preset='very slow', SourceMatch=3, Lossless=2, TFF=tff,
+                       opencl=opencl, device=device, eedi3_core=eedi3_core,
+                       eedi3_args={} if eedi3_args is None else eedi3_args)
+        options.update(qtgmc_args or {})
+        bobbed = haf.QTGMC(bobbed, **options)
     else:
         bobbed = bobber(bobbed)
 

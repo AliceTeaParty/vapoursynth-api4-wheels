@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "havsfunc"
-wheel_version = "33.post1+alice.1"
+wheel_version = "33.post2+alice.1"
 import_name = "havsfunc"
 runtime_kind = "module"
 upstream_url = "https://github.com/HomeOfVapourSynthEvolution/havsfunc"
@@ -17,4 +17,4 @@ collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "9837b539bb72b
 license_observation = "Unlicense"
 
 [runtime_sha256]
-"havsfunc.py" = "6ecda37981aa41d728657b48a1b322498b8c511c7fd4b7c0858bdbbfaa26472f"
+"havsfunc.py" = "635a7d78a8437a9cd6ac5dd8cb4186a4f5db19bbd5159283fb0ab8f488f5d048"

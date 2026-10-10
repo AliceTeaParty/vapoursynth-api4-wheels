@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "fvsfunc"
-wheel_version = "0.3.0.post1+alice.1"
+wheel_version = "0.3.0.post2+alice.1"
 import_name = "fvsfunc"
 runtime_kind = "module"
 upstream_url = "https://github.com/Irrational-Encoding-Wizardry/fvsfunc"
@@ -17,4 +17,4 @@ collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "9837b539bb72b
 license_observation = "Not separately declared"
 
 [runtime_sha256]
-"fvsfunc.py" = "16bcf5545ed66a5c4bdd6cc551a6b34f41ae5395c1dfa441d098728915c1475c"
+"fvsfunc.py" = "347a5397ec0f721f2ddd5f8e94900bb1ed3704e263e5b78d45d1bc7509dc5f2f"

@@ -31,9 +31,10 @@ plugin; those files remain authoritative for each native wheel.
 ## Python module subtrees
 
 Migration source: [https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection](https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection)
-at 14091484381778fe55102b58ac584e38f5e0fc6a, Collection version 0.3.0. Every runtime file matches this
-final Collection snapshot. The per-directory patch combines the recorded
-gist/fork edits and all subsequent Collection edits into one commit.
+at 14091484381778fe55102b58ac584e38f5e0fc6a, Collection version 0.3.0. The initial
+per-directory patch combines the recorded gist/fork edits and Collection edits.
+The immutable migration record retains that snapshot; current runtime hashes
+also include the local fixes recorded below.
 
 | Directory | Wheel version | Canonical upstream | Upstream revision | Intermediate snapshot | Import commit | Combined patch commit |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -41,20 +42,20 @@ gist/fork edits and all subsequent Collection edits into one commit.
 | modules/csmod | 0.3.0.post1+alice.1 | [https://github.com/fdar0536/VapourSynth-Contra-Sharpen-mod](https://github.com/fdar0536/VapourSynth-Contra-Sharpen-mod) | b9ff7253bf217dded071b88fb8a6d212aceb81f4 | same as upstream | 03e969984742a71409376c4de6898b6a5975355f | bfb8abc11413dd32afea6ca3b03c4e4b63099f28 |
 | modules/nnedi3-resample | 2.post1+alice.1 | [https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample](https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample) | 314c6446a65c2e25fd7a997051b09830f361675e | same as upstream | d146a460436349d8bf52569a3965907164bf1b17 | 4948a7ebbdf6b4ff9246af59d720f31960bc75fc |
 | modules/nnedi3-rpow2 | 1.1.0.post1+alice.1 | [https://gist.github.com/4re/342624c9e1a144a696c6](https://gist.github.com/4re/342624c9e1a144a696c6) | 68ec4bdff1e51a3832b163198ed7ea00e1c1ab46 | 4e6c2fac9d3159f1f1c93e2a92d492ce7b69b1b3 | 17d595f7441a123c71ee75bfd065b723fe8ed897 | 76c37e37c47c69fe0c68f77994f9e34f6112fad1 |
-| modules/havsfunc | 33.post1+alice.1 | [https://github.com/HomeOfVapourSynthEvolution/havsfunc](https://github.com/HomeOfVapourSynthEvolution/havsfunc) | 7f0a9a7a37b60a05b9f408024d203e511e544a61 | 4e0d21258869283ce04568dda0173e4c8b890668 | 602c6cddca4a1f19c99b16527a383cc066905548 | 1c88bf06cf806c16e08b38fdf3c4814f586de407 |
+| modules/havsfunc | 33.post2+alice.1 | [https://github.com/HomeOfVapourSynthEvolution/havsfunc](https://github.com/HomeOfVapourSynthEvolution/havsfunc) | 7f0a9a7a37b60a05b9f408024d203e511e544a61 | 4e0d21258869283ce04568dda0173e4c8b890668 | 602c6cddca4a1f19c99b16527a383cc066905548 | 1c88bf06cf806c16e08b38fdf3c4814f586de407 |
 | modules/getfnative | 0.3.0.post1+alice.1 | [https://github.com/YomikoR/GetFnative](https://github.com/YomikoR/GetFnative) | 9edcd58346fbffa46f6735637f91ae24dfabcb74 | same as upstream | eee47fdb06b71ee33e22a7709d30aa163c26bf4f | bc147d8926095ae436e45f43e67b49092c101b7b |
 | modules/mvsfunc | 11.post1+alice.1 | [https://github.com/HomeOfVapourSynthEvolution/mvsfunc](https://github.com/HomeOfVapourSynthEvolution/mvsfunc) | 865c7486ca860d323754ec4774bc4cca540a7076 | same as upstream | b0884169d8b99ac049b1dc0ed625bf959bed4b93 | 8b8d2a30d2c466a3d22a21fc1569e29f571d2360 |
 | modules/muvsfunc | 0.3.0.post1+alice.1 | [https://github.com/WolframRhodium/muvsfunc](https://github.com/WolframRhodium/muvsfunc) | d278cd3a68250a4d9562c6ec2b401f1a76c324a3 | same as upstream | 62f5893814685afee21ca1bc9876c97721fbb73a | ee3bb3e7df770fc76359803a07c1115f09c92894 |
-| modules/fvsfunc | 0.3.0.post1+alice.1 | [https://github.com/Irrational-Encoding-Wizardry/fvsfunc](https://github.com/Irrational-Encoding-Wizardry/fvsfunc) | 076dbde68227f6cca91304a447b2a02b0e95413e | same as upstream | 64191bb0dd8ea15bd9ababc74f7ccea3479abbe8 | 84f83a60a2404817f951550b6606969ee0de7f79 |
-| modules/vstaambk | 0.3.0.post1+alice.1 | [https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk](https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk) | fef19f85c96c0d7e281627942c358ee1b92d7dbe | same as upstream | 51627e28e665385de04bd5e47e98391374a22231 | 906a1e5b61d5b44936dc48bdcd316677aaed0337 |
+| modules/fvsfunc | 0.3.0.post2+alice.1 | [https://github.com/Irrational-Encoding-Wizardry/fvsfunc](https://github.com/Irrational-Encoding-Wizardry/fvsfunc) | 076dbde68227f6cca91304a447b2a02b0e95413e | same as upstream | 64191bb0dd8ea15bd9ababc74f7ccea3479abbe8 | 84f83a60a2404817f951550b6606969ee0de7f79 |
+| modules/vstaambk | 0.3.0.post2+alice.1 | [https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk](https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk) | fef19f85c96c0d7e281627942c358ee1b92d7dbe | same as upstream | 51627e28e665385de04bd5e47e98391374a22231 | 906a1e5b61d5b44936dc48bdcd316677aaed0337 |
 | modules/kagefunc | 0.3.0.post1+alice.1 | [https://github.com/Irrational-Encoding-Wizardry/kagefunc](https://github.com/Irrational-Encoding-Wizardry/kagefunc) | 96947a1bda5639a4e0b89202e964a15bc337521d | same as upstream | 774f85fcbf56c16f59b78e0abbca13dcfd9cd0bb | e4ea32257081ba9137db135df2c956247881882d |
-| modules/yvsfunc | 0.3.0.post1+alice.1 | [https://github.com/YomikoR/yvsfunc](https://github.com/YomikoR/yvsfunc) | ee3309efe2543c6680619f6deb64496102e7eb64 | same as upstream | fd80ac44f424dcfd62d4d8ac0279868209eb32ad | 1eab14ba306ee832738cb489a7835dfae606d9f1 |
+| modules/yvsfunc | 0.3.0.post2+alice.1 | [https://github.com/YomikoR/yvsfunc](https://github.com/YomikoR/yvsfunc) | ee3309efe2543c6680619f6deb64496102e7eb64 | same as upstream | fd80ac44f424dcfd62d4d8ac0279868209eb32ad | 1eab14ba306ee832738cb489a7835dfae606d9f1 |
 
 ## Collection entry
 
 | Directory | Distribution | Wheel version | Dependency policy |
 | --- | --- | --- | --- |
-| modules/vs-collection-rk | vs-collection-rk | 0.4.0+alice.1 | Exact pins for the 12 component wheels above |
+| modules/vs-collection-rk | vs-collection-rk | 0.4.1+alice.1 | Exact pins for the 12 component wheels above |
 
 ## HAvsFunc modification chain
 
@@ -95,3 +96,18 @@ Collection byte hashes. Keep that history record intact when updating current
 runtime hashes in modules/collection.json. CI compares the initial patch Git
 objects with the old Collection, so a reviewed later upstream update does not
 have to pretend that its new runtime still equals the initial snapshot.
+
+## Local fixes in vs-collection-rk 0.4.1+alice.1
+
+- yvsfunc 0.3.0.post2+alice.1 fixes ee2x's swapped first-pass outputs, preserving
+  an independent NNEDI3 guide for the second EEDI3 pass.
+- havsfunc 33.post2+alice.1, vstaambk 0.3.0.post2+alice.1 and yvsfunc
+  0.3.0.post2+alice.1 use CPU EEDI3 by default. Their opencl=True mode uses
+  eedi3vk2 with vszipcl as its only fallback, including frame-time failures.
+  Negative legacy device indices select the default GPU device.
+- EEDI3 algorithm and backend controls are forwarded by the high-level AA,
+  QTGMC and credits helpers. fvsfunc 0.3.0.post2+alice.1 exposes the same controls
+  through OverlayInter's default QTGMC path.
+- Partial-plane processing preserves the requested height and frame timeline
+  across all EEDI3 backends. Existing algorithm defaults and migration anchors
+  are retained.

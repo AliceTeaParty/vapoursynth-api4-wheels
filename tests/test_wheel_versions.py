@@ -83,8 +83,10 @@ class WheelVersionTests(unittest.TestCase):
     def test_module_metadata_and_refs_accept_local_version(self):
         path = ROOT / "modules/vs-collection-rk/pyproject.toml"
         metadata = project_metadata(path.read_bytes(), "vs-collection-rk")
-        self.assertEqual(metadata["version"], "0.4.0+alice.1")
-        validate_ref("v0.4.0+alice.1")
+        registered = json.loads((ROOT / 'modules/collection.json').read_text(encoding='utf-8'))['version']
+        self.assertEqual(metadata["version"], registered)
+        self.assertEqual(Version(metadata["version"]).local, 'alice.1')
+        validate_ref('v' + metadata["version"])
 
     def test_variant_prebuilt_tags_track_project_version(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

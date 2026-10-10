@@ -60,6 +60,7 @@ Utility functions:
 """
 
 from __future__ import annotations
+from threading import Lock
 import inspect
 import importlib
 import warnings
@@ -89,7 +90,6 @@ _DFTTEST2_UNSET = object()
 _dfttest2_module: Any = _DFTTEST2_UNSET
 _AA_BACKEND_EXCEPTIONS = (AttributeError, TypeError, RuntimeError, vs.Error)
 _NNEDI3_CORE_ORDER = ('nnedi3vk', 'nnedi3cl', 'znedi3')
-_EEDI3_CORE_ORDER = ('eedi3vk2', 'vszipcl', 'vszip')
 
 
 def _normalize_aa_core(kind: str, name: Optional[str]) -> Optional[str]:
@@ -112,11 +112,14 @@ def _normalize_aa_core(kind: str, name: Optional[str]) -> Optional[str]:
     else:
         aliases = {
             'eedi3vk2': 'eedi3vk2',
+            'eedi3vk': 'eedi3vk2',
             'vk': 'eedi3vk2',
             'vk2': 'eedi3vk2',
             'vszipcl': 'vszipcl',
+            'cl': 'vszipcl',
             'zipcl': 'vszipcl',
             'vszip': 'vszip',
+            'cpu': 'vszip',
             'zip': 'vszip',
         }
 
@@ -135,26 +138,6 @@ def _ordered_aa_cores(order: Sequence[str], preferred: Optional[str]) -> list[st
 
 def _filter_kwargs(kwargs: Mapping[str, Any], allowed: Sequence[str]) -> dict[str, Any]:
     return {key: value for key, value in kwargs.items() if key in allowed and value is not None}
-
-
-def _extract_plane(clip: vs.VideoNode, plane_index: int) -> vs.VideoNode:
-    return clip if clip.format.num_planes == 1 else core.std.ShufflePlanes(clip, plane_index, vs.GRAY)
-
-
-def _normalize_planes(clip: vs.VideoNode, planes: Optional[Union[int, Sequence[int]]]) -> list[int]:
-    if clip.format.num_planes == 1:
-        return [0]
-    if planes is None:
-        return list(range(clip.format.num_planes))
-    if isinstance(planes, int):
-        return [planes]
-    return list(planes)
-
-
-def _bob_plane(clip: vs.VideoNode, field: int, dh: bool) -> vs.VideoNode:
-    if not dh:
-        return clip
-    return clip.resize.Bob(tff=bool(field & 1), filter_param_a=0, filter_param_b=0.5)
 
 
 class _NNEDI3Dispatcher:
@@ -216,107 +199,154 @@ class _NNEDI3Dispatcher:
 
 
 class _EEDI3Dispatcher:
+    """CPU by default; GPU mode tries Vulkan and then OpenCL only."""
     _allowed = {
         'eedi3vk2': {
-            'field', 'dh', 'planes', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck',
+            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck',
             'vthresh0', 'vthresh1', 'vthresh2', 'sclip', 'mclip', 'device_index', 'list_device', 'num_streams'
         },
         'vszipcl': {
-            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck', 'vthresh0',
-            'vthresh1', 'vthresh2', 'sclip', 'device_id', 'list_device', 'num_streams', 'tune'
+            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck',
+            'vthresh0', 'vthresh1', 'vthresh2', 'sclip', 'device_id', 'num_streams', 'tune'
         },
         'vszip': {
-            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck', 'vthresh0',
-            'vthresh1', 'vthresh2', 'sclip', 'mclip'
+            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck',
+            'vthresh0', 'vthresh1', 'vthresh2', 'sclip', 'mclip'
         },
     }
 
-    def __init__(self, preferred: Optional[str] = None, device: Optional[int] = None) -> None:
+    def __init__(self, preferred=None, device=None, kwargs=None, opencl=False):
         self.preferred = _normalize_aa_core('eedi3', preferred)
-        self.device = device
-        self.selected: Optional[str] = None
+        self.device = None if device is None or device < 0 else device
+        self.kwargs = dict(kwargs or {})
+        self.opencl = bool(opencl)
+        self.selected = None
 
-    def _call_backend(self, name: str, clip: vs.VideoNode, kwargs: Mapping[str, Any]) -> vs.VideoNode:
-        field = int(kwargs.get('field', 1))
-        dh = bool(kwargs.get('dh', True))
-        planes = _normalize_planes(clip, kwargs.get('planes'))
-        process_all_planes = planes == list(range(clip.format.num_planes))
+    @property
+    def core(self):
+        return vs.core
 
-        if name == 'eedi3vk2':
-            backend = core.eedi3vk2.EEDI3
-            call_kwargs = _filter_kwargs(kwargs, self._allowed[name])
-            if self.device is not None and 'device_index' not in call_kwargs:
-                call_kwargs['device_index'] = self.device
-            return backend(clip, **call_kwargs)
+    def _backend_order(self):
+        if self.preferred == 'vszip':
+            return ['vszip']
+        if self.preferred == 'vszipcl':
+            return ['vszipcl']
+        if self.preferred == 'eedi3vk2' or self.opencl:
+            return ['eedi3vk2', 'vszipcl']
+        return ['vszip']
 
-        if name == 'vszipcl':
-            backend = core.vszipcl.EEDI3
-            call_kwargs = _filter_kwargs(kwargs, self._allowed[name])
-            if kwargs.get('mclip') is not None:
-                raise vs.Error('EEDI3: vszipcl does not support mclip')
-            if self.device is not None and 'device_id' not in call_kwargs:
-                call_kwargs['device_id'] = self.device
-        elif name == 'vszip':
-            backend = core.vszip.EEDI3
-            call_kwargs = _filter_kwargs(kwargs, self._allowed[name])
-        else:
-            raise vs.Error(f'eedi3: unsupported backend {name!r}')
+    def _passthrough_plane(self, clip, field, dh):
+        if dh:
+            return clip.resize.Bicubic(height=clip.height * 2,
+                                       src_top=0.25 if field == 1 else -0.25,
+                                       filter_param_a=0, filter_param_b=0.5)
+        if field in (2, 3):
+            return self.core.std.Interleave([clip, clip])
+        return clip
 
-        if process_all_planes or clip.format.num_planes == 1:
-            return backend(clip, **call_kwargs)
-
-        sclip = kwargs.get('sclip')
-        mclip = kwargs.get('mclip')
-        plane_set = set(planes)
-        outputs = []
-
-        for plane_index in range(clip.format.num_planes):
-            if plane_index in plane_set:
-                plane_kwargs = dict(call_kwargs)
-                plane_clip = _extract_plane(clip, plane_index)
-                if sclip is not None:
-                    plane_kwargs['sclip'] = _extract_plane(sclip, plane_index)
-                if mclip is not None and name == 'vszip':
-                    plane_kwargs['mclip'] = _extract_plane(mclip, plane_index)
-                outputs.append(backend(plane_clip, **plane_kwargs))
+    def _call_backend(self, name, clip, kwargs):
+        backend = getattr(self.core, name).EEDI3
+        call_kwargs = _filter_kwargs(kwargs, self._allowed[name])
+        field, dh = int(kwargs.get('field', 1)), bool(kwargs.get('dh', False))
+        call_kwargs.update(field=field, dh=dh)
+        if name == 'vszipcl' and kwargs.get('mclip') is not None:
+            raise vs.Error('EEDI3: vszipcl does not support mclip')
+        if name != 'vszip':
+            key = 'device_index' if name == 'eedi3vk2' else 'device_id'
+            requested = kwargs.get(key, self.device)
+            if requested is None or requested < 0:
+                call_kwargs.pop(key, None)
             else:
-                outputs.append(_bob_plane(_extract_plane(clip, plane_index), field, dh))
+                call_kwargs[key] = requested
+        planes = kwargs.get('planes')
+        if planes is None:
+            planes = list(range(clip.format.num_planes))
+        elif isinstance(planes, int):
+            planes = [planes]
+        else:
+            planes = list(planes)
+        if len(set(planes)) != len(planes) or any(p < 0 or p >= clip.format.num_planes for p in planes):
+            raise ValueError('EEDI3: planes must contain distinct valid plane indices')
+        if set(planes) == set(range(clip.format.num_planes)):
+            return backend(clip, **call_kwargs)
+        outputs = []
+        for plane in range(clip.format.num_planes):
+            plane_clip = self.core.std.ShufflePlanes(clip, plane, vs.GRAY)
+            if plane not in planes:
+                outputs.append(self._passthrough_plane(plane_clip, field, dh))
+                continue
+            plane_kwargs = dict(call_kwargs)
+            for key in ('sclip', 'mclip'):
+                reference = plane_kwargs.get(key)
+                if reference is not None and reference.format.num_planes > 1:
+                    plane_kwargs[key] = self.core.std.ShufflePlanes(reference, plane, vs.GRAY)
+            outputs.append(backend(plane_clip, **plane_kwargs))
+        return self.core.std.ShufflePlanes(outputs, [0] * clip.format.num_planes, clip.format.color_family)
 
-        return core.std.ShufflePlanes(outputs, [0] * clip.format.num_planes, clip.format.color_family)
-
-    def __call__(self, clip: vs.VideoNode, **kwargs: Any) -> vs.VideoNode:
+    def __call__(self, clip, **call_kwargs):
+        kwargs = dict(self.kwargs)
+        kwargs.update(call_kwargs)
+        order = self._backend_order()
+        if self.selected in order:
+            order = order[order.index(self.selected):]
         errors = []
-        for name in _ordered_aa_cores(_EEDI3_CORE_ORDER, self.preferred):
-            if self.selected is not None and name != self.selected:
-                continue
+        for index, name in enumerate(order):
             try:
-                result = self._call_backend(name, clip, kwargs)
+                output = self._call_backend(name, clip, kwargs)
                 self.selected = name
-                return result
-            except _AA_BACKEND_EXCEPTIONS as exc:
-                errors.append(f'{name}: {exc}')
-                if self.selected == name:
-                    self.selected = None
+                break
+            except _AA_BACKEND_EXCEPTIONS as error:
+                errors.append(f'{name}: {error}')
+        else:
+            raise vs.Error('EEDI3: no requested backend is available (' + '; '.join(errors) + ')')
+        if errors:
+            warnings.warn('EEDI3: falling back to ' + name + ' (' + '; '.join(errors) + ')', RuntimeWarning, stacklevel=2)
+        if index == len(order) - 1:
+            return output
 
-        for name in _ordered_aa_cores(_EEDI3_CORE_ORDER, self.preferred):
-            if self.selected is None or name == self.selected:
-                continue
-            try:
-                result = self._call_backend(name, clip, kwargs)
-                self.selected = name
-                return result
-            except _AA_BACKEND_EXCEPTIONS as exc:
-                errors.append(f'{name}: {exc}')
+        # Native GPU failures may appear at frame evaluation rather than node
+        # creation. Keep the failure boundary around the actual frame request.
+        # VapourSynth reserves a worker for nested synchronous frame requests.
+        nodes = {name: output}
+        state = {'index': index}
+        lock = Lock()
+        template = self.core.std.BlankClip(clip=output)
 
-        raise vs.Error('eedi3: no backend could be initialized (' + '; '.join(dict.fromkeys(errors)) + ')')
+        def evaluate(n, f):
+            failures = []
+            with lock:
+                first = state['index']
+            for candidate_index in range(first, len(order)):
+                candidate = order[candidate_index]
+                try:
+                    with lock:
+                        if candidate not in nodes:
+                            nodes[candidate] = self._call_backend(candidate, clip, kwargs)
+                        node = nodes[candidate]
+                    result = node.get_frame(n)
+                    with lock:
+                        state['index'] = max(state['index'], candidate_index)
+                        self.selected = order[state['index']]
+                    return result
+                except _AA_BACKEND_EXCEPTIONS as error:
+                    failures.append(f'{candidate}: {error}')
+                    with lock:
+                        previous = state['index']
+                        state['index'] = min(len(order) - 1, max(previous, candidate_index + 1))
+                    if candidate_index + 1 < len(order) and previous <= candidate_index:
+                        warnings.warn('EEDI3: falling back to ' + order[candidate_index + 1] +
+                                      f' at frame {n} ({error})', RuntimeWarning, stacklevel=2)
+            raise vs.Error('EEDI3: frame evaluation failed (' + '; '.join(failures) + ')')
+
+        return self.core.std.ModifyFrame(template, template, evaluate)
 
 
 def _get_nnedi3_dispatcher(nnedi3_core: Optional[str], device: Optional[int]) -> _NNEDI3Dispatcher:
     return _NNEDI3Dispatcher(nnedi3_core, device)
 
 
-def _get_eedi3_dispatcher(eedi3_core: Optional[str], device: Optional[int]) -> _EEDI3Dispatcher:
-    return _EEDI3Dispatcher(eedi3_core, device)
+def _get_eedi3_dispatcher(eedi3_core: Optional[str], device: Optional[int], opencl: bool = False) -> _EEDI3Dispatcher:
+    return _EEDI3Dispatcher(eedi3_core, device, opencl=opencl)
 
 
 def _get_dfttest2() -> Any:
@@ -442,9 +472,10 @@ def mcdaa3(
     return core.std.MaskedMerge(input, csaa, momask)
 
 
-def EEDI3zig(clip: vs.VideoNode, **kwargs: Any) -> vs.VideoNode:
-    kwargs.pop('planes', None)
-    return core.vszip.EEDI3(clip, **kwargs)
+def EEDI3zig(clip: vs.VideoNode, *, opencl: bool = False,
+             eedi3_core: Optional[str] = None, device: Optional[int] = None,
+             **kwargs: Any) -> vs.VideoNode:
+    return _get_eedi3_dispatcher(eedi3_core, device, opencl)(clip, **kwargs)
     
     
 def santiag(
@@ -475,6 +506,7 @@ def santiag(
     device: Optional[int] = None,
     nnedi3_core: Optional[str] = None,
     eedi3_core: Optional[str] = None,
+    eedi3_args: Optional[Mapping[str, Any]] = None,
 ) -> vs.VideoNode:
     '''
     santiag v1.6
@@ -493,7 +525,7 @@ def santiag(
 
     def santiag_stronger(c: vs.VideoNode, strength: int, type: str) -> vs.VideoNode:
         nnedi3 = _get_nnedi3_dispatcher(nnedi3_core, device)
-        eedi3 = _get_eedi3_dispatcher(eedi3_core, device)
+        eedi3 = _get_eedi3_dispatcher(eedi3_core, device, opencl)
 
         strength = max(strength, 0)
         field = strength % 2
@@ -535,18 +567,11 @@ def santiag(
                 int16_predictor=int16_predictor,
                 exp=exp,
             )
-            return eedi3(
-                c,
-                field=field,
-                dh=dh,
-                alpha=alpha,
-                beta=beta,
-                gamma=gamma,
-                nrad=nrad,
-                mdis=mdis,
-                vcheck=vcheck,
-                sclip=sclip,
-            )
+            options = {key: value for key, value in dict(alpha=alpha, beta=beta, gamma=gamma,
+                       nrad=nrad, mdis=mdis, vcheck=vcheck).items() if value is not None}
+            options.update(eedi3_args or {})
+            options.update(field=field, dh=dh, sclip=sclip)
+            return eedi3(c, **options)
         elif type == 'sangnom':
             if dh:
                 c = c.resize.Spline36(w, h * 2, src_top=-0.25)
@@ -2606,7 +2631,7 @@ def QTGMC_Interpolate(
     nnedi3_extra_args = {key: value for key, value in nnedi3_args.items() if key not in {'field', 'dh', 'planes'}}
     eedi3_extra_args = {key: value for key, value in eedi3_args.items() if key not in {'field', 'dh', 'planes', 'mdis', 'sclip'}}
     nnedi3 = _get_nnedi3_dispatcher(nnedi3_core, device)
-    eedi3 = _get_eedi3_dispatcher(eedi3_core, device)
+    eedi3 = _get_eedi3_dispatcher(eedi3_core, device, opencl)
 
     if InputType == 1:
         return Input
@@ -3319,7 +3344,8 @@ def srestore(source, frate=None, omode=6, speed=None, mode=2, thresh=16, dclip=N
 
 
 # frame_ref = start of AABCD pattern
-def dec_txt60mc(src, frame_ref, srcbob=False, draft=False, tff=None, opencl=False, device=None):
+def dec_txt60mc(src, frame_ref, srcbob=False, draft=False, tff=None, opencl=False, device=None,
+                eedi3_core=None, eedi3_args=None, qtgmc_args=None):
     if not isinstance(src, vs.VideoNode):
         raise vs.Error('dec_txt60mc: this is not a clip')
 
@@ -3338,7 +3364,11 @@ def dec_txt60mc(src, frame_ref, srcbob=False, draft=False, tff=None, opencl=Fals
     elif draft:
         last = src.resize.Bob(tff=tff, filter_param_a=1 / 3, filter_param_b=1 / 3)
     else:
-        last = QTGMC(src, TR0=1, TR1=1, TR2=1, SourceMatch=3, Lossless=2, TFF=tff, opencl=opencl, device=device)
+        options = dict(TR0=1, TR1=1, TR2=1, SourceMatch=3, Lossless=2, TFF=tff,
+                       opencl=opencl, device=device, eedi3_core=eedi3_core,
+                       eedi3_args={} if eedi3_args is None else eedi3_args)
+        options.update(qtgmc_args or {})
+        last = QTGMC(src, **options)
 
     clean = last.std.SelectEvery(cycle=5, offsets=[4 - invpos])
     if invpos > 2:
@@ -3358,7 +3388,8 @@ def dec_txt60mc(src, frame_ref, srcbob=False, draft=False, tff=None, opencl=Fals
 
 
 # 30pテロ部を24pに変換して返す
-def ivtc_txt30mc(src, frame_ref, draft=False, tff=None, opencl=False, device=None):
+def ivtc_txt30mc(src, frame_ref, draft=False, tff=None, opencl=False, device=None,
+                eedi3_core=None, eedi3_args=None, qtgmc_args=None):
     if not isinstance(src, vs.VideoNode):
         raise vs.Error('ivtc_txt30mc: this is not a clip')
 
@@ -3376,7 +3407,11 @@ def ivtc_txt30mc(src, frame_ref, draft=False, tff=None, opencl=False, device=Non
     if draft:
         last = src.resize.Bob(tff=tff, filter_param_a=1 / 3, filter_param_b=1 / 3)
     else:
-        last = QTGMC(src, TR0=1, TR1=1, TR2=1, SourceMatch=3, Lossless=2, TFF=tff, opencl=opencl, device=device)
+        options = dict(TR0=1, TR1=1, TR2=1, SourceMatch=3, Lossless=2, TFF=tff,
+                       opencl=opencl, device=device, eedi3_core=eedi3_core,
+                       eedi3_args={} if eedi3_args is None else eedi3_args)
+        options.update(qtgmc_args or {})
+        last = QTGMC(src, **options)
 
     if pattern == 0:
         if offset == -1:
@@ -3425,7 +3460,8 @@ def ivtc_txt30mc(src, frame_ref, draft=False, tff=None, opencl=False, device=Non
 
 # Version 1.1
 # frame_ref = start of clean-combed-combed-clean-clean pattern
-def ivtc_txt60mc(src, frame_ref, srcbob=False, draft=False, tff=None, opencl=False, device=None):
+def ivtc_txt60mc(src, frame_ref, srcbob=False, draft=False, tff=None, opencl=False, device=None,
+                eedi3_core=None, eedi3_args=None, qtgmc_args=None):
     if not isinstance(src, vs.VideoNode):
         raise vs.Error('ivtc_txt60mc: this is not a clip')
 
@@ -3444,7 +3480,11 @@ def ivtc_txt60mc(src, frame_ref, srcbob=False, draft=False, tff=None, opencl=Fal
     elif draft:
         last = src.resize.Bob(tff=tff, filter_param_a=1 / 3, filter_param_b=1 / 3)
     else:
-        last = QTGMC(src, TR0=1, TR1=1, TR2=1, SourceMatch=3, Lossless=2, TFF=tff, opencl=opencl, device=device)
+        options = dict(TR0=1, TR1=1, TR2=1, SourceMatch=3, Lossless=2, TFF=tff,
+                       opencl=opencl, device=device, eedi3_core=eedi3_core,
+                       eedi3_args={} if eedi3_args is None else eedi3_args)
+        options.update(qtgmc_args or {})
+        last = QTGMC(src, **options)
 
     if invpos > 1:
         clean = core.std.AssumeFPS(last.std.Trim(length=1) + last.std.SelectEvery(cycle=5, offsets=[6 - invpos]), fpsnum=12000, fpsden=1001)

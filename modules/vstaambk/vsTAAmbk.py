@@ -1,3 +1,5 @@
+from threading import Lock
+import warnings
 import vapoursynth as vs
 import mvsfunc as mvf
 import havsfunc as haf
@@ -8,7 +10,6 @@ from vsmasktools import ASobel
 MODULE_NAME = 'vsTAAmbk'
 _AA_BACKEND_EXCEPTIONS = (AttributeError, TypeError, RuntimeError, vs.Error)
 _NNEDI3_CORE_ORDER = ('nnedi3vk', 'nnedi3cl', 'znedi3')
-_EEDI3_CORE_ORDER = ('eedi3vk2', 'vszipcl', 'vszip')
 
 
 def _normalize_aa_core(kind, name):
@@ -29,11 +30,14 @@ def _normalize_aa_core(kind, name):
     else:
         aliases = {
             'eedi3vk2': 'eedi3vk2',
+            'eedi3vk': 'eedi3vk2',
             'vk': 'eedi3vk2',
             'vk2': 'eedi3vk2',
             'vszipcl': 'vszipcl',
+            'cl': 'vszipcl',
             'zipcl': 'vszipcl',
             'vszip': 'vszip',
+            'cpu': 'vszip',
             'zip': 'vszip',
         }
     if normalized not in aliases:
@@ -138,71 +142,146 @@ class _NNEDI3Dispatcher:
 
 
 class _EEDI3Dispatcher:
+    """CPU by default; GPU mode tries Vulkan and then OpenCL only."""
     _allowed = {
         'eedi3vk2': {
-            'field', 'dh', 'planes', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck',
+            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck',
             'vthresh0', 'vthresh1', 'vthresh2', 'sclip', 'mclip', 'device_index', 'list_device', 'num_streams'
         },
         'vszipcl': {
-            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck', 'vthresh0',
-            'vthresh1', 'vthresh2', 'sclip', 'device_id', 'list_device', 'num_streams', 'tune'
+            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck',
+            'vthresh0', 'vthresh1', 'vthresh2', 'sclip', 'device_id', 'num_streams', 'tune'
         },
         'vszip': {
-            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck', 'vthresh0',
-            'vthresh1', 'vthresh2', 'sclip', 'mclip'
+            'field', 'dh', 'alpha', 'beta', 'gamma', 'nrad', 'mdis', 'hp', 'vcheck',
+            'vthresh0', 'vthresh1', 'vthresh2', 'sclip', 'mclip'
         },
     }
 
-    def __init__(self, preferred=None, device=None):
+    def __init__(self, preferred=None, device=None, kwargs=None, opencl=False):
         self.preferred = _normalize_aa_core('eedi3', preferred)
-        self.device = device
+        self.device = None if device is None or device < 0 else device
+        self.kwargs = dict(kwargs or {})
+        self.opencl = bool(opencl)
         self.selected = None
 
     @property
     def core(self):
         return vs.core
 
-    def _call_backend(self, name, clip, kwargs):
-        if name == 'eedi3vk2':
-            backend = self.core.eedi3vk2.EEDI3
-            call_kwargs = _filter_kwargs(kwargs, self._allowed[name])
-            if self.device is not None and 'device_index' not in call_kwargs:
-                call_kwargs['device_index'] = self.device
-        elif name == 'vszipcl':
-            backend = self.core.vszipcl.EEDI3
-            call_kwargs = _filter_kwargs(kwargs, self._allowed[name])
-            if kwargs.get('mclip') is not None:
-                raise vs.Error('EEDI3: vszipcl does not support mclip')
-            if self.device is not None and 'device_id' not in call_kwargs:
-                call_kwargs['device_id'] = self.device
-        else:
-            backend = self.core.vszip.EEDI3
-            call_kwargs = _filter_kwargs(kwargs, self._allowed['vszip'])
-        return backend(clip, **call_kwargs)
+    def _backend_order(self):
+        if self.preferred == 'vszip':
+            return ['vszip']
+        if self.preferred == 'vszipcl':
+            return ['vszipcl']
+        if self.preferred == 'eedi3vk2' or self.opencl:
+            return ['eedi3vk2', 'vszipcl']
+        return ['vszip']
 
-    def __call__(self, clip, **kwargs):
+    def _passthrough_plane(self, clip, field, dh):
+        if dh:
+            return clip.resize.Bicubic(height=clip.height * 2,
+                                       src_top=0.25 if field == 1 else -0.25,
+                                       filter_param_a=0, filter_param_b=0.5)
+        if field in (2, 3):
+            return self.core.std.Interleave([clip, clip])
+        return clip
+
+    def _call_backend(self, name, clip, kwargs):
+        backend = getattr(self.core, name).EEDI3
+        call_kwargs = _filter_kwargs(kwargs, self._allowed[name])
+        field, dh = int(kwargs.get('field', 1)), bool(kwargs.get('dh', False))
+        call_kwargs.update(field=field, dh=dh)
+        if name == 'vszipcl' and kwargs.get('mclip') is not None:
+            raise vs.Error('EEDI3: vszipcl does not support mclip')
+        if name != 'vszip':
+            key = 'device_index' if name == 'eedi3vk2' else 'device_id'
+            requested = kwargs.get(key, self.device)
+            if requested is None or requested < 0:
+                call_kwargs.pop(key, None)
+            else:
+                call_kwargs[key] = requested
+        planes = kwargs.get('planes')
+        if planes is None:
+            planes = list(range(clip.format.num_planes))
+        elif isinstance(planes, int):
+            planes = [planes]
+        else:
+            planes = list(planes)
+        if len(set(planes)) != len(planes) or any(p < 0 or p >= clip.format.num_planes for p in planes):
+            raise ValueError('EEDI3: planes must contain distinct valid plane indices')
+        if set(planes) == set(range(clip.format.num_planes)):
+            return backend(clip, **call_kwargs)
+        outputs = []
+        for plane in range(clip.format.num_planes):
+            plane_clip = self.core.std.ShufflePlanes(clip, plane, vs.GRAY)
+            if plane not in planes:
+                outputs.append(self._passthrough_plane(plane_clip, field, dh))
+                continue
+            plane_kwargs = dict(call_kwargs)
+            for key in ('sclip', 'mclip'):
+                reference = plane_kwargs.get(key)
+                if reference is not None and reference.format.num_planes > 1:
+                    plane_kwargs[key] = self.core.std.ShufflePlanes(reference, plane, vs.GRAY)
+            outputs.append(backend(plane_clip, **plane_kwargs))
+        return self.core.std.ShufflePlanes(outputs, [0] * clip.format.num_planes, clip.format.color_family)
+
+    def __call__(self, clip, **call_kwargs):
+        kwargs = dict(self.kwargs)
+        kwargs.update(call_kwargs)
+        order = self._backend_order()
+        if self.selected in order:
+            order = order[order.index(self.selected):]
         errors = []
-        for name in _ordered_aa_cores(_EEDI3_CORE_ORDER, self.preferred):
-            if self.selected is not None and name != self.selected:
-                continue
+        for index, name in enumerate(order):
             try:
-                result = self._call_backend(name, clip, kwargs)
+                output = self._call_backend(name, clip, kwargs)
                 self.selected = name
-                return result
-            except _AA_BACKEND_EXCEPTIONS as exc:
-                errors.append(f'{name}: {exc}')
-                if self.selected == name:
-                    self.selected = None
-        for name in _ordered_aa_cores(_EEDI3_CORE_ORDER, self.preferred):
-            if self.selected is None or name == self.selected:
-                continue
-            try:
-                result = self._call_backend(name, clip, kwargs)
-                self.selected = name
-                return result
-            except _AA_BACKEND_EXCEPTIONS as exc:
-                errors.append(f'{name}: {exc}')
-        raise RuntimeError(MODULE_NAME + ': eedi3 backend initialization failed: ' + '; '.join(dict.fromkeys(errors)))
+                break
+            except _AA_BACKEND_EXCEPTIONS as error:
+                errors.append(f'{name}: {error}')
+        else:
+            raise vs.Error('EEDI3: no requested backend is available (' + '; '.join(errors) + ')')
+        if errors:
+            warnings.warn('EEDI3: falling back to ' + name + ' (' + '; '.join(errors) + ')', RuntimeWarning, stacklevel=2)
+        if index == len(order) - 1:
+            return output
+
+        # Native GPU failures may appear at frame evaluation rather than node
+        # creation. Keep the failure boundary around the actual frame request.
+        # VapourSynth reserves a worker for nested synchronous frame requests.
+        nodes = {name: output}
+        state = {'index': index}
+        lock = Lock()
+        template = self.core.std.BlankClip(clip=output)
+
+        def evaluate(n, f):
+            failures = []
+            with lock:
+                first = state['index']
+            for candidate_index in range(first, len(order)):
+                candidate = order[candidate_index]
+                try:
+                    with lock:
+                        if candidate not in nodes:
+                            nodes[candidate] = self._call_backend(candidate, clip, kwargs)
+                        node = nodes[candidate]
+                    result = node.get_frame(n)
+                    with lock:
+                        state['index'] = max(state['index'], candidate_index)
+                        self.selected = order[state['index']]
+                    return result
+                except _AA_BACKEND_EXCEPTIONS as error:
+                    failures.append(f'{candidate}: {error}')
+                    with lock:
+                        previous = state['index']
+                        state['index'] = min(len(order) - 1, max(previous, candidate_index + 1))
+                    if candidate_index + 1 < len(order) and previous <= candidate_index:
+                        warnings.warn('EEDI3: falling back to ' + order[candidate_index + 1] +
+                                      f' at frame {n} ({error})', RuntimeWarning, stacklevel=2)
+            raise vs.Error('EEDI3: frame evaluation failed (' + '; '.join(failures) + ')')
+
+        return self.core.std.ModifyFrame(template, template, evaluate)
 
 
 class Clip:
@@ -323,8 +402,17 @@ class AAEedi3(AAParent):
             'mdis': args.get('mdis', 30),
         }
 
+        allowed = set().union(*_EEDI3Dispatcher._allowed.values())
+        self.eedi3_args.update({key: value for key, value in args.items() if key in allowed})
+        self.eedi3_args.update(args.get('eedi3_args') or {})
+        # The AA wrapper controls dimensions and field placement.
+        self.eedi3_args.pop('field', None)
+        self.eedi3_args.pop('dh', None)
+
         self.opencl = args.get('opencl', False)
-        self.eedi3 = _EEDI3Dispatcher(args.get('eedi3_core'), args.get('opencl_device', 0))
+        self.eedi3 = _EEDI3Dispatcher(args.get('eedi3_core'),
+                                     args.get('device', args.get('opencl_device')),
+                                     opencl=self.opencl)
 
     '''
     def build_eedi3_mask(self, clip):
