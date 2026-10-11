@@ -128,7 +128,7 @@ upstream versions; all other distributions carry our local build label.
 | `vapoursynth-tcanny` | `14.1+alice.1` |
 | `vapoursynth-tcomb` | `4.2+alice.1` |
 | `vs-cfl` | `1.0.2+alice.1` |
-| `vs-collection-rk` | `0.4.1+alice.1` |
+| `vs-collection-rk` | `0.4.2+alice.1` |
 | `vs-cublas-cu121` | `16.2.2+alice.1` |
 | `vs-cudnn-cu121` | `16.2.2+alice.1` |
 | `vs-mlrt` | `16.2.2+alice.1` |

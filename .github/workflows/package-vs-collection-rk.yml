@@ -94,7 +94,7 @@ jobs:
         env:
           LABEL: ${{ matrix.os }}-${{ matrix.python }}
         run: >-
-          python scripts/build_collection.py validate --install
+          python scripts/build_collection.py validate --install --runtime-imports
           --legacy-wheel .work/legacy-wheel/vs_collection_rk-0.3.0-py3-none-any.whl
           --output ".work/validated/$LABEL.json"
       - uses: actions/upload-artifact@v4

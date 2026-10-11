@@ -55,7 +55,7 @@ also include the local fixes recorded below.
 
 | Directory | Distribution | Wheel version | Dependency policy |
 | --- | --- | --- | --- |
-| modules/vs-collection-rk | vs-collection-rk | 0.4.1+alice.1 | Exact pins for the 12 component wheels above |
+| modules/vs-collection-rk | vs-collection-rk | 0.4.2+alice.1 | Exact pins for the 12 component wheels above |
 
 ## HAvsFunc modification chain
 
@@ -78,6 +78,14 @@ nnedi3_rpow2 similarly uses the canonical gist's common ancestor
 
 ## Updating a module
 
+Entry 0.4.2+alice.1 adds installed-file checking and explicit repair for in-place
+upgrades from the old monolithic Collection. Component versions and source hashes
+are unchanged. Validation now covers fresh installation, uninstall-first
+migration, and direct upgrade followed by detection and repair. All 12 component
+imports and package children run in separate isolated Python processes using
+real VapourSynth; CI runtime dependencies are recorded in
+scripts/requirements-collection-runtime.txt.
+
 Fetch and review a chosen canonical upstream commit first. Run git subtree
 pull --prefix=modules/<id> <canonical-url> <commit> --squash, then resolve
 any conflicts with the local modifications. Keep the original upstream layout
@@ -97,7 +105,7 @@ runtime hashes in modules/collection.json. CI compares the initial patch Git
 objects with the old Collection, so a reviewed later upstream update does not
 have to pretend that its new runtime still equals the initial snapshot.
 
-## Local fixes in vs-collection-rk 0.4.1+alice.1
+## Local fixes in vs-collection-rk 0.4.2+alice.1
 
 - yvsfunc 0.3.0.post2+alice.1 fixes ee2x's swapped first-pass outputs, preserving
   an independent NNEDI3 guide for the second EEDI3 pass.

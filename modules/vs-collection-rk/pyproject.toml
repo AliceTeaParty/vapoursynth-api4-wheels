@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vs-collection-rk"
-version = "0.4.1+alice.1"
+version = "0.4.2+alice.1"
 description = "Pinned entry package for the RyougiKukoc VapourSynth script collection"
 requires-python = ">=3.12"
 readme = "README.md"

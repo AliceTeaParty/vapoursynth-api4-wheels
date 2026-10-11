@@ -44,12 +44,14 @@ def validate_candidate(github: GitHub, run: dict, plan: dict, wheel_dir: Path, v
         tested = read_json(validation_dir / f"{label}.json")
         require(tested["central_sha"] == plan["central_sha"] and tested["registry_sha256"] == plan["registry_sha256"], "validation belongs to another source")
         require(tested.get("fresh_install") == "passed" and tested.get("monolith_migration") == "passed", "entry resolution or migration was not verified")
+        require(tested.get("monolith_upgrade_repair") == "passed", "direct monolith upgrade repair was not verified")
         require(len(tested["wheels"]) == len(result["wheels"]), "incomplete validated wheel set")
         for actual, verified in zip(result["wheels"], tested["wheels"]):
             for key in ("distribution", "version", "wheel", "sha256", "file_sha256", "pyproject_sha256"):
                 require(actual[key] == verified[key], f"validated wheel mismatch: {label}/{key}")
             gates = verified["validation"]
             require(gates.get("installed_files") == "passed" and gates["platform"] == system and gates["python"].startswith(python), "wrong or incomplete installation validation")
+            require(gates.get("runtime_import") == "passed", "component runtime imports were not verified")
     result["build_run_id"] = run["id"]
     result["build_run_url"] = run["html_url"]
     return result

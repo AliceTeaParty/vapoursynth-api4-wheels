@@ -106,9 +106,10 @@ def make_plans(registry: dict, commit: str, reader) -> list[dict]:
         "distribution": registry["distribution"], "import_name": entry["import_name"],
         "runtime_kind": "package", "path": entry["path"], "central_sha": commit,
         "repository": CENTRAL_REPOSITORY, "source_sha": commit,
-        "pyproject_sha256": sha256(project), "required_files": ["vs_collection_rk/__init__.py", "vs_collection_rk/_registry.json"],
+        "pyproject_sha256": sha256(project), "required_files": ["vs_collection_rk/__init__.py", "vs_collection_rk/__main__.py", "vs_collection_rk/_registry.json"],
         "runtime_sha256": {
             "vs_collection_rk/__init__.py": sha256(reader(entry["path"] + "/vs_collection_rk/__init__.py")),
+            "vs_collection_rk/__main__.py": sha256(reader(entry["path"] + "/vs_collection_rk/__main__.py")),
             "vs_collection_rk/_registry.json": sha256(package_registry),
         }, **metadata,
     })
