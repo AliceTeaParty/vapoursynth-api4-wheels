@@ -29,7 +29,9 @@ def validate_set(plan: dict, wheel_dir: Path) -> dict:
     for distribution, item in expected.items():
         manifest = validate_wheel(wheels[distribution], item)
         for relative, digest in item["runtime_sha256"].items():
-            require(manifest["file_sha256"].get(relative) == digest, f"wheel changed Collection runtime file: {relative}")
+            installed = item.get("runtime_prefix", "")
+            installed = installed + "/" + relative if installed else relative
+            require(manifest["file_sha256"].get(installed) == digest, f"wheel changed Collection runtime file: {relative}")
         if item["kind"] == "collection-component":
             matches = [name for name in manifest["file_sha256"] if fnmatch.fnmatchcase(name, "*.dist-info/extra_metadata/provenance.toml")]
             require(len(matches) == 1 and manifest["file_sha256"][matches[0]] == item["provenance_sha256"], "wheel provenance differs from committed source")
@@ -38,7 +40,8 @@ def validate_set(plan: dict, wheel_dir: Path) -> dict:
 
 
 def verify_install(plan: dict, validated: dict, wheel_dir: Path, legacy_wheel: Path | None,
-                   *, direct_upgrade: bool = False, runtime_imports: bool = False) -> None:
+                   *, direct_upgrade: bool = False, runtime_imports: bool = False,
+                   previous_wheel_dir: Path | None = None) -> None:
     with tempfile.TemporaryDirectory(prefix="vs-collection-install-") as directory:
         temporary = Path(directory)
         environment = temporary / "env"
@@ -48,19 +51,22 @@ def verify_install(plan: dict, validated: dict, wheel_dir: Path, legacy_wheel: P
             subprocess.run([str(python), "-m", "pip", "install", "--no-index", "--no-deps", str(legacy_wheel.resolve())], check=True)
             # The old distribution owns the same script paths. Remove it before
             # installing component dependencies, as documented for users.
-            if not direct_upgrade:
+            if not direct_upgrade and not previous_wheel_dir:
                 subprocess.run([str(python), "-m", "pip", "uninstall", "-y", "vs-collection-rk"], check=True)
+        if previous_wheel_dir:
+            previous = list(previous_wheel_dir.glob("vs_collection_rk-*.whl"))
+            require(len(previous) == 1, "expected one previous Collection entry wheel")
+            subprocess.run([
+                str(python), "-m", "pip", "install", "--no-index", "--find-links",
+                str(previous_wheel_dir.resolve()), str(previous[0].resolve()),
+            ], check=True)
         subprocess.run([
             str(python), "-m", "pip", "install", "--no-index", "--find-links", str(wheel_dir.resolve()),
             f"vs-collection-rk=={plan['version']}",
         ], check=True)
         if direct_upgrade:
             damaged = subprocess.run([str(python), "-I", "-m", "vs_collection_rk", "check"], cwd=temporary)
-            require(damaged.returncode in (0, 1), "component file check could not run after direct upgrade")
-            subprocess.run([
-                str(python), "-I", "-m", "vs_collection_rk", "repair", "--no-index",
-                "--find-links", str(wheel_dir.resolve()),
-            ], check=True, cwd=temporary)
+            require(damaged.returncode == 0, "direct upgrade deleted component files; migration must work without repair")
         subprocess.run([str(python), "-m", "pip", "check"], check=True)
         subprocess.run([str(python), "-I", "-m", "vs_collection_rk", "check"], check=True, cwd=temporary)
         by_distribution = {item["distribution"]: item for item in plan["components"]}
@@ -116,6 +122,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--baseline", type=Path)
     parser.add_argument("--legacy-wheel", type=Path)
+    parser.add_argument("--previous-wheel-dir", type=Path, help="previous public-layout component wheel set")
     parser.add_argument("--install", action="store_true")
     parser.add_argument("--runtime-imports", action="store_true", help="install CI runtime dependencies and execute imports")
     args = parser.parse_args()
@@ -146,12 +153,20 @@ def main() -> None:
                 result["monolith_migration"] = "passed"
                 verify_install(plan, result, args.wheel_dir, args.legacy_wheel,
                                direct_upgrade=True, runtime_imports=args.runtime_imports)
-                result["monolith_upgrade_repair"] = "passed"
+                result["monolith_upgrade"] = "passed"
+            if args.previous_wheel_dir:
+                verify_install(plan, result, args.wheel_dir, None,
+                               previous_wheel_dir=args.previous_wheel_dir, runtime_imports=args.runtime_imports)
+                result["split_upgrade"] = "passed"
+                require(args.legacy_wheel is not None, "damaged split upgrade verification requires a legacy wheel")
+                verify_install(plan, result, args.wheel_dir, args.legacy_wheel,
+                               previous_wheel_dir=args.previous_wheel_dir, runtime_imports=args.runtime_imports)
+                result["damaged_split_upgrade"] = "passed"
         if args.output:
             write_json(args.output, result)
         print(json.dumps({"version": plan["version"], "wheels": [item["wheel"] for item in result["wheels"]],
                           "fresh_install": result.get("fresh_install"), "monolith_migration": result.get("monolith_migration"),
-                          "monolith_upgrade_repair": result.get("monolith_upgrade_repair")}, indent=2))
+                          "monolith_upgrade": result.get("monolith_upgrade")}, indent=2))
     except (ValueError, KeyError) as error:
         parser.exit(1, f"{error}\n")
 

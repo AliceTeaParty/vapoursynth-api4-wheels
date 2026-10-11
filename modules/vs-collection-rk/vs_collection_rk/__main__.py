@@ -35,10 +35,13 @@ def check_files() -> dict[str, list[str]]:
         if any(len(row) != 3 for row in records):
             problems[name] = [*errors, "installed RECORD is malformed"]
             continue
-        runtime = [row for row in records if row[0] == root or row[0].startswith(root + "/")]
+        pth = entry.get("pth_file")
+        runtime = [row for row in records if row[0] == root or row[0].startswith(root + "/") or row[0] == pth]
         required = root if entry["runtime_kind"] == "module" else root + "/__init__.py"
         if required not in {row[0] for row in runtime}:
             errors.append(f"RECORD does not list {required}")
+        if pth and pth not in {row[0] for row in runtime}:
+            errors.append(f"RECORD does not list {pth}")
         for file, encoded_hash, _ in runtime:
             if file.endswith((".pyc", ".pyo")):
                 continue
@@ -59,20 +62,27 @@ def check_imports() -> dict[str, str]:
     """Use a fresh isolated process for every module, including package children."""
     problems = {}
     for entry in load_registry():
+        dist = metadata.distribution(entry["distribution"])
+        expected = str(dist.locate_file(entry["install_path"]))
         names = {entry["import_name"]}
         if entry["runtime_kind"] == "package":
-            dist = metadata.distribution(entry["distribution"])
             for file in dist.files or []:
                 path = str(file)
                 if path.startswith(entry["install_path"] + "/") and path.endswith(".py"):
+                    if "/" in entry["install_path"]:
+                        path = path[len(entry["install_path"].rsplit("/", 1)[0]) + 1:]
                     name = path[:-3].replace("/", ".")
                     names.add(name.removesuffix(".__init__"))
         for name in sorted(names):
-            code = "import importlib, sys; m = importlib.import_module(sys.argv[1])"
+            code = "import importlib, sys; from pathlib import Path; m = importlib.import_module(sys.argv[1]); actual = Path(m.__file__).resolve(); expected = Path(sys.argv[2]).resolve()"
+            if entry["runtime_kind"] == "package":
+                code += "; assert actual.is_relative_to(expected), f'import resolved outside installed component: {actual}'"
+            else:
+                code += "; assert actual == expected, f'import resolved outside installed component: {actual}'"
             if name == "mvsfunc":
                 code += "; assert callable(m.Depth); assert callable(m.BM3D)"
             try:
-                result = subprocess.run([sys.executable, "-I", "-c", code, name], capture_output=True, text=True, timeout=60)
+                result = subprocess.run([sys.executable, "-I", "-c", code, name, expected], capture_output=True, text=True, timeout=60)
             except subprocess.TimeoutExpired:
                 problems[name] = "import timed out after 60 seconds"
                 continue

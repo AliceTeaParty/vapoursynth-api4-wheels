@@ -19,6 +19,7 @@ MATRIX = {
     "windows-latest-3.12": ("win32", "3.12."),
     "windows-latest-3.13": ("win32", "3.13."),
 }
+RUNTIME_PREFIX = "_vs_collection_rk_runtime"
 
 
 def sha256(data: bytes) -> str:
@@ -45,7 +46,8 @@ def load_collection(root: Path = ROOT) -> dict:
         require(item["path"] == f"modules/{item['module']}", "component must have its own modules directory")
         require(item["runtime_kind"] in ("module", "package"), "unsupported runtime kind")
         expected = item["import_name"] + (".py" if item["runtime_kind"] == "module" else "")
-        require(item["install_path"] == expected, "install path disagrees with import name")
+        require(item["install_path"] == RUNTIME_PREFIX + "/" + expected, "install path disagrees with import name")
+        require(item["pth_file"] == "_vs_collection_rk_" + item["module"].replace("-", "_") + ".pth", "unexpected component path file")
         for commit in ("upstream_revision", "import_commit", "patch_commit", "collection_revision"):
             require(bool(SHA.fullmatch(item[commit])), f"invalid {commit}")
         require(item["collection_revision"] == data["collection_revision"], "mixed migration snapshots")
@@ -78,12 +80,16 @@ def make_plans(registry: dict, commit: str, reader) -> list[dict]:
             content = reader(item["path"] + "/" + relative)
             require(sha256(content) == digest, f"unrecorded runtime change: {item['module']}/{relative}")
             hashes[relative] = digest
-        required = [*hashes, "*.dist-info/extra_metadata/provenance.toml"]
+        pth = reader(item["path"] + "/" + item["pth_file"])
+        require(pth == (RUNTIME_PREFIX + "\n").encode(), "component path file must contain only the runtime directory")
+        required = [*(RUNTIME_PREFIX + "/" + path for path in hashes), item["pth_file"], "*.dist-info/extra_metadata/provenance.toml"]
         required += [f"*.dist-info/licenses/{name}" for name in item["license_files"]]
         plans.append({
             "schema_version": 1, "kind": "collection-component", "module": item["module"],
             "distribution": item["distribution"], "import_name": item["import_name"],
             "runtime_kind": item["runtime_kind"], "path": item["path"], "central_sha": commit,
+            "runtime_prefix": RUNTIME_PREFIX, "install_path": item["install_path"],
+            "pth_file": item["pth_file"], "pth_sha256": sha256(pth),
             "repository": CENTRAL_REPOSITORY, "source_sha": commit,
             "pyproject_sha256": sha256(project), "provenance_sha256": sha256(provenance_bytes),
             "runtime_sha256": hashes, "required_files": required, **metadata,
@@ -100,6 +106,7 @@ def make_plans(registry: dict, commit: str, reader) -> list[dict]:
     for item, exposed in zip(registry["components"], installed):
         require(exposed["distribution"] == item["distribution"] and exposed["wheel_version"] == item["version"], "entry introspection version mismatch")
         require(exposed["import_name"] == item["import_name"], "entry import name mismatch")
+        require(exposed["install_path"] == item["install_path"] and exposed["pth_file"] == item["pth_file"], "entry runtime layout mismatch")
         require(exposed["source_revision"] == item["upstream_revision"], "entry upstream revision mismatch")
     plans.append({
         "schema_version": 1, "kind": "collection-entry", "module": "vs-collection-rk",
@@ -126,6 +133,8 @@ def source_plan(root: Path = ROOT) -> dict:
         for path, digest in plan["runtime_sha256"].items():
             require(sha256((root / plan["path"] / path).read_bytes()) == digest, "worktree runtime differs from committed source")
         require(sha256((root / plan["path"] / "pyproject.toml").read_bytes()) == plan["pyproject_sha256"], "uncommitted packaging changes")
+        if plan.get("pth_file"):
+            require(sha256((root / plan["path"] / plan["pth_file"]).read_bytes()) == plan["pth_sha256"], "uncommitted component path file")
     return {
         "schema_version": 1, "kind": "collection", "distribution": registry["distribution"],
         "version": registry["version"], "central_sha": commit, "registry_sha256": sha256(registry_bytes),

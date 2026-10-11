@@ -96,6 +96,26 @@ class CollectionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "incomplete"):
                 validate_set(plan, Path(temp))
 
+    def test_private_runtime_wheel_preserves_import_and_rejects_executable_pth(self):
+        plan = fixture_plan()
+        plan.update(kind="collection-component", module="demo", runtime_prefix="_vs_collection_rk_runtime",
+                    install_path="_vs_collection_rk_runtime/demo", pth_file="_vs_collection_rk_demo.pth")
+        pth = b"_vs_collection_rk_runtime\n"
+        plan["pth_sha256"] = hashlib.sha256(pth).hexdigest()
+        plan["required_files"] = ["_vs_collection_rk_runtime/demo/__init__.py", plan["pth_file"]]
+        files = wheel_files()
+        for name in list(files):
+            if name.startswith("demo/"):
+                files["_vs_collection_rk_runtime/" + name] = files.pop(name)
+        files[plan["pth_file"]] = pth
+        with tempfile.TemporaryDirectory() as temp:
+            wheel = write_wheel(Path(temp), files)
+            validate_wheel(wheel, plan)
+            files[plan["pth_file"]] = b"import os\n"
+            wheel = write_wheel(Path(temp), files)
+            with self.assertRaisesRegex(ValueError, "path file"):
+                validate_wheel(wheel, plan)
+
     def test_group_release_recovers_without_exposing_an_incomplete_set(self):
         with tempfile.TemporaryDirectory() as temp:
             directory = Path(temp)

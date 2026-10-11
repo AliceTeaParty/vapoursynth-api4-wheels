@@ -4,7 +4,7 @@ This component starts from [VapourSynth-Scripts-Collection](https://github.com/R
 
 The upstream subtree baseline is [https://github.com/YomikoR/yvsfunc](https://github.com/YomikoR/yvsfunc) at ee3309efe2543c6680619f6deb64496102e7eb64. The following local patch combines the recorded intermediate/gist changes, the Collection changes and packaging metadata. See provenance.toml for the complete chain and runtime file hashes.
 
-Wheel distribution: yvsfunc==0.3.0.post2+alice.1. The wheel version is the central distribution's version; source version markers remain unchanged. Runtime dependencies remain user-managed, matching Collection 0.3.0. Install vs-collection-rk to obtain the entire pinned component set.
+Wheel distribution: yvsfunc==0.3.0.post3+alice.1. The wheel version is the central distribution's version; source version markers remain unchanged. Runtime dependencies remain user-managed, matching Collection 0.3.0. Install vs-collection-rk to obtain the entire pinned component set.
 
 License observation: WTFPL. Any upstream license files and source headers are retained. Packaging does not assign a new license to files without a separately declared license.
 

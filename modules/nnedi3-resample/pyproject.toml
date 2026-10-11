@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nnedi3-resample"
-version = "2.post1+alice.1"
+version = "2.post2+alice.1"
 description = "nnedi3_resample from the RyougiKukoc script collection"
 requires-python = ">=3.12"
 readme = "WHEEL-README.md"
@@ -17,10 +17,13 @@ Collection = "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection"
 Wheels = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/modules/nnedi3-resample"
 
 [tool.hatch.build.targets.wheel]
-only-include = ["nnedi3_resample.py"]
+only-include = ["_vs_collection_rk_nnedi3_resample.pth"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"nnedi3_resample.py" = "_vs_collection_rk_runtime/nnedi3_resample.py"
 
 [tool.hatch.build.targets.wheel.extra-metadata]
 "provenance.toml" = "provenance.toml"
 
 [tool.hatch.build.targets.sdist]
-include = ["/nnedi3_resample.py", "/pyproject.toml", "/provenance.toml", "/WHEEL-README.md"]
+include = ["/_vs_collection_rk_nnedi3_resample.pth", "/nnedi3_resample.py", "/pyproject.toml", "/provenance.toml", "/WHEEL-README.md"]

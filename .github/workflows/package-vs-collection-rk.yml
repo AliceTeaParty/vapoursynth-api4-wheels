@@ -36,6 +36,16 @@ jobs:
         run: python scripts/build_collection.py build
       - name: Build the old monolithic wheel for migration verification
         run: python -m build --wheel --no-isolation --outdir .work/legacy-wheel .work/collection-baseline
+      - name: Download the previous public-layout wheel set
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download 'vs-collection-rk-v0.4.2+alice.1' --repo AliceTeaParty/vapoursynth-api4-wheels --pattern '*.whl' --dir .work/previous-wheels
+      - uses: actions/upload-artifact@v4
+        with:
+          name: collection-previous-wheels
+          path: .work/previous-wheels/*.whl
+          if-no-files-found: error
+          retention-days: 30
       - uses: actions/upload-artifact@v4
         with:
           name: collection-source-plan
@@ -90,12 +100,17 @@ jobs:
         with:
           name: collection-legacy-wheel
           path: .work/legacy-wheel
+      - uses: actions/download-artifact@v4
+        with:
+          name: collection-previous-wheels
+          path: .work/previous-wheels
       - name: Verify wheels, entry resolution and monolith migration
         env:
           LABEL: ${{ matrix.os }}-${{ matrix.python }}
         run: >-
           python scripts/build_collection.py validate --install --runtime-imports
           --legacy-wheel .work/legacy-wheel/vs_collection_rk-0.3.0-py3-none-any.whl
+          --previous-wheel-dir .work/previous-wheels
           --output ".work/validated/$LABEL.json"
       - uses: actions/upload-artifact@v4
         with:

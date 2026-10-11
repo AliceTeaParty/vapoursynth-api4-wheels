@@ -4,7 +4,7 @@ This component starts from [VapourSynth-Scripts-Collection](https://github.com/R
 
 The upstream subtree baseline is [https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk](https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk) at fef19f85c96c0d7e281627942c358ee1b92d7dbe. The following local patch combines the recorded intermediate/gist changes, the Collection changes and packaging metadata. See provenance.toml for the complete chain and runtime file hashes.
 
-Wheel distribution: vstaambk==0.3.0.post2+alice.1. The wheel version is the central distribution's version; source version markers remain unchanged. Runtime dependencies remain user-managed, matching Collection 0.3.0. Install vs-collection-rk to obtain the entire pinned component set.
+Wheel distribution: vstaambk==0.3.0.post3+alice.1. The wheel version is the central distribution's version; source version markers remain unchanged. Runtime dependencies remain user-managed, matching Collection 0.3.0. Install vs-collection-rk to obtain the entire pinned component set.
 
 License observation: Not separately declared. Any upstream license files and source headers are retained. Packaging does not assign a new license to files without a separately declared license.
 

@@ -7,22 +7,26 @@ Python 3.12 or newer is required.
 
 Install from the central index after a manual publication:
 
-    python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.2+alice.1
+    python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.3+alice.1
 
 ## Migrating from the monolithic Collection package
 
-Uninstall the old monolithic distribution first, then install the component
-entry package. A plain in-place upgrade can install component dependencies
-before removing the old distribution, whose RECORD still owns the same files.
+Version 0.4.3+alice.1 supports a normal upgrade from both the old monolithic
+distribution and the split 0.4.0–0.4.2 distributions, including installations
+whose component files were deleted during an earlier upgrade:
 
-    python -m pip uninstall vs-collection-rk
-    python -m pip install --force-reinstall --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.2+alice.1
+    python -m pip install --upgrade --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.3+alice.1
 
-If you already upgraded in place, pip may report success and `pip check` may
-pass even though the old monolith's uninstall deleted newly installed component
-files. This affects all 12 components, including mvsfunc. Repeating a normal
-install does not restore them because their distribution metadata still exists.
-With entry version 0.4.2+alice.1 or newer, check and restore damaged components:
+The old split 0.4.0–0.4.2 releases wrote scripts to paths also owned by the
+monolith. Its uninstall could delete newly installed component files while
+`pip check` still passed. Version 0.4.2 added a repair command but did not make
+normal upgrades safe. Version 0.4.3 moves every component to a private runtime
+directory and bumps every component version, so an ordinary upgrade installs
+complete files even when old component metadata remains. The public import
+names and script source code are preserved. No repair command is needed for
+this upgrade.
+
+For later accidental file damage, check and restore damaged components:
 
     python -m vs_collection_rk check
     python -m vs_collection_rk repair --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/
@@ -31,8 +35,6 @@ The repair checks installed runtime files against RECORD and reinstalls only
 damaged components at the entry's exact pins, using the same Python interpreter
 and `--force-reinstall --no-deps`. For offline repair, use
 `repair --no-index --find-links /path/to/collection-wheels`.
-For entry versions without the repair command, the force-reinstall command above
-restores the entire component set after the old monolith has been removed.
 
 After installing your runtime dependencies, execute every component and package
 child import with `python -m vs_collection_rk check --imports`. This also checks
@@ -41,7 +43,12 @@ An import failure with healthy files reports its traceback; file repair cannot
 install missing user-managed runtime libraries or native plugins.
 
 The entry package owns only vs_collection_rk metadata. Each component owns its
-original runtime module/package. No component adds external runtime
+module/package under `_vs_collection_rk_runtime` and its own plain `.pth` file
+which adds that directory to Python's module search path. These paths are not
+owned by the old monolith or the public-layout component wheels. Uninstalling
+one component removes only its script and path file; other components retain
+their own path files. The `.pth` files contain a directory name and execute no
+Python code. No component adds external runtime
 dependencies; install the VapourSynth libraries and native plugins required
 by your scripts separately. The entry's exact component requirements ensure
 that installing this package installs the entire curated set.

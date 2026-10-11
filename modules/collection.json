@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "distribution": "vs-collection-rk",
-  "version": "0.4.2+alice.1",
+  "version": "0.4.3+alice.1",
   "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
   "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
   "collection_version": "0.3.0",
@@ -15,10 +15,10 @@
       "module": "sdering-fix",
       "path": "modules/sdering-fix",
       "distribution": "sdering-fix",
-      "version": "0.3.0.post1+alice.1",
+      "version": "0.3.0.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "sdering_fix",
-      "install_path": "sdering_fix.py",
+      "install_path": "_vs_collection_rk_runtime/sdering_fix.py",
       "upstream_url": "https://gist.github.com/RyougiKukoc/c3832d96a8dce6f609f6e29888af94a6",
       "upstream_revision": "257d981098f67479bf029acda0fdeffa7c38ee08",
       "import_commit": "1a45353bc479070662af616ce3bbc8313636d42f",
@@ -40,16 +40,17 @@
         "sdering_fix.py": "967909471956d9570f6b95a7ad73bc284db0a6589b300863af04c9bf4430a4b5"
       },
       "license_files": [],
-      "patch_commit": "285a913c1314b4ddd531127f6d4f539f28ed0ac6"
+      "patch_commit": "285a913c1314b4ddd531127f6d4f539f28ed0ac6",
+      "pth_file": "_vs_collection_rk_sdering_fix.pth"
     },
     {
       "module": "csmod",
       "path": "modules/csmod",
       "distribution": "csmod",
-      "version": "0.3.0.post1+alice.1",
+      "version": "0.3.0.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "CSMOD",
-      "install_path": "CSMOD.py",
+      "install_path": "_vs_collection_rk_runtime/CSMOD.py",
       "upstream_url": "https://github.com/fdar0536/VapourSynth-Contra-Sharpen-mod",
       "upstream_revision": "b9ff7253bf217dded071b88fb8a6d212aceb81f4",
       "import_commit": "03e969984742a71409376c4de6898b6a5975355f",
@@ -73,16 +74,17 @@
         "CSMOD.py": "be8cc2ca509d7a8ff515cd460f3aa6f962d58f246bcfe62c48930542e670cf2a"
       },
       "license_files": [],
-      "patch_commit": "bfb8abc11413dd32afea6ca3b03c4e4b63099f28"
+      "patch_commit": "bfb8abc11413dd32afea6ca3b03c4e4b63099f28",
+      "pth_file": "_vs_collection_rk_csmod.pth"
     },
     {
       "module": "nnedi3-resample",
       "path": "modules/nnedi3-resample",
       "distribution": "nnedi3-resample",
-      "version": "2.post1+alice.1",
+      "version": "2.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "nnedi3_resample",
-      "install_path": "nnedi3_resample.py",
+      "install_path": "_vs_collection_rk_runtime/nnedi3_resample.py",
       "upstream_url": "https://github.com/HomeOfVapourSynthEvolution/nnedi3_resample",
       "upstream_revision": "314c6446a65c2e25fd7a997051b09830f361675e",
       "import_commit": "d146a460436349d8bf52569a3965907164bf1b17",
@@ -105,16 +107,17 @@
         "nnedi3_resample.py": "f6bd9321499d5b4e5dc67c3d117088af203db313280af67465b54519e2c7402c"
       },
       "license_files": [],
-      "patch_commit": "4948a7ebbdf6b4ff9246af59d720f31960bc75fc"
+      "patch_commit": "4948a7ebbdf6b4ff9246af59d720f31960bc75fc",
+      "pth_file": "_vs_collection_rk_nnedi3_resample.pth"
     },
     {
       "module": "nnedi3-rpow2",
       "path": "modules/nnedi3-rpow2",
       "distribution": "nnedi3-rpow2",
-      "version": "1.1.0.post1+alice.1",
+      "version": "1.1.0.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "nnedi3_rpow2",
-      "install_path": "nnedi3_rpow2.py",
+      "install_path": "_vs_collection_rk_runtime/nnedi3_rpow2.py",
       "upstream_url": "https://gist.github.com/4re/342624c9e1a144a696c6",
       "upstream_revision": "68ec4bdff1e51a3832b163198ed7ea00e1c1ab46",
       "import_commit": "17d595f7441a123c71ee75bfd065b723fe8ed897",
@@ -140,16 +143,17 @@
         "nnedi3_rpow2.py": "8bf7aa7d3958e4f6e4b967a32e9908f458a95c56b08483e30f9098fa0807694a"
       },
       "license_files": [],
-      "patch_commit": "76c37e37c47c69fe0c68f77994f9e34f6112fad1"
+      "patch_commit": "76c37e37c47c69fe0c68f77994f9e34f6112fad1",
+      "pth_file": "_vs_collection_rk_nnedi3_rpow2.pth"
     },
     {
       "module": "havsfunc",
       "path": "modules/havsfunc",
       "distribution": "havsfunc",
-      "version": "33.post2+alice.1",
+      "version": "33.post3+alice.1",
       "runtime_kind": "module",
       "import_name": "havsfunc",
-      "install_path": "havsfunc.py",
+      "install_path": "_vs_collection_rk_runtime/havsfunc.py",
       "upstream_url": "https://github.com/HomeOfVapourSynthEvolution/havsfunc",
       "upstream_revision": "7f0a9a7a37b60a05b9f408024d203e511e544a61",
       "import_commit": "602c6cddca4a1f19c99b16527a383cc066905548",
@@ -189,16 +193,17 @@
       "license_files": [
         "LICENSE"
       ],
-      "patch_commit": "1c88bf06cf806c16e08b38fdf3c4814f586de407"
+      "patch_commit": "1c88bf06cf806c16e08b38fdf3c4814f586de407",
+      "pth_file": "_vs_collection_rk_havsfunc.pth"
     },
     {
       "module": "getfnative",
       "path": "modules/getfnative",
       "distribution": "getfnative",
-      "version": "0.3.0.post1+alice.1",
+      "version": "0.3.0.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "getfnative",
-      "install_path": "getfnative.py",
+      "install_path": "_vs_collection_rk_runtime/getfnative.py",
       "upstream_url": "https://github.com/YomikoR/GetFnative",
       "upstream_revision": "9edcd58346fbffa46f6735637f91ae24dfabcb74",
       "import_commit": "eee47fdb06b71ee33e22a7709d30aa163c26bf4f",
@@ -222,16 +227,17 @@
       "license_files": [
         "LICENSE"
       ],
-      "patch_commit": "bc147d8926095ae436e45f43e67b49092c101b7b"
+      "patch_commit": "bc147d8926095ae436e45f43e67b49092c101b7b",
+      "pth_file": "_vs_collection_rk_getfnative.pth"
     },
     {
       "module": "mvsfunc",
       "path": "modules/mvsfunc",
       "distribution": "mvsfunc",
-      "version": "11.post1+alice.1",
+      "version": "11.post2+alice.1",
       "runtime_kind": "package",
       "import_name": "mvsfunc",
-      "install_path": "mvsfunc",
+      "install_path": "_vs_collection_rk_runtime/mvsfunc",
       "upstream_url": "https://github.com/HomeOfVapourSynthEvolution/mvsfunc",
       "upstream_revision": "865c7486ca860d323754ec4774bc4cca540a7076",
       "import_commit": "b0884169d8b99ac049b1dc0ed625bf959bed4b93",
@@ -259,16 +265,17 @@
         "mvsfunc/py.typed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
       "license_files": [],
-      "patch_commit": "8b8d2a30d2c466a3d22a21fc1569e29f571d2360"
+      "patch_commit": "8b8d2a30d2c466a3d22a21fc1569e29f571d2360",
+      "pth_file": "_vs_collection_rk_mvsfunc.pth"
     },
     {
       "module": "muvsfunc",
       "path": "modules/muvsfunc",
       "distribution": "muvsfunc",
-      "version": "0.3.0.post1+alice.1",
+      "version": "0.3.0.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "muvsfunc",
-      "install_path": "muvsfunc.py",
+      "install_path": "_vs_collection_rk_runtime/muvsfunc.py",
       "upstream_url": "https://github.com/WolframRhodium/muvsfunc",
       "upstream_revision": "d278cd3a68250a4d9562c6ec2b401f1a76c324a3",
       "import_commit": "62f5893814685afee21ca1bc9876c97721fbb73a",
@@ -292,16 +299,17 @@
         "muvsfunc.py": "9e40aa0993b34b22a83812b7d3c8c4be06a7594ff3a9b90fb6406cb15af1d8ac"
       },
       "license_files": [],
-      "patch_commit": "ee3bb3e7df770fc76359803a07c1115f09c92894"
+      "patch_commit": "ee3bb3e7df770fc76359803a07c1115f09c92894",
+      "pth_file": "_vs_collection_rk_muvsfunc.pth"
     },
     {
       "module": "fvsfunc",
       "path": "modules/fvsfunc",
       "distribution": "fvsfunc",
-      "version": "0.3.0.post2+alice.1",
+      "version": "0.3.0.post3+alice.1",
       "runtime_kind": "module",
       "import_name": "fvsfunc",
-      "install_path": "fvsfunc.py",
+      "install_path": "_vs_collection_rk_runtime/fvsfunc.py",
       "upstream_url": "https://github.com/Irrational-Encoding-Wizardry/fvsfunc",
       "upstream_revision": "076dbde68227f6cca91304a447b2a02b0e95413e",
       "import_commit": "64191bb0dd8ea15bd9ababc74f7ccea3479abbe8",
@@ -325,16 +333,17 @@
         "fvsfunc.py": "1e7f3d9bf293b9bd771bf0886b7ba3f3bed07c1eda47d384ed61fd363a2b715c"
       },
       "license_files": [],
-      "patch_commit": "84f83a60a2404817f951550b6606969ee0de7f79"
+      "patch_commit": "84f83a60a2404817f951550b6606969ee0de7f79",
+      "pth_file": "_vs_collection_rk_fvsfunc.pth"
     },
     {
       "module": "vstaambk",
       "path": "modules/vstaambk",
       "distribution": "vstaambk",
-      "version": "0.3.0.post2+alice.1",
+      "version": "0.3.0.post3+alice.1",
       "runtime_kind": "module",
       "import_name": "vsTAAmbk",
-      "install_path": "vsTAAmbk.py",
+      "install_path": "_vs_collection_rk_runtime/vsTAAmbk.py",
       "upstream_url": "https://github.com/HomeOfVapourSynthEvolution/vsTAAmbk",
       "upstream_revision": "fef19f85c96c0d7e281627942c358ee1b92d7dbe",
       "import_commit": "51627e28e665385de04bd5e47e98391374a22231",
@@ -360,16 +369,17 @@
         "vsTAAmbk.py": "39b9b4069fc06e130d710859cd7fbaa21c58dc2e15ece6226bfe3feb9f78fb6e"
       },
       "license_files": [],
-      "patch_commit": "906a1e5b61d5b44936dc48bdcd316677aaed0337"
+      "patch_commit": "906a1e5b61d5b44936dc48bdcd316677aaed0337",
+      "pth_file": "_vs_collection_rk_vstaambk.pth"
     },
     {
       "module": "kagefunc",
       "path": "modules/kagefunc",
       "distribution": "kagefunc",
-      "version": "0.3.0.post1+alice.1",
+      "version": "0.3.0.post2+alice.1",
       "runtime_kind": "module",
       "import_name": "kagefunc",
-      "install_path": "kagefunc.py",
+      "install_path": "_vs_collection_rk_runtime/kagefunc.py",
       "upstream_url": "https://github.com/Irrational-Encoding-Wizardry/kagefunc",
       "upstream_revision": "96947a1bda5639a4e0b89202e964a15bc337521d",
       "import_commit": "774f85fcbf56c16f59b78e0abbca13dcfd9cd0bb",
@@ -394,16 +404,17 @@
       "license_files": [
         "LICENSE"
       ],
-      "patch_commit": "e4ea32257081ba9137db135df2c956247881882d"
+      "patch_commit": "e4ea32257081ba9137db135df2c956247881882d",
+      "pth_file": "_vs_collection_rk_kagefunc.pth"
     },
     {
       "module": "yvsfunc",
       "path": "modules/yvsfunc",
       "distribution": "yvsfunc",
-      "version": "0.3.0.post2+alice.1",
+      "version": "0.3.0.post3+alice.1",
       "runtime_kind": "package",
       "import_name": "yvsfunc",
-      "install_path": "yvsfunc",
+      "install_path": "_vs_collection_rk_runtime/yvsfunc",
       "upstream_url": "https://github.com/YomikoR/yvsfunc",
       "upstream_revision": "ee3309efe2543c6680619f6deb64496102e7eb64",
       "import_commit": "fd80ac44f424dcfd62d4d8ac0279868209eb32ad",
@@ -443,7 +454,8 @@
       "license_files": [
         "COPYING"
       ],
-      "patch_commit": "1eab14ba306ee832738cb489a7835dfae606d9f1"
+      "patch_commit": "1eab14ba306ee832738cb489a7835dfae606d9f1",
+      "pth_file": "_vs_collection_rk_yvsfunc.pth"
     }
   ]
 }

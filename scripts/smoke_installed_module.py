@@ -16,7 +16,7 @@ def inspect(plan: dict, manifest: dict) -> None:
     if sorted(distribution.requires or []) != sorted(manifest["requires_dist"]):
         raise ValueError("installed dependencies disagree with unchanged upstream metadata")
     module = plan.get("runtime_kind", "package") == "module"
-    package = distribution.locate_file(plan["import_name"] + (".py" if module else ""))
+    package = distribution.locate_file(plan.get("install_path", plan["import_name"] + (".py" if module else "")))
     if not (package.is_file() if module else package.is_dir()):
         raise ValueError("installed module/package is missing")
     for name in manifest["files"]:
