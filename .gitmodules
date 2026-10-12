@@ -1,3 +1,6 @@
 [submodule "plugins/vapoursynth-krigbilateralvk"]
 	path = plugins/vapoursynth-krigbilateralvk
 	url = https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk.git
+[submodule "plugins/vapoursynth-dfttestvk"]
+	path = plugins/vapoursynth-dfttestvk
+	url = https://github.com/RyougiKukoc/vapoursynth-dfttestvk.git
