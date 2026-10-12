@@ -49,7 +49,20 @@ def main():
             with core.krigvk.KrigBilateral(clip).get_frame(0) as output:
                 assert all(v==-0.25 for row in output[1].tolist() for v in row)
                 assert all(v==0.25 for row in output[2].tolist() for v in row)
+        tiles=[core.std.BlankClip(source,color=color) for color in
+               ([16384,12000,45000],[50000,48000,16000],[30000,24000,55000],[45000,55000,22000])]
+        patterned=core.std.StackVertical([core.std.StackHorizontal(tiles[:2]),core.std.StackHorizontal(tiles[2:])])
+        output=core.krigvk.KrigBilateral(patterned)
+        other=core.std.GPUDownload(core.krigvk.KrigBilateralGPU(core.std.GPUUpload(patterned)))
+        with patterned.get_frame(1) as original,output.get_frame(1) as reconstructed,other.get_frame(1) as resident:
+            assert reconstructed[0].tobytes()==original[0].tobytes()
+            assert all(reconstructed[p].tobytes()==resident[p].tobytes() for p in range(3))
+            assert '_ChromaLocation' not in reconstructed.props
+            for p in (1,2):
+                values=[v for row in reconstructed[p].tolist() for v in row]
+                assert max(values)>min(values)
         result|={'rendered':True,'cpu_gpu_equal':True,'luma_exact':True,'signed_float_chroma':True,
+                 'nonuniform_chroma':True,
                  'devices':[{k:v for k,v in entry.items() if k not in ('uuid','luid')} for entry in core.vulkan_devices]}
     if args.output:
         args.output.parent.mkdir(parents=True,exist_ok=True)
