@@ -75,4 +75,13 @@ Their actual driver/API support must satisfy the hardware check. See
 and [pricing](https://docs.github.com/en/billing/reference/actions-runner-pricing).
 Self-hosted Linux GPU machines can run the same workflow.
 
+For a runner with an existing mamba/Python environment, set
+`environment_prefix` to its absolute prefix. This runs the released plugin
+directly in that environment. It needs Python 3.12+, R81, Hatchling, Packaging,
+the GitHub CLI, Vulkan tools, a Vulkan 1.4 loader and access to the host NVIDIA
+ICD/libraries. An empty prefix uses the Docker path described above.
+`device_index` can select a specific Vulkan device on a shared server;
+otherwise the hardware check selects automatically. The chosen device is
+verified by identity and recorded in the results.
+
 The source and plugin are LGPL-3.0-or-later; the wheel/payload include the license and referenced GPLv3 terms.

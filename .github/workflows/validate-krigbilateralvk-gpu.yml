@@ -13,6 +13,16 @@ on:
         required: true
         type: string
         default: 'vapoursynth-krigbilateralvk-v0.2.1+alice.1'
+      environment_prefix:
+        description: 'Optional existing Python/mamba environment prefix; empty uses Docker'
+        required: false
+        type: string
+        default: ''
+      device_index:
+        description: 'Optional Vulkan device index for a shared GPU runner; empty selects automatically'
+        required: false
+        type: string
+        default: ''
   pull_request:
     paths:
       - .github/workflows/validate-krigbilateralvk-gpu.yml
@@ -42,10 +52,25 @@ jobs:
     timeout-minutes: 20
     env:
       RELEASE_TAG: ${{ inputs.release_tag }}
+      GPU_ENV_PREFIX: ${{ inputs.environment_prefix }}
+      KRIGVK_TEST_DEVICE_INDEX: ${{ inputs.device_index }}
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Configure the optional native Python environment
+        if: inputs.environment_prefix != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$GPU_ENV_PREFIX" in /*) ;; *) echo 'environment_prefix must be absolute' >&2; exit 1 ;; esac
+          test -x "$GPU_ENV_PREFIX/bin/python"
+          mkdir -p "$GPU_ENV_PREFIX/../cache" "$GPU_ENV_PREFIX/../tmp" "$GPU_ENV_PREFIX/../nvidia-cache"
+          printf '%s\n' "$GPU_ENV_PREFIX/bin" >> "$GITHUB_PATH"
+          printf 'LD_LIBRARY_PATH=%s\n' "$GPU_ENV_PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+          printf 'XDG_CACHE_HOME=%s\n' "$GPU_ENV_PREFIX/../cache" >> "$GITHUB_ENV"
+          printf 'TMPDIR=%s\n' "$GPU_ENV_PREFIX/../tmp" >> "$GITHUB_ENV"
+          printf '__GL_SHADER_DISK_CACHE_PATH=%s\n' "$GPU_ENV_PREFIX/../nvidia-cache" >> "$GITHUB_ENV"
       - name: Record the Linux NVIDIA driver
         shell: bash
         run: |
@@ -64,16 +89,28 @@ jobs:
             --pattern '*-manylinux_2_28_x86_64.whl' \
             --pattern krigbilateralvk-linux-x86_64.zip --dir .work/krig-gpu-assets
       - name: Build the R81 Vulkan validation container
+        if: inputs.environment_prefix == ''
         run: docker build -t krig-hardware-validation -f packaging/vapoursynth-krigbilateralvk/linux-validation.Dockerfile .
       - name: Render the released plugin on the physical NVIDIA device
+        if: inputs.environment_prefix == ''
         shell: bash
         run: |
           set -euo pipefail
           docker run --rm --runtime=nvidia --gpus all \
             -e NVIDIA_DRIVER_CAPABILITIES=graphics,utility \
+            -e KRIGVK_TEST_DEVICE_INDEX \
             -v "$GITHUB_WORKSPACE:/workspace:ro" \
             -v "$GITHUB_WORKSPACE/.work/krig-gpu-results:/results" \
             krig-hardware-validation sh /workspace/packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
+      - name: Render the released plugin in the native Python environment
+        if: inputs.environment_prefix != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          export KRIGVK_RESULTS_DIR="$GITHUB_WORKSPACE/.work/krig-gpu-results"
+          export KRIGVK_STAGING_PARENT="$GITHUB_WORKSPACE/.work"
+          export PIP_CACHE_DIR="$GPU_ENV_PREFIX/../pip-cache"
+          sh packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:

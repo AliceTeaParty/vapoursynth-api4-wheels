@@ -44,6 +44,22 @@ class HardwareValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'active Vulkan device does not match'):
             hardware.select_hardware_device(core)
 
+    def test_explicit_device_can_select_a_different_physical_gpu(self):
+        core = SimpleNamespace(vulkan_devices=[device(0, 'GPU0', 'discrete', [1, 4, 312], True, 'gpu0'),
+                                               device(6, 'GPU6', 'discrete', [1, 4, 312], True, 'gpu6')],
+                               vulkan_device_info={'uuid': 'gpu0'})
+        def select(index):
+            self.assertEqual(index, 6)
+            core.vulkan_device_info = {'uuid': 'gpu6'}
+        core.set_vulkan_device = select
+        self.assertEqual(hardware.select_hardware_device(core, 6)['index'], 6)
+
+    def test_explicit_software_device_is_rejected_even_when_hardware_exists(self):
+        core = SimpleNamespace(vulkan_devices=[device(0, 'llvmpipe', 'cpu', [1, 4, 312], True, 'cpu'),
+                                               device(6, 'NVIDIA', 'discrete', [1, 4, 312], True, 'gpu')])
+        with self.assertRaisesRegex(RuntimeError, 'not a usable Vulkan 1.4 hardware'):
+            hardware.select_hardware_device(core, 0)
+
 
 if __name__ == '__main__':
     unittest.main()
