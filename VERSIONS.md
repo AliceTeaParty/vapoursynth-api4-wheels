@@ -28,6 +28,18 @@ plugin; those files remain authoritative for each native wheel.
 | plugins/vs-mlrt | vs-mlrt-generic / vs-mlrt-cu121 / vs-mlrt-cu129 | 16.2.6+alice.1 (entry packages) | 1f166ba63dee9af1b19b8c62a333e2525d4a2860 |
 | plugins/vs-nlq | vs-nlq | 1.2.0+alice.1 | 97cbb19a9883feb05e558a6fb4a2192b7c6d8005 |
 
+## Native plugin submodules
+
+| Source directory | Central wheel wrapper | Distribution | Wheel version | Upstream revision |
+| --- | --- | --- | --- | --- |
+| plugins/vapoursynth-krigbilateralvk | packaging/vapoursynth-krigbilateralvk | vapoursynth-krigbilateralvk | 0.2.1+alice.1 | f9445cb7a9757449a9fe5b6db5ec0b1f04f24156 |
+
+KrigBilateral source authority remains in
+[RyougiKukoc/vapoursynth-krigbilateralvk](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk).
+The central gitlink and `packaging/vapoursynth-krigbilateralvk/source.json` pin
+the same reviewed commit. Packaging and releases live in this repository;
+updating the source requires changing both pins and the wheel version.
+
 ## Python module subtrees
 
 Migration source: [https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection](https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection)
