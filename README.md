@@ -1,9 +1,16 @@
 # VapourSynth API4 Wheels
 
 This repository publishes Windows and Linux x86_64 wheels for maintained
-VapourSynth API4 ports. Original upstream projects are imported with
+VapourSynth API4 ports and native API4 plugins. Original upstream projects are imported with
 `git subtree`; the API4 and packaging work is kept as a separate, squashed
 commit for each plugin.
+
+KrigBilateral Vulkan is maintained in our own upstream repository and registered
+as a pinned **git submodule**, with its central wheel wrapper under
+`packaging/vapoursynth-krigbilateralvk`. Clone with `--recurse-submodules`, or run
+`git submodule update --init --recursive` before building it. Its Vulkan GPU
+interface requires VapourSynth R81 and Vulkan 1.4; Linux wheels have a glibc 2.28
+floor. See the [package documentation](packaging/vapoursynth-krigbilateralvk/README.md).
 
 Native plugin wheels support Windows and Linux x86_64. macOS and ARM native
 plugin wheels are not published.
@@ -93,6 +100,7 @@ above, because both distributions own the same plugin files.
 | [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | `vs-cfl` |
 | [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | `vapoursynth-tcanny` |
 | [vapoursynth/vs-miscfilters-obsolete](https://github.com/vapoursynth/vs-miscfilters-obsolete) | `vapoursynth-misc` |
+| [RyougiKukoc/vapoursynth-krigbilateralvk](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk) | `vapoursynth-krigbilateralvk` |
 
 ## Wheel versions
 
@@ -121,6 +129,7 @@ upstream versions; all other distributions carry our local build label.
 | `vapoursynth-dfttest2-cu129` | `10.2+alice.1` |
 | `vapoursynth-fft3dfilter` | `2.1+alice.1` |
 | `vapoursynth-knlm` | `1.1.2+alice.1` |
+| `vapoursynth-krigbilateralvk` | `0.2.1+alice.1` |
 | `vapoursynth-misc` | `2.1+alice.1` |
 | `vapoursynth-nnedi3cl` | `8.1+alice.1` |
 | `vapoursynth-retinex` | `4.1+alice.1` |

@@ -23,6 +23,7 @@ upstream source and license for each subtree.
 | `plugins/vs-cfl` | [LumeCraft-Labs/vs-cfl](https://github.com/LumeCraft-Labs/vs-cfl) | MIT |
 | `plugins/vapoursynth-tcanny` | [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | GPL-3.0 |
 | `plugins/vapoursynth-misc` | [vapoursynth/vs-miscfilters-obsolete](https://github.com/vapoursynth/vs-miscfilters-obsolete) | LGPL-2.1 |
+| `plugins/vapoursynth-krigbilateralvk` (submodule) | [RyougiKukoc/vapoursynth-krigbilateralvk](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk) | LGPL-3.0-or-later; KrigBilateral algorithm by Shiandow |
 
 ## Python modules
 

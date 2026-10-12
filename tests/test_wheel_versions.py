@@ -27,7 +27,7 @@ def projects():
     files = subprocess.check_output(["git", "ls-files", "*/pyproject.toml"], cwd=ROOT, text=True).splitlines()
     result = {}
     for relative in files:
-        if not relative.startswith(("modules/", "plugins/")):
+        if not relative.startswith(("modules/", "plugins/", "packaging/")):
             continue
         path = ROOT / relative
         data = tomllib.loads(path.read_text(encoding="utf-8"))

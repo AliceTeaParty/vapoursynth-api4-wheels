@@ -1,0 +1,171 @@
+name: Package - vapoursynth-krigbilateralvk
+
+on:
+  push:
+    branches: [main]
+    tags: ['vapoursynth-krigbilateralvk-v*']
+    paths:
+      - .gitmodules
+      - plugins/vapoursynth-krigbilateralvk
+      - packaging/vapoursynth-krigbilateralvk/**
+      - .github/workflows/package-vapoursynth-krigbilateralvk.yml
+  pull_request:
+    paths:
+      - .gitmodules
+      - plugins/vapoursynth-krigbilateralvk
+      - packaging/vapoursynth-krigbilateralvk/**
+      - .github/workflows/package-vapoursynth-krigbilateralvk.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: packaging/vapoursynth-krigbilateralvk
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build dependencies and R81
+        run: python -m pip install build hatchling packaging cmake ninja "VapourSynth>=81,<82"
+      - name: Test central source and package validation
+        run: python -m unittest discover -s ../../tests -p test_krig_package.py -v
+      - uses: msys2/setup-msys2@v2
+        id: msys2
+        with:
+          msystem: UCRT64
+          update: true
+          install: mingw-w64-ucrt-x86_64-gcc
+      - name: Build native wheel
+        shell: pwsh
+        env:
+          KRIG_MSYS_ROOT: ${{ steps.msys2.outputs.msys2-location }}
+          KRIGVK_FORCE_BUILD: '1'
+        run: |
+          $compilerDir = Join-Path $env:KRIG_MSYS_ROOT 'ucrt64/bin'
+          $env:PATH = $compilerDir + ';' + $env:PATH
+          $env:CXX = (Join-Path $compilerDir 'g++.exe').Replace('\', '/')
+          python -m build --wheel --no-isolation --outdir dist/release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Validate and assemble payload
+        shell: pwsh
+        run: |
+          $wheel = Get-ChildItem dist/release/*.whl | Select-Object -First 1 -ExpandProperty FullName
+          python tools/validate_wheel.py --wheel $wheel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/make_assets.py --wheel $wheel --output dist/release/krigbilateralvk-windows-x86_64.zip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip install --no-deps $wheel
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/smoke_installed.py --output dist/release/windows-registration.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Loopback source install using the built payload
+        shell: pwsh
+        run: |
+          python -m pip uninstall -y vapoursynth-krigbilateralvk
+          $env:KRIGVK_PREBUILT_URL = (Resolve-Path dist/release/krigbilateralvk-windows-x86_64.zip).Path
+          python -m pip install --no-deps --no-build-isolation .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/smoke_installed.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: krigbilateralvk-release-windows
+          path: packaging/vapoursynth-krigbilateralvk/dist/release
+          if-no-files-found: error
+
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build manylinux_2_28 native wheel
+        shell: bash
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" -w /workspace \
+            quay.io/pypa/manylinux_2_28_x86_64 bash -lc '
+              set -euxo pipefail
+              export PATH=/opt/python/cp312-cp312/bin:$PATH
+              git config --global --add safe.directory /workspace
+              git config --global --add safe.directory /workspace/plugins/vapoursynth-krigbilateralvk
+              python -m pip install build hatchling packaging cmake ninja
+              python -m unittest discover -s tests -p test_krig_package.py -v
+              python plugins/vapoursynth-krigbilateralvk/tools/fetch_dependencies.py --with-vapoursynth --destination .work/krig-headers
+              export KRIGVK_VAPOURSYNTH_INCLUDE=/workspace/.work/krig-headers/vapoursynth/include
+              export KRIGVK_VULKAN_HEADERS=/workspace/.work/krig-headers/vulkan-headers/include
+              export KRIGVK_FORCE_BUILD=1
+              export KRIGVK_PLATFORM_TAG=manylinux_2_28_x86_64
+              cd packaging/vapoursynth-krigbilateralvk
+              python -m build --wheel --no-isolation --skip-dependency-check --outdir dist/release-linux
+              wheel=$(find dist/release-linux -name "*.whl" -print -quit)
+              python tools/validate_wheel.py --wheel "$wheel" --max-glibc 2.28
+              python tools/make_assets.py --wheel "$wheel" --output dist/release-linux/krigbilateralvk-linux-x86_64.zip
+            '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: krigbilateralvk-release-linux
+          path: packaging/vapoursynth-krigbilateralvk/dist/release-linux
+          if-no-files-found: error
+
+  linux-runtime:
+    needs: linux-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/download-artifact@v4
+        with:
+          name: krigbilateralvk-release-linux
+          path: packaging/vapoursynth-krigbilateralvk/dist/release-linux
+      - name: Build R81 Vulkan validation environment
+        run: docker build -t krig-r81-validation -f packaging/vapoursynth-krigbilateralvk/linux-validation.Dockerfile .
+      - name: Install wheel and render on Mesa Vulkan
+        shell: bash
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.work/krig-results:/results" \
+            krig-r81-validation sh -c '
+              set -eu
+              python -m pip install --no-deps /workspace/packaging/vapoursynth-krigbilateralvk/dist/release-linux/*.whl
+              python /workspace/packaging/vapoursynth-krigbilateralvk/tools/smoke_installed.py --exercise --output /results/linux-render.json
+              python -m pip uninstall -y vapoursynth-krigbilateralvk
+              export KRIGVK_PREBUILT_URL=/workspace/packaging/vapoursynth-krigbilateralvk/dist/release-linux/krigbilateralvk-linux-x86_64.zip
+              cp -a /workspace/packaging/vapoursynth-krigbilateralvk /work/package
+              python -m pip install --no-deps --no-build-isolation /work/package
+              python /workspace/packaging/vapoursynth-krigbilateralvk/tools/smoke_installed.py --exercise --output /results/linux-loopback-render.json
+            '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: krigbilateralvk-linux-runtime-validation
+          path: .work/krig-results
+          if-no-files-found: error
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/vapoursynth-krigbilateralvk-v')
+    needs: [windows, linux-runtime]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: krigbilateralvk-release-*
+          path: release-assets
+          merge-multiple: true
+      - name: Publish tested wheels and payloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          gh release create "$GITHUB_REF_NAME" release-assets/* --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" --notes 'Central wheels for the pinned KrigBilateral Vulkan submodule. Requires VapourSynth R81 and Vulkan 1.4.'
+          gh api "repos/$GITHUB_REPOSITORY/dispatches" -f event_type=index
