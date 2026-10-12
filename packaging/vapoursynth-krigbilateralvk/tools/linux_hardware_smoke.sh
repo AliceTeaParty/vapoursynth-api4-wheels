@@ -43,7 +43,7 @@ export VK_DRIVER_FILES
 export VK_ICD_FILENAMES="$VK_DRIVER_FILES"
 printf '%s\n' "$VK_DRIVER_FILES" > "$results/selected-icd.txt"
 vulkaninfo --summary > "$results/vulkaninfo.txt" 2>&1
-python -m pip install --no-deps "$assets"/*manylinux*.whl
+python -m pip install --no-deps --force-reinstall "$assets"/*manylinux*.whl
 python "$wrapper/tools/smoke_installed.py" "$@" --output "$results/linux-hardware-wheel.json"
 python -m pip uninstall -y vapoursynth-krigbilateralvk
 export KRIGVK_PREBUILT_URL="$assets/krigbilateralvk-linux-x86_64.zip"
