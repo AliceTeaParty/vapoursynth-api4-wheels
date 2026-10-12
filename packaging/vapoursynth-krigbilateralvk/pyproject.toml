@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vapoursynth-krigbilateralvk"
-version = "0.2.1+alice.1"
+version = "0.2.2+alice.1"
 description = "Native Vulkan KrigBilateral chroma reconstruction for VapourSynth R81"
 readme = "README.md"
 license = "LGPL-3.0-or-later"
@@ -15,7 +15,7 @@ dependencies = ["VapourSynth>=81,<82"]
 [project.urls]
 "Source Code" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/tree/main/plugins/vapoursynth-krigbilateralvk"
 "Upstream" = "https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk"
-"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-krigbilateralvk-v0.2.1+alice.1"
+"Releases" = "https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases/tag/vapoursynth-krigbilateralvk-v0.2.2+alice.1"
 
 [tool.hatch.build.targets.wheel]
 only-include = ["vapoursynth/plugins/krigbilateralvk"]

@@ -24,6 +24,19 @@ See [modules/README.md](modules/README.md), [Collection maintenance](modules/COL
 and the separate module table in [VERSIONS.md](VERSIONS.md). Builds and
 publication use separate manual workflows.
 
+## Install KrigBilateral Vulkan
+
+The recommended installation uses this repository's package index. Windows and
+Linux x86_64 wheels install the native plugin and autoload manifest automatically:
+
+```console
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.2.2+alice.1"
+```
+
+Use Python 3.12+ and a Vulkan 1.4 GPU/driver. The package selects VapourSynth R81;
+Linux requires glibc 2.28+. See the [package documentation](packaging/vapoursynth-krigbilateralvk/README.md)
+for the API and source installation.
+
 ## Relationship to vs-wheels
 
 This repository was inspired by Jaded-Encoding-Thaumaturgy's
@@ -129,7 +142,7 @@ upstream versions; all other distributions carry our local build label.
 | `vapoursynth-dfttest2-cu129` | `10.2+alice.1` |
 | `vapoursynth-fft3dfilter` | `2.1+alice.1` |
 | `vapoursynth-knlm` | `1.1.2+alice.1` |
-| `vapoursynth-krigbilateralvk` | `0.2.1+alice.1` |
+| `vapoursynth-krigbilateralvk` | `0.2.2+alice.1` |
 | `vapoursynth-misc` | `2.1+alice.1` |
 | `vapoursynth-nnedi3cl` | `8.1+alice.1` |
 | `vapoursynth-retinex` | `4.1+alice.1` |

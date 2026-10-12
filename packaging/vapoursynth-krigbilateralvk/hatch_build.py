@@ -142,7 +142,7 @@ def stage_native(source: Path, target: Path):
         if env.get("CXX"):
             command += ["-DCMAKE_CXX_COMPILER=" + env["CXX"]]
         if sys.platform == "linux":
-            command += ["-DCMAKE_MODULE_LINKER_FLAGS=-static-libstdc++ -static-libgcc"]
+            command += ["-DCMAKE_MODULE_LINKER_FLAGS=-static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL"]
         subprocess.run(command, check=True, env=env)
         subprocess.run(["cmake", "--build", str(build)], check=True, env=env)
         system, suffix, _ = platform_info()

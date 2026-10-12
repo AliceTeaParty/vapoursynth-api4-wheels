@@ -7,7 +7,7 @@ The central wheel wrapper for [KrigBilateral Vulkan](https://github.com/RyougiKu
 Windows and Linux x86_64 wheels are published on the central index:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.2.1+alice.1"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.2.2+alice.1"
 ```
 
 Use the same Python environment as VapourSynth. The wheel requires VapourSynth R81 (`>=81,<82`) because the plugin's core GPU interface targets that SDK. A Vulkan 1.4 device/driver is needed for rendering; FP16 input additionally requires shaderFloat16. Linux wheels use the `manylinux_2_28_x86_64` runtime floor. macOS and ARM packages are not published.
@@ -32,7 +32,7 @@ This explicit named VCS form uses a matching central Release package by default:
 python -m pip install "vapoursynth-krigbilateralvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=packaging/vapoursynth-krigbilateralvk"
 ```
 
-Version `0.2.1+alice.1` maps to central tag `vapoursynth-krigbilateralvk-v0.2.1+alice.1`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
+Version `0.2.2+alice.1` maps to central tag `vapoursynth-krigbilateralvk-v0.2.2+alice.1`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
 
 For a local checkout:
 
@@ -48,7 +48,9 @@ python -m pip install .
 
 Update the central submodule gitlink and `source.json` together after reviewing an upstream commit. The native implementation stays owned by the upstream repository. Bump the central wheel version, release tag mapping and the central version table when publishing changed source. The wrapper exports a small source snapshot into sdists so source archives can build without a sibling checkout.
 
-The package workflow creates Windows/Linux wheels and payload zips. Windows registration checks run in hosted CI, and actual Vulkan rendering is verified locally before publication. Linux package validation runs with Vulkan-capable Mesa software execution; it is not an AMD/Intel/NVIDIA Linux hardware benchmark. Only tested artifacts should be published, followed by the index workflow.
+The package workflow creates Windows/Linux wheels and payload zips. Windows registration checks run in hosted CI, and actual Vulkan rendering is verified locally. Linux package validation runs with Vulkan-capable Mesa software execution. Physical GPU validation also passed on Windows RTX 3090 Ti and Linux NVIDIA A100 with Vulkan 1.4: published-wheel rendering, signed FP16/FP32, nonuniform chroma, exact luma and CPU/GPU entry equality; Linux additionally passed release-payload source installation and a native source rebuild. See the upstream [validation report](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk/blob/main/docs/validation.md) for versions and scope. These checks are not a Linux original-GLSL bit-exact comparison or benchmark.
+
+Physical GPU tests can run locally over SSH using an isolated mamba environment; registering the host as a GitHub runner is optional. Keep machine addresses, account paths and device identifiers in local evidence. Normal hosted CI remains responsible for compilation, package loading and software Vulkan checks. Only tested artifacts should be published, followed by the index workflow.
 
 The separate `Validate - KrigBilateral physical GPU` workflow can be dispatched
 on a Linux NVIDIA GPU runner. Its `runner_labels` input is a JSON array: use
