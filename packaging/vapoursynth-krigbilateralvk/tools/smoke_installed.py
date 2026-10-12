@@ -6,13 +6,17 @@ import json
 from pathlib import Path
 import sys
 import vapoursynth as vs
+from hardware_device import select_hardware_device
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--exercise',action='store_true')
+    parser.add_argument('--require-hardware',action='store_true',help='Select a physical Vulkan 1.4 device and reject software execution')
     parser.add_argument('--output',type=Path)
     args=parser.parse_args()
+    if args.require_hardware and not args.exercise:
+        parser.error('--require-hardware requires --exercise')
     native='krigbilateralvk.dll' if sys.platform=='win32' else 'krigbilateralvk.so'
     folder=Path(vs.__file__).resolve().parent/'plugins/krigbilateralvk'
     plugin=folder/native
@@ -28,8 +32,11 @@ def main():
     assert all('reference:' not in signature for signature in functions.values())
     actual=next(p for p in core.plugins() if p.namespace=='krigvk')
     assert Path(actual.plugin_path).resolve()==plugin.resolve(),actual.plugin_path
+    selected=select_hardware_device(core) if args.require_hardware else None
     result={'version':installed,'platform':manifest['platform'],'native_sha256':manifest['sha256'][native],
             'upstream_commit':manifest['upstream_commit'],'autoload':True,'functions':functions,'rendered':False}
+    if selected is not None:
+        result|={'hardware_required':True,'selected_device':selected}
     if args.exercise:
         core.num_threads=4
         source=core.std.BlankClip(width=16,height=12,format=vs.YUV420P16,color=[16384,32768,32768],length=4)
