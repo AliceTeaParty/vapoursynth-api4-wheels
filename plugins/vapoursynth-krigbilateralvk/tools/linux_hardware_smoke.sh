@@ -2,7 +2,7 @@
 set -eu
 
 workspace=${GITHUB_WORKSPACE:-/workspace}
-wrapper="$workspace/packaging/vapoursynth-krigbilateralvk"
+wrapper="$workspace/plugins/vapoursynth-krigbilateralvk"
 assets="$workspace/.work/krig-gpu-assets"
 results=${KRIGVK_RESULTS_DIR:-/results}
 staging_parent=${KRIGVK_STAGING_PARENT:-/work}

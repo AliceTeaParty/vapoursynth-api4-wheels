@@ -108,7 +108,9 @@ def stage_prebuilt(target: Path):
 
 def native_source():
     bundled = ROOT / "native"
-    if (bundled / "CMakeLists.txt").is_file():
+    # Source archives contain an explicit snapshot without Git metadata.
+    # A checkout's native/ is the registered submodule and must retain pin checks.
+    if (bundled / "CMakeLists.txt").is_file() and not (bundled / ".git").exists():
         return bundled
     record = source_record()
     submodule = ROOT.parents[1] / record["submodule"]
@@ -162,19 +164,19 @@ class CustomHook(BuildHookInterface):
     def initialize(self, version_name, build_data):
         if self.target_name == "sdist":
             source = native_source()
-            target = ROOT / "native"
-            if not target.exists():
-                target.mkdir()
-                self._exported = True
-                for relative in ("CMakeLists.txt", "LICENSE", "THIRD_PARTY.md", "src", "reference", "licenses"):
-                    item = source / relative
-                    if item.is_dir():
-                        shutil.copytree(item, target / relative)
-                    else:
-                        shutil.copyfile(item, target / relative)
-                (target / "tools").mkdir()
-                for name in ("fetch_dependencies.py", "generate_shaders.py"):
-                    shutil.copyfile(source / "tools" / name, target / "tools" / name)
+            self._snapshot = tempfile.TemporaryDirectory(prefix="krig-sdist-")
+            target = Path(self._snapshot.name) / "native"
+            target.mkdir()
+            for relative in ("CMakeLists.txt", "LICENSE", "THIRD_PARTY.md", "src", "reference", "licenses"):
+                item = source / relative
+                if item.is_dir():
+                    shutil.copytree(item, target / relative, ignore=shutil.ignore_patterns("__pycache__"))
+                else:
+                    shutil.copyfile(item, target / relative)
+            (target / "tools").mkdir()
+            for name in ("fetch_dependencies.py", "generate_shaders.py"):
+                shutil.copyfile(source / "tools" / name, target / "tools" / name)
+            build_data.setdefault("force_include", {})[str(target)] = "native"
             return
         system, _, release_tag = platform_info()
         self._stage = ROOT / "vapoursynth/plugins" / PLUGIN
@@ -189,7 +191,7 @@ class CustomHook(BuildHookInterface):
         build_data["tag"] = "py3-none-" + platform_tag
 
     def finalize(self, version_name, build_data, artifact_path):
-        if getattr(self, "_exported", False):
-            shutil.rmtree(ROOT / "native")
+        if hasattr(self, "_snapshot"):
+            self._snapshot.cleanup()
         if hasattr(self, "_stage") and self._stage.exists():
             shutil.rmtree(self._stage)

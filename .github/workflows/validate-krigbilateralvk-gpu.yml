@@ -12,7 +12,7 @@ on:
         description: 'Central release matching the source/version in this checkout'
         required: true
         type: string
-        default: 'vapoursynth-krigbilateralvk-v0.2.1+alice.1'
+        default: 'vapoursynth-krigbilateralvk-v0.2.2+alice.2'
       environment_prefix:
         description: 'Optional existing Python/mamba environment prefix; empty uses Docker'
         required: false
@@ -26,9 +26,9 @@ on:
   pull_request:
     paths:
       - .github/workflows/validate-krigbilateralvk-gpu.yml
-      - packaging/vapoursynth-krigbilateralvk/tools/hardware_device.py
-      - packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
-      - packaging/vapoursynth-krigbilateralvk/tools/smoke_installed.py
+      - plugins/vapoursynth-krigbilateralvk/tools/hardware_device.py
+      - plugins/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
+      - plugins/vapoursynth-krigbilateralvk/tools/smoke_installed.py
       - tests/test_krig_gpu_validation.py
 
 permissions:
@@ -43,7 +43,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m unittest discover -s tests -p test_krig_gpu_validation.py -v
-      - run: sh -n packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
+      - run: sh -n plugins/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
 
   linux-gpu:
     if: github.event_name == 'workflow_dispatch'
@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: packaging/vapoursynth-krigbilateralvk
+          sparse-checkout: plugins/vapoursynth-krigbilateralvk
       - name: Configure the optional native Python environment
         if: inputs.environment_prefix != ''
         shell: bash
@@ -90,7 +90,7 @@ jobs:
             --pattern krigbilateralvk-linux-x86_64.zip --dir .work/krig-gpu-assets
       - name: Build the R81 Vulkan validation container
         if: inputs.environment_prefix == ''
-        run: docker build -t krig-hardware-validation -f packaging/vapoursynth-krigbilateralvk/linux-validation.Dockerfile .
+        run: docker build -t krig-hardware-validation -f plugins/vapoursynth-krigbilateralvk/linux-validation.Dockerfile .
       - name: Render the released plugin on the physical NVIDIA device
         if: inputs.environment_prefix == ''
         shell: bash
@@ -101,7 +101,7 @@ jobs:
             -e KRIGVK_TEST_DEVICE_INDEX \
             -v "$GITHUB_WORKSPACE:/workspace:ro" \
             -v "$GITHUB_WORKSPACE/.work/krig-gpu-results:/results" \
-            krig-hardware-validation sh /workspace/packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
+            krig-hardware-validation sh /workspace/plugins/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
       - name: Render the released plugin in the native Python environment
         if: inputs.environment_prefix != ''
         shell: bash
@@ -110,7 +110,7 @@ jobs:
           export KRIGVK_RESULTS_DIR="$GITHUB_WORKSPACE/.work/krig-gpu-results"
           export KRIGVK_STAGING_PARENT="$GITHUB_WORKSPACE/.work"
           export PIP_CACHE_DIR="$GPU_ENV_PREFIX/../pip-cache"
-          sh packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
+          sh plugins/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:

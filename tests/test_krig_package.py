@@ -5,12 +5,15 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
+import tarfile
 import unittest
 from unittest.mock import patch
 import zipfile
+from packaging.version import Version
+from hatchling.builders.sdist import SdistBuilder
 
 ROOT=Path(__file__).resolve().parents[1]
-WRAPPER=ROOT/'packaging/vapoursynth-krigbilateralvk'
+WRAPPER=ROOT/'plugins/vapoursynth-krigbilateralvk'
 spec=importlib.util.spec_from_file_location('krig_hook',WRAPPER/'hatch_build.py')
 hook=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hook)
@@ -22,7 +25,34 @@ class KrigPackagingTests(unittest.TestCase):
         tree=subprocess.check_output(['git','ls-files','--stage',record['submodule']],cwd=ROOT,text=True)
         self.assertEqual(tree.split()[:2],['160000',record['commit']])
         self.assertEqual(hook.native_source().resolve(),(ROOT/record['submodule']).resolve())
-        self.assertEqual(hook.version(),record['version']+'+alice.1')
+        self.assertEqual(Version(hook.version()).public,record['version'])
+        self.assertRegex(Version(hook.version()).local,r'^alice\.[1-9][0-9]*$')
+
+    def test_nested_submodule_still_rejects_wrong_revision_and_dirty_source(self):
+        record=hook.source_record()
+        with patch.object(hook.subprocess,'check_output',return_value='0'*40):
+            with self.assertRaisesRegex(RuntimeError,'differs from source.json'):
+                hook.native_source()
+        with patch.object(hook.subprocess,'check_output',side_effect=[record['commit'],' M src/krigbilateralvk.cpp']):
+            with self.assertRaisesRegex(RuntimeError,'uncommitted changes'):
+                hook.native_source()
+
+    def test_sdist_contains_standalone_source_and_preserves_native_submodule(self):
+        native=hook.native_source()
+        marker=(native/'.git').read_bytes()
+        with tempfile.TemporaryDirectory() as directory:
+            artifact=next(SdistBuilder(str(WRAPPER)).build(directory=directory))
+            with tarfile.open(artifact) as archive:
+                prefix=archive.getnames()[0].split('/')[0]+'/'
+                names={name.removeprefix(prefix) for name in archive.getnames()}
+                self.assertIn('native/CMakeLists.txt',names)
+                self.assertIn('native/src/krigbilateralvk.cpp',names)
+                self.assertIn('native/reference/KrigBilateral.glsl',names)
+                self.assertIn('native/tools/fetch_dependencies.py',names)
+                self.assertTrue(all('.git' not in Path(name).parts for name in names))
+                self.assertFalse(any(name.startswith(('native/build/','native/dependencies/','native/docs/')) for name in names))
+        self.assertEqual((native/'.git').read_bytes(),marker)
+        self.assertEqual(hook.native_source(),native)
 
     def package(self,path,**overrides):
         record=hook.source_record()

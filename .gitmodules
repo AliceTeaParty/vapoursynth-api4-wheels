@@ -1,3 +1,3 @@
 [submodule "plugins/vapoursynth-krigbilateralvk"]
-	path = plugins/vapoursynth-krigbilateralvk
+	path = plugins/vapoursynth-krigbilateralvk/native
 	url = https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk.git

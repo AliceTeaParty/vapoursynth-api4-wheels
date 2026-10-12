@@ -6,14 +6,12 @@ on:
     tags: ['vapoursynth-krigbilateralvk-v*']
     paths:
       - .gitmodules
-      - plugins/vapoursynth-krigbilateralvk
-      - packaging/vapoursynth-krigbilateralvk/**
+      - plugins/vapoursynth-krigbilateralvk/**
       - .github/workflows/package-vapoursynth-krigbilateralvk.yml
   pull_request:
     paths:
       - .gitmodules
-      - plugins/vapoursynth-krigbilateralvk
-      - packaging/vapoursynth-krigbilateralvk/**
+      - plugins/vapoursynth-krigbilateralvk/**
       - .github/workflows/package-vapoursynth-krigbilateralvk.yml
   workflow_dispatch:
 
@@ -25,7 +23,7 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        working-directory: packaging/vapoursynth-krigbilateralvk
+        working-directory: plugins/vapoursynth-krigbilateralvk
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,7 +76,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: krigbilateralvk-release-windows
-          path: packaging/vapoursynth-krigbilateralvk/dist/release
+          path: plugins/vapoursynth-krigbilateralvk/dist/release
           if-no-files-found: error
 
   linux-build:
@@ -95,15 +93,15 @@ jobs:
               set -euxo pipefail
               export PATH=/opt/python/cp312-cp312/bin:$PATH
               git config --global --add safe.directory /workspace
-              git config --global --add safe.directory /workspace/plugins/vapoursynth-krigbilateralvk
+              git config --global --add safe.directory /workspace/plugins/vapoursynth-krigbilateralvk/native
               python -m pip install build hatchling packaging cmake ninja
               python -m unittest discover -s tests -p test_krig_package.py -v
-              python plugins/vapoursynth-krigbilateralvk/tools/fetch_dependencies.py --with-vapoursynth --destination .work/krig-headers
+              python plugins/vapoursynth-krigbilateralvk/native/tools/fetch_dependencies.py --with-vapoursynth --destination .work/krig-headers
               export KRIGVK_VAPOURSYNTH_INCLUDE=/workspace/.work/krig-headers/vapoursynth/include
               export KRIGVK_VULKAN_HEADERS=/workspace/.work/krig-headers/vulkan-headers/include
               export KRIGVK_FORCE_BUILD=1
               export KRIGVK_PLATFORM_TAG=manylinux_2_28_x86_64
-              cd packaging/vapoursynth-krigbilateralvk
+              cd plugins/vapoursynth-krigbilateralvk
               python -m build --wheel --no-isolation --skip-dependency-check --outdir dist/release-linux
               wheel=$(find dist/release-linux -name "*.whl" -print -quit)
               python tools/validate_wheel.py --wheel "$wheel" --max-glibc 2.28
@@ -112,7 +110,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: krigbilateralvk-release-linux
-          path: packaging/vapoursynth-krigbilateralvk/dist/release-linux
+          path: plugins/vapoursynth-krigbilateralvk/dist/release-linux
           if-no-files-found: error
 
   linux-runtime:
@@ -125,22 +123,22 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: krigbilateralvk-release-linux
-          path: packaging/vapoursynth-krigbilateralvk/dist/release-linux
+          path: plugins/vapoursynth-krigbilateralvk/dist/release-linux
       - name: Build R81 Vulkan validation environment
-        run: docker build -t krig-r81-validation -f packaging/vapoursynth-krigbilateralvk/linux-validation.Dockerfile .
+        run: docker build -t krig-r81-validation -f plugins/vapoursynth-krigbilateralvk/linux-validation.Dockerfile .
       - name: Install wheel and render on Mesa Vulkan
         shell: bash
         run: |
           docker run --rm -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.work/krig-results:/results" \
             krig-r81-validation sh -c '
               set -eu
-              python -m pip install --no-deps /workspace/packaging/vapoursynth-krigbilateralvk/dist/release-linux/*.whl
-              python /workspace/packaging/vapoursynth-krigbilateralvk/tools/smoke_installed.py --exercise --output /results/linux-render.json
+              python -m pip install --no-deps /workspace/plugins/vapoursynth-krigbilateralvk/dist/release-linux/*.whl
+              python /workspace/plugins/vapoursynth-krigbilateralvk/tools/smoke_installed.py --exercise --output /results/linux-render.json
               python -m pip uninstall -y vapoursynth-krigbilateralvk
-              export KRIGVK_PREBUILT_URL=/workspace/packaging/vapoursynth-krigbilateralvk/dist/release-linux/krigbilateralvk-linux-x86_64.zip
-              cp -a /workspace/packaging/vapoursynth-krigbilateralvk /work/package
+              export KRIGVK_PREBUILT_URL=/workspace/plugins/vapoursynth-krigbilateralvk/dist/release-linux/krigbilateralvk-linux-x86_64.zip
+              cp -a /workspace/plugins/vapoursynth-krigbilateralvk /work/package
               python -m pip install --no-deps --no-build-isolation /work/package
-              python /workspace/packaging/vapoursynth-krigbilateralvk/tools/smoke_installed.py --exercise --output /results/linux-loopback-render.json
+              python /workspace/plugins/vapoursynth-krigbilateralvk/tools/smoke_installed.py --exercise --output /results/linux-loopback-render.json
             '
       - uses: actions/upload-artifact@v4
         with:

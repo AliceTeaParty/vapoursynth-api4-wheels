@@ -52,7 +52,7 @@ class WheelVersionTests(unittest.TestCase):
             with self.subTest(project=name):
                 project = data["project"]
                 version = Version(project["version"])
-                self.assertEqual(version.local, "alice.1")
+                self.assertRegex(version.local or "", r"^alice\.[1-9][0-9]*$")
                 self.assertIn(f"| `{name}` | `{version}` |", readme)
                 builder = WheelBuilder(str(path.parent))
                 self.assertEqual(builder.metadata.version, str(version))

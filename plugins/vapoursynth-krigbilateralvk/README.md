@@ -1,13 +1,13 @@
 # vapoursynth-krigbilateralvk wheels
 
-The central wheel wrapper for [KrigBilateral Vulkan](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk). The plugin source is the git submodule at `plugins/vapoursynth-krigbilateralvk`; `source.json` records the exact upstream commit. Packaging and release workflows are maintained in `AliceTeaParty/vapoursynth-api4-wheels`.
+The central wheel project for [KrigBilateral Vulkan](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk) lives at `plugins/vapoursynth-krigbilateralvk`. The original native source is its `native/` git submodule; `source.json` records the exact upstream commit. Wheel metadata, tools and release workflows are maintained in `AliceTeaParty/vapoursynth-api4-wheels` alongside the other plugin packages.
 
 ## Install
 
 Windows and Linux x86_64 wheels are published on the central index:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.2.2+alice.1"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.2.2+alice.2"
 ```
 
 Use the same Python environment as VapourSynth. The wheel requires VapourSynth R81 (`>=81,<82`) because the plugin's core GPU interface targets that SDK. A Vulkan 1.4 device/driver is needed for rendering; FP16 input additionally requires shaderFloat16. Linux wheels use the `manylinux_2_28_x86_64` runtime floor. macOS and ARM packages are not published.
@@ -29,16 +29,16 @@ Input is constant-format progressive YUV420 with positive even dimensions and le
 This explicit named VCS form uses a matching central Release package by default:
 
 ```console
-python -m pip install "vapoursynth-krigbilateralvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=packaging/vapoursynth-krigbilateralvk"
+python -m pip install "vapoursynth-krigbilateralvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-krigbilateralvk"
 ```
 
-Version `0.2.2+alice.1` maps to central tag `vapoursynth-krigbilateralvk-v0.2.2+alice.1`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
+Version `0.2.2+alice.2` maps to central tag `vapoursynth-krigbilateralvk-v0.2.2+alice.2`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
 
 For a local checkout:
 
 ```console
 git clone --recurse-submodules https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git
-cd vapoursynth-api4-wheels/packaging/vapoursynth-krigbilateralvk
+cd vapoursynth-api4-wheels/plugins/vapoursynth-krigbilateralvk
 python -m pip install .
 ```
 

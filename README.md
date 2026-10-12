@@ -5,12 +5,13 @@ VapourSynth API4 ports and native API4 plugins. Original upstream projects are i
 `git subtree`; the API4 and packaging work is kept as a separate, squashed
 commit for each plugin.
 
-KrigBilateral Vulkan is maintained in our own upstream repository and registered
-as a pinned **git submodule**, with its central wheel wrapper under
-`packaging/vapoursynth-krigbilateralvk`. Clone with `--recurse-submodules`, or run
+KrigBilateral Vulkan's central wheel project lives under
+`plugins/vapoursynth-krigbilateralvk`. Its `native/` directory is a pinned
+**git submodule** of our upstream repository; wheel metadata, tools and CI
+remain centrally maintained beside it. Clone with `--recurse-submodules`, or run
 `git submodule update --init --recursive` before building it. Its Vulkan GPU
 interface requires VapourSynth R81 and Vulkan 1.4; Linux wheels have a glibc 2.28
-floor. See the [package documentation](packaging/vapoursynth-krigbilateralvk/README.md).
+floor. See the [package documentation](plugins/vapoursynth-krigbilateralvk/README.md).
 
 Native plugin wheels support Windows and Linux x86_64. macOS and ARM native
 plugin wheels are not published.
@@ -30,11 +31,11 @@ The recommended installation uses this repository's package index. Windows and
 Linux x86_64 wheels install the native plugin and autoload manifest automatically:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.2.2+alice.1"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.2.2+alice.2"
 ```
 
 Use Python 3.12+ and a Vulkan 1.4 GPU/driver. The package selects VapourSynth R81;
-Linux requires glibc 2.28+. See the [package documentation](packaging/vapoursynth-krigbilateralvk/README.md)
+Linux requires glibc 2.28+. See the [package documentation](plugins/vapoursynth-krigbilateralvk/README.md)
 for the API and source installation.
 
 ## Relationship to vs-wheels
@@ -142,7 +143,7 @@ upstream versions; all other distributions carry our local build label.
 | `vapoursynth-dfttest2-cu129` | `10.2+alice.1` |
 | `vapoursynth-fft3dfilter` | `2.1+alice.1` |
 | `vapoursynth-knlm` | `1.1.2+alice.1` |
-| `vapoursynth-krigbilateralvk` | `0.2.2+alice.1` |
+| `vapoursynth-krigbilateralvk` | `0.2.2+alice.2` |
 | `vapoursynth-misc` | `2.1+alice.1` |
 | `vapoursynth-nnedi3cl` | `8.1+alice.1` |
 | `vapoursynth-retinex` | `4.1+alice.1` |
