@@ -1,0 +1,82 @@
+name: Validate - KrigBilateral physical GPU
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_labels:
+        description: 'JSON runner labels; use the configured hosted GPU label or a Linux self-hosted GPU'
+        required: true
+        type: string
+        default: '["self-hosted","linux","x64","nvidia-vulkan-1.4"]'
+      release_tag:
+        description: 'Central release matching the source/version in this checkout'
+        required: true
+        type: string
+        default: 'vapoursynth-krigbilateralvk-v0.2.1+alice.1'
+  pull_request:
+    paths:
+      - .github/workflows/validate-krigbilateralvk-gpu.yml
+      - packaging/vapoursynth-krigbilateralvk/tools/hardware_device.py
+      - packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
+      - packaging/vapoursynth-krigbilateralvk/tools/smoke_installed.py
+      - tests/test_krig_gpu_validation.py
+
+permissions:
+  contents: read
+
+jobs:
+  guard-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -p test_krig_gpu_validation.py -v
+      - run: sh -n packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
+
+  linux-gpu:
+    if: github.event_name == 'workflow_dispatch'
+    needs: guard-tests
+    runs-on: ${{ fromJSON(inputs.runner_labels || '["self-hosted","linux","x64","nvidia-vulkan-1.4"]') }}
+    timeout-minutes: 20
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Record the Linux NVIDIA driver
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = Linux
+          mkdir -p .work/krig-gpu-results
+          nvidia-smi --query-gpu=name,driver_version --format=csv,noheader | tee .work/krig-gpu-results/nvidia-driver.txt
+      - name: Download the released wheel and native payload
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .work/krig-gpu-assets
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern '*-manylinux_2_28_x86_64.whl' \
+            --pattern krigbilateralvk-linux-x86_64.zip --dir .work/krig-gpu-assets
+      - name: Build the R81 Vulkan validation container
+        run: docker build -t krig-hardware-validation -f packaging/vapoursynth-krigbilateralvk/linux-validation.Dockerfile .
+      - name: Render the released plugin on the physical NVIDIA device
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --runtime=nvidia --gpus all \
+            -e NVIDIA_DRIVER_CAPABILITIES=graphics,utility \
+            -v "$GITHUB_WORKSPACE:/workspace:ro" \
+            -v "$GITHUB_WORKSPACE/.work/krig-gpu-results:/results" \
+            krig-hardware-validation sh /workspace/packaging/vapoursynth-krigbilateralvk/tools/linux_hardware_smoke.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: krigbilateralvk-physical-gpu-validation
+          path: .work/krig-gpu-results
+          if-no-files-found: warn

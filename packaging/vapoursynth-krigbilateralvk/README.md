@@ -50,4 +50,29 @@ Update the central submodule gitlink and `source.json` together after reviewing 
 
 The package workflow creates Windows/Linux wheels and payload zips. Windows registration checks run in hosted CI, and actual Vulkan rendering is verified locally before publication. Linux package validation runs with Vulkan-capable Mesa software execution; it is not an AMD/Intel/NVIDIA Linux hardware benchmark. Only tested artifacts should be published, followed by the index workflow.
 
+The separate `Validate - KrigBilateral physical GPU` workflow can be dispatched
+on a Linux NVIDIA GPU runner. Its `runner_labels` input is a JSON array: use
+the label of a configured GitHub-hosted GPU larger runner, or the default
+`["self-hosted","linux","x64","nvidia-vulkan-1.4"]` for a matching self-hosted
+runner. The selected release must match this checkout's registered source and
+package version. The runner needs Docker, NVIDIA Container Toolkit with the
+`nvidia` runtime configured, and an NVIDIA Linux driver exposing Vulkan 1.4.
+The job's 20-minute timeout bounds execution time.
+
+This hardware job restricts the loader to an injected NVIDIA ICD, explicitly
+selects a usable physical Vulkan 1.4 device, and verifies the active device's
+identity before requesting frames. It tests both the released wheel and its
+payload source-install loopback, including integer, signed FP16/FP32 and
+nonuniform chroma. The artifact contains device/driver information, Vulkan
+inventory, native hashes and rendering results. A software device or an older
+Vulkan hardware device causes failure.
+
+Standard `ubuntu-latest` runners provide the existing software Vulkan checks.
+GitHub's hosted GPU larger runners use a Tesla T4, require a Team or Enterprise
+organization plan, and are billed separately even for public repositories.
+Their actual driver/API support must satisfy the hardware check. See
+[runner specifications](https://docs.github.com/en/actions/reference/runners/larger-runners)
+and [pricing](https://docs.github.com/en/billing/reference/actions-runner-pricing).
+Self-hosted Linux GPU machines can run the same workflow.
+
 The source and plugin are LGPL-3.0-or-later; the wheel/payload include the license and referenced GPLv3 terms.
