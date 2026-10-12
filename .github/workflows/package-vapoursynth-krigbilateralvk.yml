@@ -94,6 +94,8 @@ jobs:
             quay.io/pypa/manylinux_2_28_x86_64 bash -lc '
               set -euxo pipefail
               export PATH=/opt/python/cp312-cp312/bin:$PATH
+              git config --global --add safe.directory /workspace
+              git config --global --add safe.directory /workspace/plugins/vapoursynth-krigbilateralvk
               python -m pip install build hatchling packaging cmake ninja
               python -m unittest discover -s tests -p test_krig_package.py -v
               python plugins/vapoursynth-krigbilateralvk/tools/fetch_dependencies.py --with-vapoursynth --destination .work/krig-headers
