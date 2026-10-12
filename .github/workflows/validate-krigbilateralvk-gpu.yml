@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive
+          sparse-checkout: packaging/vapoursynth-krigbilateralvk
       - name: Configure the optional native Python environment
         if: inputs.environment_prefix != ''
         shell: bash
