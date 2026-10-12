@@ -1,7 +1,7 @@
 """Select and verify the physical Vulkan device used by a runtime smoke."""
 
 
-def select_hardware_device(core):
+def select_hardware_device(core, device_index=None):
     devices = core.vulkan_devices
     candidates = [
         device for device in devices
@@ -14,7 +14,12 @@ def select_hardware_device(core):
             for d in devices
         )
         raise RuntimeError('No usable Vulkan 1.4 hardware device: ' + (details or 'no devices'))
-    selected = max(candidates, key=lambda device: device['device_memory'])
+    if device_index is None:
+        selected = max(candidates, key=lambda device: device['device_memory'])
+    else:
+        selected = next((device for device in candidates if device['index'] == device_index), None)
+        if selected is None:
+            raise RuntimeError(f'Vulkan device {device_index} is not a usable Vulkan 1.4 hardware device')
     core.set_vulkan_device(selected['index'])
     actual = core.vulkan_device_info
     if not selected.get('uuid') or actual.get('uuid') != selected['uuid']:
