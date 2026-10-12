@@ -32,11 +32,11 @@ plugin; those files remain authoritative for each native wheel.
 
 | Source directory | Central wheel wrapper | Distribution | Wheel version | Upstream revision |
 | --- | --- | --- | --- | --- |
-| plugins/vapoursynth-krigbilateralvk | packaging/vapoursynth-krigbilateralvk | vapoursynth-krigbilateralvk | 0.2.1+alice.1 | f9445cb7a9757449a9fe5b6db5ec0b1f04f24156 |
+| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | vapoursynth-krigbilateralvk | 0.2.2+alice.2 | 0772d0d496d48f32441d4273ca9bf0904efaeeac |
 
 KrigBilateral source authority remains in
 [RyougiKukoc/vapoursynth-krigbilateralvk](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk).
-The central gitlink and `packaging/vapoursynth-krigbilateralvk/source.json` pin
+The central gitlink and `plugins/vapoursynth-krigbilateralvk/source.json` pin
 the same reviewed commit. Packaging and releases live in this repository;
 updating the source requires changing both pins and the wheel version.
 

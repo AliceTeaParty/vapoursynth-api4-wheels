@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location('hardware_device', ROOT / 'packaging/vapoursynth-krigbilateralvk/tools/hardware_device.py')
+spec = importlib.util.spec_from_file_location('hardware_device', ROOT / 'plugins/vapoursynth-krigbilateralvk/tools/hardware_device.py')
 hardware = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hardware)
 
