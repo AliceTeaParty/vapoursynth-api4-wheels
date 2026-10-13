@@ -7,7 +7,7 @@ The central wheel project for [KrigBilateral Vulkan](https://github.com/RyougiKu
 Windows and Linux x86_64 wheels are published on the central index:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.3.1"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.4.0"
 ```
 
 Use the same Python environment as VapourSynth. The wheel requires VapourSynth R81 or newer (`>=81`) because the plugin's core GPU interface targets that SDK. A Vulkan 1.4 device/driver is needed for rendering; GPU FP16 conversions additionally depend on the core's device support. Linux wheels use the `manylinux_2_28_x86_64` runtime floor. macOS and ARM packages are not published.
@@ -22,16 +22,21 @@ output = vs.core.krigvk.KrigBilateral(source)
 gpu_output = vs.core.krigvk.KrigBilateralGPU(vs.core.std.GPUUpload(source))
 ```
 
-Input is constant-format progressive YUV420 with positive even dimensions and left chroma placement. Integer depths 8..16 and standard signed-chroma FP16/FP32 are supported. Core `resize.Point` handles range-aware conversion to FP32 working samples and final output conversion. It reads each frame's `_Range` (`0=limited`, `1=full`); untagged YUV follows resize's limited default, so full-range input must be tagged correctly.
+Input is constant-format progressive YUV420 with positive even dimensions and left chroma placement. Integer depths 8..16 and signed-chroma FP16/FP32 are supported. Version 0.4.0 fuses input normalization and output quantization into the original three Krig kernels, removing boundary resize nodes and full-frame FP32 conversion buffers. Each frame's `_Range` is retained (`0=limited`, `1=full`); untagged YUV defaults to limited, so tag full-range input correctly. Legacy `_ColorRange` setters work through the core alias. See the upstream [conversion contract and range table](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk/blob/main/docs/range-depth.md).
 
-Both entries accept `bits`, `sample_type` and `dither_type`. Output is YUV444 at the same size, with sample type/depth matching input by default. `bits=32` selects FP32; `bits=16, sample_type=vs.INTEGER` explicitly selects integer 16-bit even for floating input. Dither defaults to `none` (Python `None` is accepted), with `ordered`, `random` and `error_diffusion` also available. It applies only to integer output. At unchanged type/depth the original luma bytes are preserved; otherwise core resize converts original luma directly. Finite float headroom is retained until output conversion.
+Both entries accept `bits`, `sample_type` and `dither_type`. Integer input defaults to **integer16 output**; float input retains its float depth. `bits=32` selects FP32; `bits=16, sample_type=vs.INTEGER` explicitly selects integer16 for float input. Integer output below 16 bits emits one VapourSynth warning at construction: no dither is applied and banding may occur. Processing continues. `dither_type` accepts only `None`/`"none"`; other modes fail. Apply core resize to 16-bit or FP32 output when dithering is required.
+
+At unchanged type/depth the original Y plane is shared exactly. Otherwise the final Krig kernel converts original Y directly. Finite float headroom is retained until integer quantization, which rounds to nearest with ties to even and clips to storage range. CPU and GPU entries use identical conversion arithmetic; CPU-frame output adds upload/download, while the resident entry stays on the GPU.
 
 ```python
 floating = vs.core.krigvk.KrigBilateral(source, bits=32)
-eight_bit = vs.core.krigvk.KrigBilateral(source, bits=8, dither_type="error_diffusion")
+sixteen_bit = vs.core.krigvk.KrigBilateral(source)
+eight_bit = vs.core.resize.Point(sixteen_bit, format=vs.YUV444P8, dither_type="error_diffusion")
+# No dither, with a warning:
+eight_bit_no_dither = vs.core.krigvk.KrigBilateral(source, bits=8)
 ```
 
-Both entries use the same GPU resize backend for none/ordered/random, avoiding entry-dependent conversion rounding. CPU-frame callers transfer at their interface; ordinary GPU chains stay resident. R81's GPU resize lacks error diffusion, so selecting it for integer output explicitly uses CPU resize and transfers to the requested output residency. The covariance and solver are unchanged, but corrected range handling can change integer results from v0.2.x. The `reference` option remains removed. See the [plugin README](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk#readme) for type inference, diagnostics and numerical limits.
+Version 0.4.0 removes `debug` and all diagnostic output branches; calls passing `debug` fail, including `debug=0`. The `reference` option remains removed. The covariance and solver are unchanged. Windows RTX 3090 Ti and Linux A100 each pass 730 range/depth checks, 41 contracts and the 32-configuration / 256-frame original-GLSL matrix against an independent resize-based oracle. Mesa also passes the full range/depth, contract and original-GLSL suites; the integer chroma adaptation boundary prevents contraction into its range affine. Eight real 1080p frames match across 99,532,800 output samples. Matched source measurements improve CPU16 from 112.67 to 189.29 fps and resident GPU16 from 122.29 to 220.73 fps. The [validation report](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk/blob/main/docs/validation.md) records measured binary hashes and differing timing boundaries; these source measurements identify their binaries separately from hosted release artifacts.
 
 ## Source installation
 
@@ -41,7 +46,7 @@ This explicit named VCS form uses a matching central Release package by default:
 python -m pip install "vapoursynth-krigbilateralvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-krigbilateralvk"
 ```
 
-Version `0.3.1` maps to central tag `vapoursynth-krigbilateralvk-v0.3.1`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
+Version `0.4.0` maps to central tag `vapoursynth-krigbilateralvk-v0.4.0`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
 
 For a local checkout:
 
@@ -57,7 +62,7 @@ python -m pip install .
 
 Update the central submodule gitlink and `source.json` together after reviewing an upstream commit. The native implementation stays owned by the upstream repository. Bump the central wheel version, release tag mapping and the central version table when publishing changed source. The wrapper exports a small source snapshot into sdists so source archives can build without a sibling checkout.
 
-The package workflow creates Windows/Linux wheels and payload zips. Windows registration checks run in hosted CI, and actual Vulkan rendering is verified locally. Linux package validation runs with Vulkan-capable Mesa software execution. Physical GPU validation also passed on Windows RTX 3090 Ti and Linux NVIDIA A100 with Vulkan 1.4: published-wheel rendering, signed FP16/FP32, nonuniform chroma, exact luma and CPU/GPU entry equality; Linux additionally passed release-payload source installation and a native source rebuild. See the upstream [validation report](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk/blob/main/docs/validation.md) for versions and scope. These checks are not a Linux original-GLSL bit-exact comparison or benchmark.
+The package workflow creates Windows/Linux wheels and payload zips. Windows registration checks run in hosted CI, and actual Vulkan rendering is verified locally. Linux package validation runs with Vulkan-capable Mesa software execution. Physical GPU validation also passed on Windows RTX 3090 Ti and Linux NVIDIA A100 with Vulkan 1.4: published-wheel rendering, signed FP16/FP32, nonuniform chroma, exact luma and CPU/GPU entry equality; Linux additionally passed release-payload source installation and a native source rebuild. See the upstream [validation report](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk/blob/main/docs/validation.md) for versions and scope. The versioned source validation also includes the original-GLSL matrix on Linux; no Linux throughput or cross-device speed claim is made.
 
 Physical GPU tests can run locally over SSH using an isolated mamba environment; registering the host as a GitHub runner is optional. Keep machine addresses, account paths and device identifiers in local evidence. Normal hosted CI remains responsible for compilation, package loading and software Vulkan checks. Only tested artifacts should be published, followed by the index workflow.
 
