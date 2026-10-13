@@ -147,7 +147,7 @@ plugin; those files remain authoritative for each native wheel.
 
 | Source directory | Central integration directory | Source version | Upstream revision |
 | --- | --- | --- | --- |
-| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | 0.3.0 | 0b125569bc8e8f0eb67cb8c21a891ddc73792b95 |
+| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | 0.3.0 | fcc314b5fd3bdb53b3b00798b69d4ae9e61f66ea |
 | plugins/vapoursynth-dfttestvk/native | plugins/vapoursynth-dfttestvk | 0.1.0 | f4760440ff5e360e773a4ebe0bb23f89de801a93 |
 
 Source authority remains in
