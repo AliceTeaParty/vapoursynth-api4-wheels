@@ -52,17 +52,17 @@ and hardware requirements.
 | --- | --- | --- |
 | [NLQ](plugins/vs-nlq/README.md) — `vs-nlq` | Dolby Vision nonlinear quantization processing. | Expects a 16-bit mapped base layer and 10-bit enhancement layer; produces 12-bit output. |
 | [NNEDI3CL](plugins/vapoursynth-nnedi3cl/README.md) — `vapoursynth-nnedi3cl` | Neural interpolation for resizing and anti-aliasing. | Requires an OpenCL device and driver. |
-| [SmoothUV](plugins/vapoursynth-smoothuv) — `vapoursynth-smoothuv` | Chroma smoothing and denoising. | Processes chroma; check the filter's supported bit depths and formats. |
+| [SmoothUV](plugins/vapoursynth-smoothuv) — `vapoursynth-smoothuv` | Chroma smoothing and denoising. | Accepts constant-format 8-bit YUV; convert higher bit depths before using it. |
 | [DFTTest](plugins/vapoursynth-dfttest/README.md) — `vapoursynth-dfttest` | Frequency-domain spatial/temporal denoising on the CPU. | A CPU option with the original DFTTest parameter interface. |
 | [KNLMeansCL](plugins/vapoursynth-knlm/README.md) — `vapoursynth-knlm` | Non-local means denoising. | Requires an OpenCL device and driver. |
-| [Retinex](plugins/vapoursynth-retinex/README.md) — `vapoursynth-retinex` | Contrast and dynamic-range enhancement. | Changes image appearance; tune its parameters for the source. |
+| [Retinex](plugins/vapoursynth-retinex/README.md) — `vapoursynth-retinex` | Contrast and dynamic-range enhancement. | MSRCP needs 8–16-bit Gray, YUV444 or RGB; MSRCR needs RGB. Convert subsampled YUV first. |
 | [BM3DCUDA / CPU](plugins/vapoursynth-bm3dcuda/README.md) — `vapoursynth-bm3dcpu`, `vapoursynth-bm3dcuda-cu121`, `vapoursynth-bm3dcuda-cu129` | BM3D denoising on CPU or NVIDIA GPU. | CPU backend needs AVX2. CUDA wheels include `core.bm3dcpu` and `core.bm3dcuda_rtc`; `core.bm3dcuda` is not included. Install one variant. |
 | [DFTTest2](plugins/vapoursynth-dfttest2/README.md) — `vapoursynth-dfttest2-cpu`, `vapoursynth-dfttest2-cu121`, `vapoursynth-dfttest2-cu129` | Frequency-domain denoising with CPU and CUDA backends. | CPU wheel needs no NVIDIA GPU. CUDA wheels include CPU, NVRTC and cuFFT backends. Install one variant. |
 | [vs-mlrt](plugins/vs-mlrt/README.md) — `vs-mlrt-generic`, `vs-mlrt-cu121`, `vs-mlrt-cu129` | Neural video processing with NCNN, OpenVINO and TensorRT. | Install one entry package; it selects matching models and runtimes. See variant selection below. |
-| [TComb](plugins/vapoursynth-tcomb) — `vapoursynth-tcomb` | Temporal dot-crawl and rainbow reduction. | Designed for composite-video artifacts; use the documented input formats. |
+| [TComb](plugins/vapoursynth-tcomb) — `vapoursynth-tcomb` | Temporal dot-crawl and rainbow reduction. | Needs constant-format 8-bit Gray or YUV. Gray input requires luma-only mode. |
 | [FFT3DFilter](plugins/vapoursynth-fft3dfilter/README.md) — `vapoursynth-fft3dfilter` | Frequency-domain denoising, sharpening and dehaloing. | Runs on the CPU; temporal settings determine how neighboring frames are used. |
 | [Chroma-from-Luma](plugins/vs-cfl/README.md) — `vs-cfl` | Luma-guided chroma reconstruction. | Integer YUV420/YUV422 input becomes YUV444; chroma placement affects reconstruction. |
-| [TCanny](plugins/vapoursynth-tcanny/README.md) — `vapoursynth-tcanny` | Canny edge detection and masks. | Check output mode and pixel format when using the result as a mask. |
+| [TCanny](plugins/vapoursynth-tcanny/README.md) — `vapoursynth-tcanny` | Canny edge detection and masks. | Supports 8–16-bit integers and FP32. `mode=0` gives a thresholded edge mask; `mode=1` gives gradient magnitude. |
 | [Misc filters](plugins/vapoursynth-misc/README.md) — `vapoursynth-misc` | Legacy utility filters, including SCDetect, AverageFrames and Hysteresis. | Provides API4 ports for scripts that still use the `misc` namespace. |
 
 ### Choosing CPU and GPU variants
@@ -102,7 +102,7 @@ separately; the Collection does not supply every filter they can call.
 | --- | --- | --- |
 | [csmod](modules/csmod/WHEEL-README.md) | `CSMOD` | Contra-sharpening helpers. The import name is uppercase. |
 | [fvsfunc](modules/fvsfunc/README.md) | `fvsfunc` | Filtering, resizing and interlaced-overlay helpers; `OverlayInter` can use QTGMC. |
-| [getfnative](modules/getfnative/README.md) | `getfnative` | Estimate a source's native resolution; analysis needs its own runtime dependencies. |
+| [getfnative](modules/getfnative/README.md) | `getfnative` | Estimate native fractional resolution in upscaled/cropped sources; base-dimension parity affects the result. |
 | [havsfunc](modules/havsfunc/README.md) | `havsfunc` | QTGMC and other filtering / anti-aliasing helpers; required plugins depend on the chosen function. |
 | [kagefunc](modules/kagefunc/README.md) | `kagefunc` | Common filtering, masking and grain helpers. |
 | [muvsfunc](modules/muvsfunc/README.md) | `muvsfunc` | Filtering and numerical-processing helpers; optional functions can require additional libraries. |
