@@ -12,6 +12,7 @@ on:
       - plugins/*/source.json
       - plugins/vapoursynth-krigbilateralvk/native
       - plugins/vapoursynth-dfttestvk/native
+      - plugins/vapoursynth-dfttestvk/README.md
       - scripts/module_common.py
       - tests/test_wheel_versions.py
       - tests/test_plugin_submodules.py

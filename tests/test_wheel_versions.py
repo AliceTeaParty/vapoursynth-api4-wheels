@@ -52,7 +52,19 @@ class WheelVersionTests(unittest.TestCase):
             with self.subTest(project=name):
                 project = data["project"]
                 version = Version(project["version"])
-                self.assertRegex(version.local or "", r"^alice\.[1-9][0-9]*$")
+                source_record = path.parent / "source.json"
+                if source_record.is_file():
+                    upstream = json.loads(source_record.read_text(encoding="utf-8"))
+                    self.assertEqual(project["version"], upstream["version"])
+                    self.assertIsNone(version.local)
+                    runtime = next(Requirement(value) for value in project["dependencies"]
+                                   if canonicalize_name(Requirement(value).name) == "vapoursynth")
+                    self.assertEqual(str(runtime.specifier), ">=81")
+                    build_runtime = next(Requirement(value) for value in data["build-system"]["requires"]
+                                         if canonicalize_name(Requirement(value).name) == "vapoursynth")
+                    self.assertEqual(str(build_runtime.specifier), ">=81")
+                else:
+                    self.assertRegex(version.local or "", r"^alice\.[1-9][0-9]*$")
                 self.assertIn(f"| `{name}` | `{version}` |", versions)
                 builder = WheelBuilder(str(path.parent))
                 self.assertEqual(builder.metadata.version, str(version))

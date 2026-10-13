@@ -19,10 +19,11 @@ plugins/vapoursynth-<name>/
   tools/            central packaging and verification tools, when present
 ```
 
-KrigBilateral Vulkan has central wheel packaging. DFTTestVK currently has a
-source registration only; moving its source to `native/` does not publish a
-wheel or change the pinned source revision. Central integration files belong
-beside `native/`; native implementation changes belong in the upstream repository.
+KrigBilateral Vulkan and DFTTestVK both have central wheel packaging. Their
+wheel versions must equal the registered upstream versions, without a local
+`+alice.x` label. Both require VapourSynth `>=81` without an upper version cap.
+Central integration files belong beside `native/`; native implementation
+changes belong in the upstream repository.
 
 Initialize source checkouts with:
 

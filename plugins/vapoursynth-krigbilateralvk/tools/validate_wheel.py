@@ -32,7 +32,7 @@ def main():
         assert metadata['Name']=='vapoursynth-krigbilateralvk' and metadata['Version']==manifest['version']
         requirements=[Requirement(r) for r in metadata.get_all('Requires-Dist')]
         runtime=next(r for r in requirements if r.name.lower()=='vapoursynth')
-        assert '81' in runtime.specifier and '80' not in runtime.specifier and '82' not in runtime.specifier
+        assert str(runtime.specifier)=='>=81', 'VapourSynth must have a minimum version and no upper cap'
         tags=archive.read(next(n for n in names if n.endswith('.dist-info/WHEEL'))).decode()
         assert 'Root-Is-Purelib: false' in tags
         assert ('win_amd64' if suffix=='.dll' else 'manylinux_2_28_x86_64') in tags

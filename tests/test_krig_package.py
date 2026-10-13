@@ -20,13 +20,20 @@ spec.loader.exec_module(hook)
 
 
 class KrigPackagingTests(unittest.TestCase):
+    def test_build_rejects_a_local_label_on_the_original_version(self):
+        candidate=hook.CustomHook(str(WRAPPER),{},None,None,str(WRAPPER),'wheel')
+        with patch.object(hook,'version',return_value=hook.source_record()['version']+'+alice.1'):
+            with self.assertRaisesRegex(RuntimeError,'must equal the registered upstream version'):
+                candidate.initialize('standard',{})
+
     def test_central_gitlink_and_registration_match(self):
         record=hook.source_record()
         tree=subprocess.check_output(['git','ls-files','--stage',record['submodule']],cwd=ROOT,text=True)
         self.assertEqual(tree.split()[:2],['160000',record['commit']])
         self.assertEqual(hook.native_source().resolve(),(ROOT/record['submodule']).resolve())
         self.assertEqual(Version(hook.version()).public,record['version'])
-        self.assertRegex(Version(hook.version()).local,r'^alice\.[1-9][0-9]*$')
+        self.assertEqual(hook.version(),record['version'])
+        self.assertIsNone(Version(hook.version()).local)
 
     def test_nested_submodule_still_rejects_wrong_revision_and_dirty_source(self):
         record=hook.source_record()
