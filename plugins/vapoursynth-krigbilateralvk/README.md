@@ -7,7 +7,7 @@ The central wheel project for [KrigBilateral Vulkan](https://github.com/RyougiKu
 Windows and Linux x86_64 wheels are published on the central index:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.3.0"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.3.1"
 ```
 
 Use the same Python environment as VapourSynth. The wheel requires VapourSynth R81 or newer (`>=81`) because the plugin's core GPU interface targets that SDK. A Vulkan 1.4 device/driver is needed for rendering; GPU FP16 conversions additionally depend on the core's device support. Linux wheels use the `manylinux_2_28_x86_64` runtime floor. macOS and ARM packages are not published.
@@ -41,7 +41,7 @@ This explicit named VCS form uses a matching central Release package by default:
 python -m pip install "vapoursynth-krigbilateralvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-krigbilateralvk"
 ```
 
-Version `0.3.0` maps to central tag `vapoursynth-krigbilateralvk-v0.3.0`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
+Version `0.3.1` maps to central tag `vapoursynth-krigbilateralvk-v0.3.1`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
 
 For a local checkout:
 
