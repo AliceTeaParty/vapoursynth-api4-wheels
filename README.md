@@ -38,7 +38,7 @@ old local label as newer than the same original version.
 
 ## Our projects
 
-- [KrigBilateral Vulkan](plugins/vapoursynth-krigbilateralvk/README.md) — `vapoursynth-krigbilateralvk`: Luma-guided chroma reconstruction on a Vulkan GPU. Progressive, left-sited YUV420 input becomes YUV444; luma is preserved. Includes CPU-clip and GPU-resident entry points. See [runtime requirements](VERSIONS.md#runtime-compatibility).
+- [KrigBilateral Vulkan](plugins/vapoursynth-krigbilateralvk/README.md) — `vapoursynth-krigbilateralvk`: Luma-guided chroma reconstruction on a Vulkan GPU. Integer 8..16-bit and FP16/FP32 YUV420 input becomes YUV444, with range-aware output depth and dither control. Luma is preserved at unchanged depth/type. Includes CPU-clip and GPU-resident entry points. See [runtime requirements](VERSIONS.md#runtime-compatibility).
 - [DFTTestVK](plugins/vapoursynth-dfttestvk/README.md) — `vapoursynth-dfttestvk`: Frequency-domain spatial/temporal denoising on a Vulkan GPU. Includes CPU-clip and GPU-resident entry points, with spatial FFT caching for temporal processing. See [runtime requirements](VERSIONS.md#runtime-compatibility).
 - [rksfunc](https://github.com/RyougiKukoc/rksfunc#readme) — `rksfunc`: VapourSynth script helpers, including a bundled KrigBilateral shader. Install the Python modules and native plugins required by your script separately. The bundled shader is distinct from the native Vulkan plugin above.
 - [rkstool](https://github.com/RyougiKukoc/rkstool/wiki) — `rkstool`: Helpers for encoding, muxing and media-processing workflows. External tools such as ffmpeg, mkvmerge and qaac must be installed separately when used.

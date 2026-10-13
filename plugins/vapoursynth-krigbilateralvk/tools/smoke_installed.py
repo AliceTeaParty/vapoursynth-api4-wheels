@@ -33,6 +33,7 @@ def main():
     functions={f.name:f.signature for f in core.krigvk.functions()}
     assert set(functions)=={'KrigBilateral','KrigBilateralGPU'}
     assert all('reference:' not in signature for signature in functions.values())
+    assert all(all(option in signature for option in ('bits:int:opt;','sample_type:int:opt;','dither_type:data:opt;')) for signature in functions.values())
     actual=next(p for p in core.plugins() if p.namespace=='krigvk')
     assert Path(actual.plugin_path).resolve()==plugin.resolve(),actual.plugin_path
     selected=select_hardware_device(core,args.device_index) if args.require_hardware else None
@@ -71,7 +72,26 @@ def main():
             for p in (1,2):
                 values=[v for row in reconstructed[p].tolist() for v in row]
                 assert max(values)>min(values)
+        limited=core.std.SetFrameProps(core.std.BlankClip(source,format=vs.YUV420P8,color=[16,128,128]),_Range=0)
+        full=core.std.SetFrameProps(core.std.BlankClip(source,format=vs.YUV420P8,color=[0,128,128]),_Range=1)
+        for clip in (limited,full):
+            with core.krigvk.KrigBilateral(clip,bits=32).get_frame(0) as converted:
+                assert converted.format.id==int(vs.YUV444PS)
+                assert all(value==0 for p in range(3) for row in converted[p].tolist() for value in row)
+        for mode in ('none','ordered','random','error_diffusion'):
+            options={'bits':8,'dither_type':mode}
+            normal=core.krigvk.KrigBilateral(patterned,**options)
+            resident=core.krigvk.KrigBilateralGPU(core.std.GPUUpload(patterned),**options)
+            assert resident.gpu_resident
+            with normal.get_frame(1) as frame,core.std.GPUDownload(resident).get_frame(1) as other:
+                assert frame.format.id==int(vs.YUV444P8)
+                assert all(frame[p].tobytes()==other[p].tobytes() for p in range(3))
+        floating=core.resize.Point(patterned,format=vs.YUV420PS)
+        with core.krigvk.KrigBilateral(floating,bits=16,sample_type=vs.INTEGER).get_frame(1) as frame:
+            assert frame.format.id==int(vs.YUV444P16)
         result|={'rendered':True,'cpu_gpu_equal':True,'luma_exact':True,'signed_float_chroma':True,
+                 'range_aware':True,'output_depth_control':True,'fp32_conversion':True,
+                 'dither_modes':['none','ordered','random','error_diffusion'],
                  'nonuniform_chroma':True,
                  'devices':[{k:v for k,v in entry.items() if k not in ('uuid','luid')} for entry in core.vulkan_devices]}
     if args.output:

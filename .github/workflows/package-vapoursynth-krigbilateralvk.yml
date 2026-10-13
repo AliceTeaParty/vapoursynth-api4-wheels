@@ -134,6 +134,8 @@ jobs:
               set -eu
               python -m pip install --no-deps /workspace/plugins/vapoursynth-krigbilateralvk/dist/release-linux/*.whl
               python /workspace/plugins/vapoursynth-krigbilateralvk/tools/smoke_installed.py --exercise --output /results/linux-render.json
+              python /workspace/plugins/vapoursynth-krigbilateralvk/native/tests/validate_depth.py --output /results/linux-range-depth-dither.json
+              python /workspace/plugins/vapoursynth-krigbilateralvk/native/tests/validate_contract.py --output /results/linux-input-output-contract.json
               python -m pip uninstall -y vapoursynth-krigbilateralvk
               export KRIGVK_PREBUILT_URL=/workspace/plugins/vapoursynth-krigbilateralvk/dist/release-linux/krigbilateralvk-linux-x86_64.zip
               cp -a /workspace/plugins/vapoursynth-krigbilateralvk /work/package
