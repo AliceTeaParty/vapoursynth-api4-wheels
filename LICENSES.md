@@ -24,6 +24,7 @@ upstream source and license for each subtree.
 | `plugins/vapoursynth-tcanny` | [HomeOfVapourSynthEvolution/VapourSynth-TCanny](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-TCanny) | GPL-3.0 |
 | `plugins/vapoursynth-misc` | [vapoursynth/vs-miscfilters-obsolete](https://github.com/vapoursynth/vs-miscfilters-obsolete) | LGPL-2.1 |
 | `plugins/vapoursynth-krigbilateralvk/native` (submodule) | [RyougiKukoc/vapoursynth-krigbilateralvk](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk) | LGPL-3.0-or-later; KrigBilateral algorithm by Shiandow |
+| `plugins/vapoursynth-dfttestvk/native` (submodule) | [RyougiKukoc/vapoursynth-dfttestvk](https://github.com/RyougiKukoc/vapoursynth-dfttestvk) | GPL-3.0; DFTTest/DFTTest2 algorithm and FFTW-derived transform codelets; see upstream `THIRD_PARTY.md` |
 
 ## Python modules
 

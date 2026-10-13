@@ -7,8 +7,14 @@ on:
       - '**/hatch_build.py'
       - plugins/vs-mlrt/packaging/vsmlrt_build.py
       - README.md
+      - VERSIONS.md
+      - .gitmodules
+      - plugins/*/source.json
+      - plugins/vapoursynth-krigbilateralvk/native
+      - plugins/vapoursynth-dfttestvk/native
       - scripts/module_common.py
       - tests/test_wheel_versions.py
+      - tests/test_plugin_submodules.py
       - tests/module-snapshots.json
       - .github/workflows/**
   workflow_dispatch:
@@ -29,3 +35,4 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install hatchling packaging
       - run: python -m unittest discover -s tests -p test_wheel_versions.py -v
+      - run: python -m unittest discover -s tests -p test_plugin_submodules.py -v
