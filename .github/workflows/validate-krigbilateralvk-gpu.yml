@@ -12,7 +12,7 @@ on:
         description: 'Central release matching the source/version in this checkout'
         required: true
         type: string
-        default: 'vapoursynth-krigbilateralvk-v0.2.2+alice.2'
+        default: 'vapoursynth-krigbilateralvk-v0.2.2'
       environment_prefix:
         description: 'Optional existing Python/mamba environment prefix; empty uses Docker'
         required: false

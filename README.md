@@ -25,17 +25,21 @@ wheels install the plugin and its autoload manifest, so you do not need to copy
 DLLs or compile the plugin yourself. Restart an existing Python or editor session
 after installation.
 
-Our maintained builds use the version suffix **`+alice.x`**. Keep the complete
-version when pinning a package: pip compares both indexes and can otherwise
-choose a different same-name upstream package. Our own native plugin wheels
-also carry this packaging label; `rksfunc` and `rkstool` retain their upstream
-versions. All exact versions, source revisions and runtime compatibility details
-are recorded in [VERSIONS.md](VERSIONS.md).
+Our modified upstream projects use the version suffix **`+alice.x`**.
+KrigBilateral Vulkan, DFTTestVK, `rksfunc` and `rkstool` retain their original
+upstream versions. Keep the complete version when pinning a package: pip
+compares both indexes and can otherwise choose a different same-name package.
+All exact versions, source revisions and runtime compatibility details are
+recorded in [VERSIONS.md](VERSIONS.md).
+
+If an earlier KrigBilateral installation carries an `+alice.x` suffix,
+reinstall the version from VERSIONS.md with `--force-reinstall`; pip treats the
+old local label as newer than the same original version.
 
 ## Our projects
 
 - [KrigBilateral Vulkan](plugins/vapoursynth-krigbilateralvk/README.md) — `vapoursynth-krigbilateralvk`: Luma-guided chroma reconstruction on a Vulkan GPU. Progressive, left-sited YUV420 input becomes YUV444; luma is preserved. Includes CPU-clip and GPU-resident entry points. See [runtime requirements](VERSIONS.md#runtime-compatibility).
-- [DFTTestVK](plugins/vapoursynth-dfttestvk/README.md) — `vapoursynth-dfttestvk`: Frequency-domain spatial/temporal denoising on a Vulkan GPU. Source is registered here; **a central wheel is not yet published**. Use the linked upstream build instructions. Supports CPU-clip and GPU-resident entry points.
+- [DFTTestVK](plugins/vapoursynth-dfttestvk/README.md) — `vapoursynth-dfttestvk`: Frequency-domain spatial/temporal denoising on a Vulkan GPU. Includes CPU-clip and GPU-resident entry points, with spatial FFT caching for temporal processing. See [runtime requirements](VERSIONS.md#runtime-compatibility).
 - [rksfunc](https://github.com/RyougiKukoc/rksfunc#readme) — `rksfunc`: VapourSynth script helpers, including a bundled KrigBilateral shader. Install the Python modules and native plugins required by your script separately. The bundled shader is distinct from the native Vulkan plugin above.
 - [rkstool](https://github.com/RyougiKukoc/rkstool/wiki) — `rkstool`: Helpers for encoding, muxing and media-processing workflows. External tools such as ffmpeg, mkvmerge and qaac must be installed separately when used.
 - [Script Collection](modules/vs-collection-rk/README.md) — `vs-collection-rk`: Installs all 12 modified script modules listed below as one matched set. Import them by their original module names. Required runtime plugins and libraries remain user-managed. See the package guide for upgrades and installed-file checks.

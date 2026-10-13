@@ -162,6 +162,8 @@ def stage_native(source: Path, target: Path):
 
 class CustomHook(BuildHookInterface):
     def initialize(self, version_name, build_data):
+        if version() != source_record()["version"]:
+            raise RuntimeError("Wheel version must equal the registered upstream version")
         if self.target_name == "sdist":
             source = native_source()
             self._snapshot = tempfile.TemporaryDirectory(prefix="krig-sdist-")
