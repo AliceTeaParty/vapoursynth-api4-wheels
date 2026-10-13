@@ -3,7 +3,7 @@
 [DFTTestVK](https://github.com/RyougiKukoc/vapoursynth-dfttestvk#readme) provides
 spatial/temporal frequency-domain denoising on VapourSynth's Vulkan device.
 It exposes `core.dfttestvk.DFTTest` for CPU clips and `DFTTestGPU` for
-GPU-resident graphs. CUDA is not required.
+GPU-resident graphs.
 
 This repository currently registers its source only. **There is no central
 DFTTestVK wheel or package workflow yet.** Follow the upstream README for

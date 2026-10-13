@@ -10,7 +10,7 @@ the plugins and external programs they call still have their own requirements.
 
 ## Install
 
-1. Find a package in the tables below and copy its exact wheel version from
+1. Find a package in the lists below and copy its exact wheel version from
    [VERSIONS.md](VERSIONS.md#wheel-versions).
 2. Use the same Python environment as your VapourSynth scripts. Replace
    `PACKAGE` and `VERSION` in this command with that package name and version:
@@ -34,13 +34,11 @@ are recorded in [VERSIONS.md](VERSIONS.md).
 
 ## Our projects
 
-| Project / package | Purpose | What to know |
-| --- | --- | --- |
-| [KrigBilateral Vulkan](plugins/vapoursynth-krigbilateralvk/README.md) — `vapoursynth-krigbilateralvk` | Luma-guided chroma reconstruction on a Vulkan GPU. | Progressive, left-sited YUV420 input becomes YUV444; luma is preserved. Includes CPU-clip and GPU-resident entry points. See [runtime requirements](VERSIONS.md#runtime-compatibility). |
-| [DFTTestVK](plugins/vapoursynth-dfttestvk/README.md) | Frequency-domain spatial/temporal denoising on a Vulkan GPU, without CUDA. | Source is registered here; **a central wheel is not yet published**. Use the linked upstream build instructions. Supports CPU-clip and GPU-resident entry points. |
-| [rksfunc](https://github.com/RyougiKukoc/rksfunc#readme) — `rksfunc` | VapourSynth script helpers, including a bundled KrigBilateral shader. | Install the Python modules and native plugins required by your script separately. The bundled shader is distinct from the native Vulkan plugin above. |
-| [rkstool](https://github.com/RyougiKukoc/rkstool/wiki) — `rkstool` | Helpers for encoding, muxing and media-processing workflows. | External tools such as ffmpeg, mkvmerge and qaac must be installed separately when used. |
-| [Script Collection](modules/vs-collection-rk/README.md) — `vs-collection-rk` | Installs all 12 modified script modules listed below as one matched set. | Import them by their original module names. Required runtime plugins and libraries remain user-managed. See the package guide for upgrades and installed-file checks. |
+- [KrigBilateral Vulkan](plugins/vapoursynth-krigbilateralvk/README.md) — `vapoursynth-krigbilateralvk`: Luma-guided chroma reconstruction on a Vulkan GPU. Progressive, left-sited YUV420 input becomes YUV444; luma is preserved. Includes CPU-clip and GPU-resident entry points. See [runtime requirements](VERSIONS.md#runtime-compatibility).
+- [DFTTestVK](plugins/vapoursynth-dfttestvk/README.md) — `vapoursynth-dfttestvk`: Frequency-domain spatial/temporal denoising on a Vulkan GPU. Source is registered here; **a central wheel is not yet published**. Use the linked upstream build instructions. Supports CPU-clip and GPU-resident entry points.
+- [rksfunc](https://github.com/RyougiKukoc/rksfunc#readme) — `rksfunc`: VapourSynth script helpers, including a bundled KrigBilateral shader. Install the Python modules and native plugins required by your script separately. The bundled shader is distinct from the native Vulkan plugin above.
+- [rkstool](https://github.com/RyougiKukoc/rkstool/wiki) — `rkstool`: Helpers for encoding, muxing and media-processing workflows. External tools such as ffmpeg, mkvmerge and qaac must be installed separately when used.
+- [Script Collection](modules/vs-collection-rk/README.md) — `vs-collection-rk`: Installs all 12 modified script modules listed below as one matched set. Import them by their original module names. Required runtime plugins and libraries remain user-managed. See the package guide for upgrades and installed-file checks.
 
 ## Maintained upstream plugins
 
@@ -48,22 +46,20 @@ These packages contain our API4 and packaging changes to upstream projects.
 The links lead to the plugin documentation; choose the package by its workload
 and hardware requirements.
 
-| Plugin / package | Purpose | What to know |
-| --- | --- | --- |
-| [NLQ](plugins/vs-nlq/README.md) — `vs-nlq` | Dolby Vision nonlinear quantization processing. | Expects a 16-bit mapped base layer and 10-bit enhancement layer; produces 12-bit output. |
-| [NNEDI3CL](plugins/vapoursynth-nnedi3cl/README.md) — `vapoursynth-nnedi3cl` | Neural interpolation for resizing and anti-aliasing. | Requires an OpenCL device and driver. |
-| [SmoothUV](plugins/vapoursynth-smoothuv) — `vapoursynth-smoothuv` | Chroma smoothing and denoising. | Accepts constant-format 8-bit YUV; convert higher bit depths before using it. |
-| [DFTTest](plugins/vapoursynth-dfttest/README.md) — `vapoursynth-dfttest` | Frequency-domain spatial/temporal denoising on the CPU. | A CPU option with the original DFTTest parameter interface. |
-| [KNLMeansCL](plugins/vapoursynth-knlm/README.md) — `vapoursynth-knlm` | Non-local means denoising. | Requires an OpenCL device and driver. |
-| [Retinex](plugins/vapoursynth-retinex/README.md) — `vapoursynth-retinex` | Contrast and dynamic-range enhancement. | MSRCP needs 8–16-bit Gray, YUV444 or RGB; MSRCR needs RGB. Convert subsampled YUV first. |
-| [BM3DCUDA / CPU](plugins/vapoursynth-bm3dcuda/README.md) — `vapoursynth-bm3dcpu`, `vapoursynth-bm3dcuda-cu121`, `vapoursynth-bm3dcuda-cu129` | BM3D denoising on CPU or NVIDIA GPU. | CPU backend needs AVX2. CUDA wheels include `core.bm3dcpu` and `core.bm3dcuda_rtc`; `core.bm3dcuda` is not included. Install one variant. |
-| [DFTTest2](plugins/vapoursynth-dfttest2/README.md) — `vapoursynth-dfttest2-cpu`, `vapoursynth-dfttest2-cu121`, `vapoursynth-dfttest2-cu129` | Frequency-domain denoising with CPU and CUDA backends. | CPU wheel needs no NVIDIA GPU. CUDA wheels include CPU, NVRTC and cuFFT backends. Install one variant. |
-| [vs-mlrt](plugins/vs-mlrt/README.md) — `vs-mlrt-generic`, `vs-mlrt-cu121`, `vs-mlrt-cu129` | Neural video processing with NCNN, OpenVINO and TensorRT. | Install one entry package; it selects matching models and runtimes. See variant selection below. |
-| [TComb](plugins/vapoursynth-tcomb) — `vapoursynth-tcomb` | Temporal dot-crawl and rainbow reduction. | Needs constant-format 8-bit Gray or YUV. Gray input requires luma-only mode. |
-| [FFT3DFilter](plugins/vapoursynth-fft3dfilter/README.md) — `vapoursynth-fft3dfilter` | Frequency-domain denoising, sharpening and dehaloing. | Runs on the CPU; temporal settings determine how neighboring frames are used. |
-| [Chroma-from-Luma](plugins/vs-cfl/README.md) — `vs-cfl` | Luma-guided chroma reconstruction. | Integer YUV420/YUV422 input becomes YUV444; chroma placement affects reconstruction. |
-| [TCanny](plugins/vapoursynth-tcanny/README.md) — `vapoursynth-tcanny` | Canny edge detection and masks. | Supports 8–16-bit integers and FP32. `mode=0` gives a thresholded edge mask; `mode=1` gives gradient magnitude. |
-| [Misc filters](plugins/vapoursynth-misc/README.md) — `vapoursynth-misc` | Legacy utility filters, including SCDetect, AverageFrames and Hysteresis. | Provides API4 ports for scripts that still use the `misc` namespace. |
+- [NLQ](plugins/vs-nlq/README.md) — `vs-nlq`: Dolby Vision nonlinear quantization processing. Expects a 16-bit mapped base layer and 10-bit enhancement layer; produces 12-bit output.
+- [NNEDI3CL](plugins/vapoursynth-nnedi3cl/README.md) — `vapoursynth-nnedi3cl`: Neural interpolation for resizing and anti-aliasing. Requires an OpenCL device and driver.
+- [SmoothUV](plugins/vapoursynth-smoothuv) — `vapoursynth-smoothuv`: Chroma smoothing and denoising. Accepts constant-format 8-bit YUV; convert higher bit depths before using it.
+- [DFTTest](plugins/vapoursynth-dfttest/README.md) — `vapoursynth-dfttest`: Frequency-domain spatial/temporal denoising on the CPU. A CPU option with the original DFTTest parameter interface.
+- [KNLMeansCL](plugins/vapoursynth-knlm/README.md) — `vapoursynth-knlm`: Non-local means denoising. Requires an OpenCL device and driver.
+- [Retinex](plugins/vapoursynth-retinex/README.md) — `vapoursynth-retinex`: Contrast and dynamic-range enhancement. MSRCP needs 8–16-bit Gray, YUV444 or RGB; MSRCR needs RGB. Convert subsampled YUV first.
+- [BM3DCUDA / CPU](plugins/vapoursynth-bm3dcuda/README.md) — `vapoursynth-bm3dcpu`, `vapoursynth-bm3dcuda-cu121`, `vapoursynth-bm3dcuda-cu129`: BM3D denoising on CPU or NVIDIA GPU. CPU backend needs AVX2. CUDA wheels include `core.bm3dcpu` and `core.bm3dcuda_rtc`; `core.bm3dcuda` is not included. Install one variant.
+- [DFTTest2](plugins/vapoursynth-dfttest2/README.md) — `vapoursynth-dfttest2-cpu`, `vapoursynth-dfttest2-cu121`, `vapoursynth-dfttest2-cu129`: Frequency-domain denoising with CPU and CUDA backends. CPU wheel needs no NVIDIA GPU. CUDA wheels include CPU, NVRTC and cuFFT backends. Install one variant.
+- [vs-mlrt](plugins/vs-mlrt/README.md) — `vs-mlrt-generic`, `vs-mlrt-cu121`, `vs-mlrt-cu129`: Neural video processing with NCNN, OpenVINO and TensorRT. Install one entry package; it selects matching models and runtimes. See variant selection below.
+- [TComb](plugins/vapoursynth-tcomb) — `vapoursynth-tcomb`: Temporal dot-crawl and rainbow reduction. Needs constant-format 8-bit Gray or YUV. Gray input requires luma-only mode.
+- [FFT3DFilter](plugins/vapoursynth-fft3dfilter/README.md) — `vapoursynth-fft3dfilter`: Frequency-domain denoising, sharpening and dehaloing. Runs on the CPU; temporal settings determine how neighboring frames are used.
+- [Chroma-from-Luma](plugins/vs-cfl/README.md) — `vs-cfl`: Luma-guided chroma reconstruction. Integer YUV420/YUV422 input becomes YUV444; chroma placement affects reconstruction.
+- [TCanny](plugins/vapoursynth-tcanny/README.md) — `vapoursynth-tcanny`: Canny edge detection and masks. Supports 8–16-bit integers and FP32. `mode=0` gives a thresholded edge mask; `mode=1` gives gradient magnitude.
+- [Misc filters](plugins/vapoursynth-misc/README.md) — `vapoursynth-misc`: Legacy utility filters, including SCDetect, AverageFrames and Hysteresis. Provides API4 ports for scripts that still use the `misc` namespace.
 
 ### Choosing CPU and GPU variants
 
@@ -75,11 +71,9 @@ for the runtime versions.
 
 For vs-mlrt:
 
-| Entry package | Backends included |
-| --- | --- |
-| `vs-mlrt-generic` | NCNN/Vulkan and OpenVINO. |
-| `vs-mlrt-cu121` | The common backends above plus standard TensorRT on the `cu121` runtime line. |
-| `vs-mlrt-cu129` | The common backends above plus standard TensorRT and TensorRT-RTX on the `cu129` runtime line. |
+- `vs-mlrt-generic`: NCNN/Vulkan and OpenVINO.
+- `vs-mlrt-cu121`: The common backends above plus standard TensorRT on the `cu121` runtime line.
+- `vs-mlrt-cu129`: The common backends above plus standard TensorRT and TensorRT-RTX on the `cu129` runtime line.
 
 Install **one variant of each project** per environment; variants own the same
 plugin or Python API paths. To switch, uninstall the current variant first.
@@ -98,20 +92,18 @@ packages individually. These modified modules retain their familiar import
 names. Install the native plugins and Python libraries your scripts use
 separately; the Collection does not supply every filter they can call.
 
-| Package | Import name | Purpose / what to know |
-| --- | --- | --- |
-| [csmod](modules/csmod/WHEEL-README.md) | `CSMOD` | Contra-sharpening helpers. The import name is uppercase. |
-| [fvsfunc](modules/fvsfunc/README.md) | `fvsfunc` | Filtering, resizing and interlaced-overlay helpers; `OverlayInter` can use QTGMC. |
-| [getfnative](modules/getfnative/README.md) | `getfnative` | Estimate native fractional resolution in upscaled/cropped sources; base-dimension parity affects the result. |
-| [havsfunc](modules/havsfunc/README.md) | `havsfunc` | QTGMC and other filtering / anti-aliasing helpers; required plugins depend on the chosen function. |
-| [kagefunc](modules/kagefunc/README.md) | `kagefunc` | Common filtering, masking and grain helpers. |
-| [muvsfunc](modules/muvsfunc/README.md) | `muvsfunc` | Filtering and numerical-processing helpers; optional functions can require additional libraries. |
-| [mvsfunc](modules/mvsfunc/README.md) | `mvsfunc` | Depth/color conversion and denoising helpers, including BM3D. |
-| [nnedi3-resample](modules/nnedi3-resample/README.md) | `nnedi3_resample` | NNEDI3-based resizing; requires the backend plugins selected by your script. |
-| [nnedi3-rpow2](modules/nnedi3-rpow2/WHEEL-README.md) | `nnedi3_rpow2` | Power-of-two NNEDI3 enlargement. Package and import names differ. |
-| [sdering-fix](modules/sdering-fix/WHEEL-README.md) | `sdering_fix` | Deringing helpers. Package and import names differ. |
-| [vstaambk](modules/vstaambk/README.md) | `vsTAAmbk` | Anti-aliasing helpers; preserve the import's capitalization. |
-| [yvsfunc](modules/yvsfunc/README.md) | `yvsfunc` | Resampling, denoising, frame and preview helpers. |
+- [csmod](modules/csmod/WHEEL-README.md): Contra-sharpening helpers. Import as `CSMOD`.
+- [fvsfunc](modules/fvsfunc/README.md): Filtering, resizing and interlaced-overlay helpers; `OverlayInter` can use QTGMC. Import as `fvsfunc`.
+- [getfnative](modules/getfnative/README.md): Estimate native fractional resolution in upscaled/cropped sources; base-dimension parity affects the result. Import as `getfnative`.
+- [havsfunc](modules/havsfunc/README.md): QTGMC and other filtering / anti-aliasing helpers; required plugins depend on the chosen function. Import as `havsfunc`.
+- [kagefunc](modules/kagefunc/README.md): Common filtering, masking and grain helpers. Import as `kagefunc`.
+- [muvsfunc](modules/muvsfunc/README.md): Filtering and numerical-processing helpers; optional functions can require additional libraries. Import as `muvsfunc`.
+- [mvsfunc](modules/mvsfunc/README.md): Depth/color conversion and denoising helpers, including BM3D. Import as `mvsfunc`.
+- [nnedi3-resample](modules/nnedi3-resample/README.md): NNEDI3-based resizing; requires the backend plugins selected by your script. Import as `nnedi3_resample`.
+- [nnedi3-rpow2](modules/nnedi3-rpow2/WHEEL-README.md): Power-of-two NNEDI3 enlargement. Import as `nnedi3_rpow2`.
+- [sdering-fix](modules/sdering-fix/WHEEL-README.md): Deringing helpers. Import as `sdering_fix`.
+- [vstaambk](modules/vstaambk/README.md): Anti-aliasing helpers. Import as `vsTAAmbk`.
+- [yvsfunc](modules/yvsfunc/README.md): Resampling, denoising, frame and preview helpers. Import as `yvsfunc`.
 
 The maintained EEDI3 routes in HAvsFunc, vsTAAmbk and yvsfunc use the CPU by
 default. Their `opencl=True` option selects Vulkan with an OpenCL fallback.
