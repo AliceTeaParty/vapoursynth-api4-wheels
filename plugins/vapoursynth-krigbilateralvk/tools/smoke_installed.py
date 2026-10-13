@@ -34,7 +34,8 @@ def main():
     assert set(functions)=={'KrigBilateral','KrigBilateralGPU'}
     assert all('reference:' not in signature for signature in functions.values())
     assert all('debug:' not in signature for signature in functions.values())
-    assert all(all(option in signature for option in ('bits:int:opt;','sample_type:int:opt;','dither_type:data:opt;')) for signature in functions.values())
+    assert all(all(option in signature for option in ('bits:int:opt;','sample_type:int:opt;')) for signature in functions.values())
+    assert all('dither_type:' not in signature for signature in functions.values())
     actual=next(p for p in core.plugins() if p.namespace=='krigvk')
     assert Path(actual.plugin_path).resolve()==plugin.resolve(),actual.plugin_path
     selected=select_hardware_device(core,args.device_index) if args.require_hardware else None
@@ -93,19 +94,19 @@ def main():
                 warnings.clear()
                 default=getattr(core.krigvk,entry)(limited)
                 assert default.format.id==int(vs.YUV444P16) and not warnings
-                low=getattr(core.krigvk,entry)(patterned,bits=8,dither_type='none')
+                low=getattr(core.krigvk,entry)(patterned,bits=8)
                 assert len(warnings)==1 and 'no dithering' in warnings[0] and 'banding' in warnings[0]
                 read=core.std.GPUDownload(low) if low.gpu_resident else low
                 with read.get_frame(1) as frame:
                     assert frame.format.id==int(vs.YUV444P8)
                 assert len(warnings)==1
-                for mode in ('ordered','random','error_diffusion'):
+                for mode in ('none','ordered','random','error_diffusion'):
                     try:
                         getattr(core.krigvk,entry)(patterned,bits=8,dither_type=mode)
                     except vs.Error as error:
-                        assert 'does not implement dithering' in str(error)
+                        assert 'dither_type' in str(error)
                     else:
-                        raise AssertionError('Unsupported fused dither accepted: '+mode)
+                        raise AssertionError('Removed dither_type argument accepted: '+mode)
         finally:
             core.remove_log_handler(handler)
         normal=core.krigvk.KrigBilateral(patterned,bits=8)
@@ -117,8 +118,8 @@ def main():
             assert frame.format.id==int(vs.YUV444P16)
         result|={'rendered':True,'cpu_gpu_equal':True,'luma_exact':True,'signed_float_chroma':True,
                  'range_aware':True,'output_depth_control':True,'fp32_conversion':True,
-                 'dither_modes':['none'],'integer_default_bits':16,'low_depth_warning':True,
-                 'unsupported_dither_rejected':True,
+                 'dithering':False,'integer_default_bits':16,'low_depth_warning':True,
+                 'dither_parameter_removed':True,
                  'nonuniform_chroma':True,
                  'devices':[{k:v for k,v in entry.items() if k not in ('uuid','luid')} for entry in core.vulkan_devices]}
     if args.output:
