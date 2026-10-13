@@ -90,7 +90,7 @@ without the central packaging label.
 | `vs-collection-rk` | `0.4.3+alice.1` |
 | `vstaambk` | `0.3.0.post3+alice.1` |
 | `yvsfunc` | `0.3.0.post3+alice.1` |
-| `rksfunc` | `1.2.0` (upstream) |
+| `rksfunc` | `1.2.1` (upstream) |
 | `rkstool` | `1.1.3` (upstream) |
 
 ## Runtime compatibility
