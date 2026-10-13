@@ -35,8 +35,8 @@ checks do not claim a successful import or exercise external tools/GPU filters.
 There are no dependency stubs, automatic runtime installations or rewritten
 upstream metadata.
 
-Modules must emit `py3-none-any` wheels. rksfunc and rkstool declare
-`requires-python = ">=3.10"`, matching their Python 3.10 language features;
+Modules must emit `py3-none-any` wheels. rksfunc 1.2.0 declares
+`requires-python = ">=3.12"`; rkstool declares `requires-python = ">=3.10"`;
 their runtime dependency lists remain empty. The pipeline rejects Python 2
 tags and verifies that wheel metadata preserves the upstream Python range.
 The regular installation matrix covers Python 3.12 and 3.13.

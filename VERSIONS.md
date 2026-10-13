@@ -90,7 +90,7 @@ without the central packaging label.
 | `vs-collection-rk` | `0.4.3+alice.1` |
 | `vstaambk` | `0.3.0.post3+alice.1` |
 | `yvsfunc` | `0.3.0.post3+alice.1` |
-| `rksfunc` | `1.1.5` (upstream) |
+| `rksfunc` | `1.2.0` (upstream) |
 | `rkstool` | `1.1.3` (upstream) |
 
 ## Runtime compatibility
@@ -107,7 +107,8 @@ without the central packaging label.
 | vs-mlrt `cu129` | Common backends plus TensorRT 11.1 and TensorRT-RTX 1.5 on the CUDA 12.9 runtime line; compatible NVIDIA GPU/driver required. |
 | DFTTest CPU | Python 3.13+ and VapourSynth R79+. |
 | Script Collection | Python 3.12+; native plugins and Python runtime libraries required by the selected functions remain user-managed. |
-| rksfunc / rkstool | Python 3.10+; script dependencies and external tools remain user-managed. |
+| rksfunc | Python 3.12+; script dependencies and external tools remain user-managed. |
+| rkstool | Python 3.10+; script dependencies and external tools remain user-managed. |
 
 Native wheels target Windows and Linux x86_64. Other plugins can have different
 Python, VapourSynth and Linux runtime floors; check their package metadata and
