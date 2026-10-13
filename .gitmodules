@@ -2,5 +2,5 @@
 	path = plugins/vapoursynth-krigbilateralvk/native
 	url = https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk.git
 [submodule "plugins/vapoursynth-dfttestvk"]
-	path = plugins/vapoursynth-dfttestvk
+	path = plugins/vapoursynth-dfttestvk/native
 	url = https://github.com/RyougiKukoc/vapoursynth-dfttestvk.git

@@ -44,16 +44,16 @@ def load_hook(path):
 
 
 class WheelVersionTests(unittest.TestCase):
-    def test_all_owned_versions_dependencies_and_readme_agree(self):
+    def test_all_owned_versions_dependencies_and_version_record_agree(self):
         catalog = projects()
         self.assertTrue(catalog)
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        versions = (ROOT / "VERSIONS.md").read_text(encoding="utf-8")
         for name, (path, data) in catalog.items():
             with self.subTest(project=name):
                 project = data["project"]
                 version = Version(project["version"])
                 self.assertRegex(version.local or "", r"^alice\.[1-9][0-9]*$")
-                self.assertIn(f"| `{name}` | `{version}` |", readme)
+                self.assertIn(f"| `{name}` | `{version}` |", versions)
                 builder = WheelBuilder(str(path.parent))
                 self.assertEqual(builder.metadata.version, str(version))
                 requirements = [*project.get("dependencies", []), *data["build-system"]["requires"]]
@@ -70,7 +70,7 @@ class WheelVersionTests(unittest.TestCase):
                     if "/releases/tag/" in url:
                         self.assertTrue(url.endswith(f"-v{version}"), url)
         for item in json.loads((ROOT / "tests/module-snapshots.json").read_text()):
-            self.assertIn(f"| `{item['module']}` | `{item['version']}` (upstream) |", readme)
+            self.assertIn(f"| `{item['module']}` | `{item['version']}` (upstream) |", versions)
             self.assertIsNone(Version(item["version"]).local)
 
     def test_exact_local_pin_excludes_public_and_higher_upstream_versions(self):
@@ -89,7 +89,7 @@ class WheelVersionTests(unittest.TestCase):
         validate_ref('v' + metadata["version"])
 
     def test_variant_prebuilt_tags_track_project_version(self):
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        versions = (ROOT / "VERSIONS.md").read_text(encoding="utf-8")
         for directory in ("vapoursynth-bm3dcuda", "vapoursynth-dfttest2"):
             root = ROOT / "plugins" / directory
             hook = load_hook(root / "hatch_build.py")
@@ -97,7 +97,7 @@ class WheelVersionTests(unittest.TestCase):
             for tag in hook.RELEASE_TAGS.values():
                 name, actual_version = tag.rsplit("-v", 1)
                 self.assertEqual(actual_version, version)
-                self.assertIn(f"| `{name}` | `{version}` |", readme)
+                self.assertIn(f"| `{name}` | `{version}` |", versions)
 
     def test_legacy_vsmlrt_hook_uses_project_version_not_hatch_target(self):
         module = load_hook(ROOT / "plugins/vs-mlrt/packaging/vsmlrt_build.py")

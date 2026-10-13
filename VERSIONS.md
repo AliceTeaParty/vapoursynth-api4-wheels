@@ -1,9 +1,119 @@
-# Source and wheel version records
+# Versions and source records
 
-Native plugin subtrees and centrally maintained Python module subtrees have
-separate tables. Revisions below are pinned source identities, not claims
-that a wheel has already been published. Existing external modules rksfunc
-and rkstool remain owned and versioned in their original repositories.
+## Wheel versions
+
+These are the versions configured by the current packaging metadata. Copy the
+complete version, including `+alice.x`, for the pinned installation command
+in [README.md](README.md#install). Configured versions do not guarantee that
+all assets have been published: check the
+[package index](https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/)
+or [Releases](https://github.com/AliceTeaParty/vapoursynth-api4-wheels/releases)
+for availability. Packaging metadata is authoritative for builds.
+
+### Native plugin wheels
+
+| Distribution | Wheel version |
+| --- | --- |
+| `vapoursynth-bm3dcpu` | `2.16+alice.1` |
+| `vapoursynth-bm3dcuda-cu121` | `2.16+alice.1` |
+| `vapoursynth-bm3dcuda-cu129` | `2.16+alice.1` |
+| `vapoursynth-dfttest` | `1.1+alice.1` |
+| `vapoursynth-dfttest2-cpu` | `10.2+alice.1` |
+| `vapoursynth-dfttest2-cu121` | `10.2+alice.1` |
+| `vapoursynth-dfttest2-cu129` | `10.2+alice.1` |
+| `vapoursynth-fft3dfilter` | `2.1+alice.1` |
+| `vapoursynth-knlm` | `1.1.2+alice.1` |
+| `vapoursynth-krigbilateralvk` | `0.2.2+alice.2` |
+| `vapoursynth-misc` | `2.1+alice.1` |
+| `vapoursynth-nnedi3cl` | `8.1+alice.1` |
+| `vapoursynth-retinex` | `4.1+alice.1` |
+| `vapoursynth-smoothuv` | `3.1+alice.1` |
+| `vapoursynth-tcanny` | `14.1+alice.1` |
+| `vapoursynth-tcomb` | `4.2+alice.1` |
+| `vs-cfl` | `1.0.2+alice.1` |
+| `vs-nlq` | `1.2.0+alice.1` |
+
+DFTTestVK is registered as source only and has no central wheel version yet.
+
+### vs-mlrt entry and component wheels
+
+Install one of the three entry packages. Its exact dependencies select the
+matching component and model wheels; their version sequence is separate from
+the entry's. The legacy `vs-mlrt` source package is recorded for completeness.
+
+| Distribution | Wheel version |
+| --- | --- |
+| `vs-cublas-cu121` | `16.2.2+alice.1` |
+| `vs-cudnn-cu121` | `16.2.2+alice.1` |
+| `vs-mlrt` | `16.2.2+alice.1` |
+| `vs-mlrt-cu121` | `16.2.6+alice.1` |
+| `vs-mlrt-cu129` | `16.2.6+alice.1` |
+| `vs-mlrt-generic` | `16.2.6+alice.1` |
+| `vs-mlrt-models` | `16.2.2+alice.1` |
+| `vs-ncnn` | `16.2.2+alice.1` |
+| `vs-ov` | `16.2.2+alice.1` |
+| `vs-tensorrt-builder-cu121` | `16.2.2+alice.1` |
+| `vs-tensorrt-builder-cu129-base` | `16.2.2+alice.1` |
+| `vs-tensorrt-builder-cu129-modern` | `16.2.2+alice.1` |
+| `vs-tensorrt-core-cu121` | `16.2.2+alice.1` |
+| `vs-tensorrt-core-cu129` | `16.2.2+alice.1` |
+| `vs-tensorrt-rtx-cu129` | `16.2.2+alice.1` |
+| `vs-trt-cu121` | `16.2.2+alice.1` |
+| `vs-trt-cu129` | `16.2.2+alice.1` |
+| `vs-trt-rtx-cu129` | `16.2.2+alice.1` |
+| `vs-trtexec-cu121` | `16.2.2+alice.1` |
+| `vs-trtexec-cu129` | `16.2.2+alice.1` |
+
+### Python module wheels
+
+`vs-collection-rk` installs the 12 centrally maintained components at their
+exact recorded versions. `rksfunc` and `rkstool` retain upstream versions
+without the central packaging label.
+
+| Distribution | Wheel version |
+| --- | --- |
+| `csmod` | `0.3.0.post2+alice.1` |
+| `fvsfunc` | `0.3.0.post3+alice.1` |
+| `getfnative` | `0.3.0.post2+alice.1` |
+| `havsfunc` | `33.post3+alice.1` |
+| `kagefunc` | `0.3.0.post2+alice.1` |
+| `muvsfunc` | `0.3.0.post2+alice.1` |
+| `mvsfunc` | `11.post2+alice.1` |
+| `nnedi3-resample` | `2.post2+alice.1` |
+| `nnedi3-rpow2` | `1.1.0.post2+alice.1` |
+| `sdering-fix` | `0.3.0.post2+alice.1` |
+| `vs-collection-rk` | `0.4.3+alice.1` |
+| `vstaambk` | `0.3.0.post3+alice.1` |
+| `yvsfunc` | `0.3.0.post3+alice.1` |
+| `rksfunc` | `1.1.5` (upstream) |
+| `rkstool` | `1.1.3` (upstream) |
+
+## Runtime compatibility
+
+| Package / family | Runtime requirements |
+| --- | --- |
+| KrigBilateral Vulkan | Python 3.12+; VapourSynth R81 (`>=81,<82`); Vulkan 1.4 device/driver. FP16 input also requires `shaderFloat16`. Linux wheel floor: glibc 2.28. |
+| DFTTestVK (source only) | VapourSynth R81 GPU API and Vulkan 1.4 device/driver; FP16 input requires `shaderFloat16`. See the upstream build guide for toolchain and libc requirements; no central manylinux wheel is published. |
+| BM3D / DFTTest2 `cu121` | CUDA 12.1 runtime line, NVIDIA GPU and a compatible driver. The CUDA Toolkit is not required for wheel use. |
+| BM3D / DFTTest2 `cu129` | CUDA 12.9 runtime line, NVIDIA GPU and a compatible driver. The CUDA Toolkit is not required for wheel use. |
+| BM3D CPU backend | AVX2-capable CPU; available in the CPU and both CUDA variants. |
+| vs-mlrt `generic` | Python 3.12+ and VapourSynth R75+; NCNN/Vulkan and OpenVINO. |
+| vs-mlrt `cu121` | Common backends plus TensorRT 8.6 on the CUDA 12.1 runtime line; compatible NVIDIA GPU/driver required. |
+| vs-mlrt `cu129` | Common backends plus TensorRT 11.1 and TensorRT-RTX 1.5 on the CUDA 12.9 runtime line; compatible NVIDIA GPU/driver required. |
+| DFTTest CPU | Python 3.13+ and VapourSynth R79+. |
+| Script Collection | Python 3.12+; native plugins and Python runtime libraries required by the selected functions remain user-managed. |
+| rksfunc / rkstool | Python 3.10+; script dependencies and external tools remain user-managed. |
+
+Native wheels target Windows and Linux x86_64. Other plugins can have different
+Python, VapourSynth and Linux runtime floors; check their package metadata and
+linked package guides before installation. OpenCL plugins need a usable OpenCL
+device/driver. Installing a CUDA variant does not install an NVIDIA driver.
+
+## Source records
+
+Revisions below identify reviewed sources and provenance, independently of
+wheel publication. For checkout and update procedures, see
+[DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Native plugins
 
@@ -30,15 +140,19 @@ plugin; those files remain authoritative for each native wheel.
 
 ## Native plugin submodules
 
-| Source directory | Central wheel wrapper | Distribution | Wheel version | Upstream revision |
-| --- | --- | --- | --- | --- |
-| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | vapoursynth-krigbilateralvk | 0.2.2+alice.2 | 0772d0d496d48f32441d4273ca9bf0904efaeeac |
+| Source directory | Central integration directory | Source version | Upstream revision |
+| --- | --- | --- | --- |
+| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | 0.2.2 | 0772d0d496d48f32441d4273ca9bf0904efaeeac |
+| plugins/vapoursynth-dfttestvk/native | plugins/vapoursynth-dfttestvk | 0.1.0 | f4760440ff5e360e773a4ebe0bb23f89de801a93 |
 
-KrigBilateral source authority remains in
-[RyougiKukoc/vapoursynth-krigbilateralvk](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk).
-The central gitlink and `plugins/vapoursynth-krigbilateralvk/source.json` pin
-the same reviewed commit. Packaging and releases live in this repository;
-updating the source requires changing both pins and the wheel version.
+Source authority remains in
+[RyougiKukoc/vapoursynth-krigbilateralvk](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk)
+and [RyougiKukoc/vapoursynth-dfttestvk](https://github.com/RyougiKukoc/vapoursynth-dfttestvk).
+Each central gitlink and its sibling `source.json` pin the same reviewed
+commit. Both plugins keep source under `native/` and central integration
+beside it. KrigBilateral has central wheel packaging; DFTTestVK has a source
+registration only. Update both source pins together and update the wheel
+version when releasing a packaged source change.
 
 ## Python module subtrees
 
