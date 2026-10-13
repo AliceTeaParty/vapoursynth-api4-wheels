@@ -31,7 +31,7 @@ floating = vs.core.krigvk.KrigBilateral(source, bits=32)
 eight_bit = vs.core.krigvk.KrigBilateral(source, bits=8, dither_type="error_diffusion")
 ```
 
-GPU output remains resident. R81's GPU resize handles none/ordered/random; selecting error diffusion for integer GPU output explicitly uses CPU resize and transfers back. The covariance and solver are unchanged, but corrected range handling can change integer results from v0.2.x. The `reference` option remains removed. See the [plugin README](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk#readme) for type inference, diagnostics and numerical limits.
+Both entries use the same GPU resize backend for none/ordered/random, avoiding entry-dependent conversion rounding. CPU-frame callers transfer at their interface; ordinary GPU chains stay resident. R81's GPU resize lacks error diffusion, so selecting it for integer output explicitly uses CPU resize and transfers to the requested output residency. The covariance and solver are unchanged, but corrected range handling can change integer results from v0.2.x. The `reference` option remains removed. See the [plugin README](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk#readme) for type inference, diagnostics and numerical limits.
 
 ## Source installation
 
