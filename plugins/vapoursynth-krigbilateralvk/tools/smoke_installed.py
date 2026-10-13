@@ -86,20 +86,39 @@ def main():
             with core.krigvk.KrigBilateral(clip,bits=32).get_frame(0) as converted:
                 assert converted.format.id==int(vs.YUV444PS)
                 assert all(value==0 for p in range(3) for row in converted[p].tolist() for value in row)
-        for mode in ('none','ordered','random','error_diffusion'):
-            options={'bits':8,'dither_type':mode}
-            normal=core.krigvk.KrigBilateral(patterned,**options)
-            resident=core.krigvk.KrigBilateralGPU(core.std.GPUUpload(patterned),**options)
-            assert resident.gpu_resident
-            with normal.get_frame(1) as frame,core.std.GPUDownload(resident).get_frame(1) as other:
-                assert frame.format.id==int(vs.YUV444P8)
-                assert all(frame[p].tobytes()==other[p].tobytes() for p in range(3))
+        warnings=[]
+        handler=core.add_log_handler(lambda level,message: warnings.append(message) if level==vs.MESSAGE_TYPE_WARNING else None)
+        try:
+            for entry in ('KrigBilateral','KrigBilateralGPU'):
+                warnings.clear()
+                default=getattr(core.krigvk,entry)(limited)
+                assert default.format.id==int(vs.YUV444P16) and not warnings
+                low=getattr(core.krigvk,entry)(patterned,bits=8,dither_type='none')
+                assert len(warnings)==1 and 'no dithering' in warnings[0] and 'banding' in warnings[0]
+                read=core.std.GPUDownload(low) if low.gpu_resident else low
+                with read.get_frame(1) as frame:
+                    assert frame.format.id==int(vs.YUV444P8)
+                assert len(warnings)==1
+                for mode in ('ordered','random','error_diffusion'):
+                    try:
+                        getattr(core.krigvk,entry)(patterned,bits=8,dither_type=mode)
+                    except vs.Error as error:
+                        assert 'does not implement dithering' in str(error)
+                    else:
+                        raise AssertionError('Unsupported fused dither accepted: '+mode)
+        finally:
+            core.remove_log_handler(handler)
+        normal=core.krigvk.KrigBilateral(patterned,bits=8)
+        resident=core.krigvk.KrigBilateralGPU(core.std.GPUUpload(patterned),bits=8)
+        with normal.get_frame(1) as frame,core.std.GPUDownload(resident).get_frame(1) as other:
+            assert all(frame[p].tobytes()==other[p].tobytes() for p in range(3))
         floating=core.resize.Point(patterned,format=vs.YUV420PS)
         with core.krigvk.KrigBilateral(floating,bits=16,sample_type=vs.INTEGER).get_frame(1) as frame:
             assert frame.format.id==int(vs.YUV444P16)
         result|={'rendered':True,'cpu_gpu_equal':True,'luma_exact':True,'signed_float_chroma':True,
                  'range_aware':True,'output_depth_control':True,'fp32_conversion':True,
-                 'dither_modes':['none','ordered','random','error_diffusion'],
+                 'dither_modes':['none'],'integer_default_bits':16,'low_depth_warning':True,
+                 'unsupported_dither_rejected':True,
                  'nonuniform_chroma':True,
                  'devices':[{k:v for k,v in entry.items() if k not in ('uuid','luid')} for entry in core.vulkan_devices]}
     if args.output:
