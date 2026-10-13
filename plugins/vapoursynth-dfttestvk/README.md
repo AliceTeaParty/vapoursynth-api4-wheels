@@ -19,4 +19,5 @@ wheel packaging live beside `native/`; implementation changes stay upstream.
 See [DEVELOPMENT.md](../../DEVELOPMENT.md) for checkout and update instructions.
 
 The source retains its GPLv3 license and third-party notices in
-[`native/LICENSE`](native/LICENSE) and [`native/THIRD_PARTY.md`](native/THIRD_PARTY.md).
+[`native/LICENSE`](https://github.com/RyougiKukoc/vapoursynth-dfttestvk/blob/f4760440ff5e360e773a4ebe0bb23f89de801a93/LICENSE)
+and [`native/THIRD_PARTY.md`](https://github.com/RyougiKukoc/vapoursynth-dfttestvk/blob/f4760440ff5e360e773a4ebe0bb23f89de801a93/THIRD_PARTY.md).
