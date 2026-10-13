@@ -7,7 +7,7 @@ The central wheel project for [KrigBilateral Vulkan](https://github.com/RyougiKu
 Windows and Linux x86_64 wheels are published on the central index:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.3.1"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.4.0"
 ```
 
 Use the same Python environment as VapourSynth. The wheel requires VapourSynth R81 or newer (`>=81`) because the plugin's core GPU interface targets that SDK. A Vulkan 1.4 device/driver is needed for rendering; GPU FP16 conversions additionally depend on the core's device support. Linux wheels use the `manylinux_2_28_x86_64` runtime floor. macOS and ARM packages are not published.
@@ -31,6 +31,8 @@ floating = vs.core.krigvk.KrigBilateral(source, bits=32)
 eight_bit = vs.core.krigvk.KrigBilateral(source, bits=8, dither_type="error_diffusion")
 ```
 
+Version 0.4.0 removes `debug` and diagnostic output from both public entries. Calls passing `debug` fail, including `debug=0`. Current CPU/GPU performance measurements and their completion/transfer boundaries are recorded in the upstream validation report; old v0.2.0 timings do not describe the range-aware conversion path.
+
 Both entries use the same GPU resize backend for none/ordered/random, avoiding entry-dependent conversion rounding. CPU-frame callers transfer at their interface; ordinary GPU chains stay resident. R81's GPU resize lacks error diffusion, so selecting it for integer output explicitly uses CPU resize and transfers to the requested output residency. The covariance and solver are unchanged, but corrected range handling can change integer results from v0.2.x. The `reference` option remains removed. See the [plugin README](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk#readme) for type inference, diagnostics and numerical limits.
 
 ## Source installation
@@ -41,7 +43,7 @@ This explicit named VCS form uses a matching central Release package by default:
 python -m pip install "vapoursynth-krigbilateralvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-krigbilateralvk"
 ```
 
-Version `0.3.1` maps to central tag `vapoursynth-krigbilateralvk-v0.3.1`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
+Version `0.4.0` maps to central tag `vapoursynth-krigbilateralvk-v0.4.0`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
 
 For a local checkout:
 

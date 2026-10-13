@@ -33,6 +33,7 @@ def main():
     functions={f.name:f.signature for f in core.krigvk.functions()}
     assert set(functions)=={'KrigBilateral','KrigBilateralGPU'}
     assert all('reference:' not in signature for signature in functions.values())
+    assert all('debug:' not in signature for signature in functions.values())
     assert all(all(option in signature for option in ('bits:int:opt;','sample_type:int:opt;','dither_type:data:opt;')) for signature in functions.values())
     actual=next(p for p in core.plugins() if p.namespace=='krigvk')
     assert Path(actual.plugin_path).resolve()==plugin.resolve(),actual.plugin_path
@@ -44,6 +45,13 @@ def main():
     if args.exercise:
         core.num_threads=4
         source=core.std.BlankClip(width=16,height=12,format=vs.YUV420P16,color=[16384,32768,32768],length=4)
+        for entry in ('KrigBilateral','KrigBilateralGPU'):
+            try:
+                getattr(core.krigvk,entry)(source,debug=0)
+            except vs.Error as error:
+                assert 'debug' in str(error)
+            else:
+                raise AssertionError('Removed debug option accepted')
         normal=core.krigvk.KrigBilateral(source)
         resident=core.krigvk.KrigBilateralGPU(core.std.GPUUpload(source))
         gpu=core.std.GPUDownload(resident)

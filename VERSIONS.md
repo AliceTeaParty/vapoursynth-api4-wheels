@@ -30,7 +30,7 @@ when migrating an existing labeled installation.
 | `vapoursynth-dfttestvk` | `0.1.0` |
 | `vapoursynth-fft3dfilter` | `2.1+alice.1` |
 | `vapoursynth-knlm` | `1.1.2+alice.1` |
-| `vapoursynth-krigbilateralvk` | `0.3.1` |
+| `vapoursynth-krigbilateralvk` | `0.4.0` |
 | `vapoursynth-misc` | `2.1+alice.1` |
 | `vapoursynth-nnedi3cl` | `8.1+alice.1` |
 | `vapoursynth-retinex` | `4.1+alice.1` |
@@ -147,7 +147,7 @@ plugin; those files remain authoritative for each native wheel.
 
 | Source directory | Central integration directory | Source version | Upstream revision |
 | --- | --- | --- | --- |
-| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | 0.3.1 | de45d9f839eacbbc957fc4a2b3eafb67d2564d09 |
+| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | 0.4.0 | 85c562f04014aa8987553e7c938c96f86a7fb0a8 |
 | plugins/vapoursynth-dfttestvk/native | plugins/vapoursynth-dfttestvk | 0.1.0 | f4760440ff5e360e773a4ebe0bb23f89de801a93 |
 
 Source authority remains in
