@@ -7,7 +7,7 @@ The central wheel project for [KrigBilateral Vulkan](https://github.com/RyougiKu
 Windows and Linux x86_64 wheels are published on the central index:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.4.0"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.4.1"
 ```
 
 Use the same Python environment as VapourSynth. The wheel requires VapourSynth R81 or newer (`>=81`) because the plugin's core GPU interface targets that SDK. A Vulkan 1.4 device/driver is needed for rendering; GPU FP16 conversions additionally depend on the core's device support. Linux wheels use the `manylinux_2_28_x86_64` runtime floor. macOS and ARM packages are not published.
@@ -24,7 +24,7 @@ gpu_output = vs.core.krigvk.KrigBilateralGPU(vs.core.std.GPUUpload(source))
 
 Input is constant-format progressive YUV420 with positive even dimensions and left chroma placement. Integer depths 8..16 and signed-chroma FP16/FP32 are supported. Version 0.4.0 fuses input normalization and output quantization into the original three Krig kernels, removing boundary resize nodes and full-frame FP32 conversion buffers. Each frame's `_Range` is retained (`0=limited`, `1=full`); untagged YUV defaults to limited, so tag full-range input correctly. Legacy `_ColorRange` setters work through the core alias. See the upstream [conversion contract and range table](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk/blob/main/docs/range-depth.md).
 
-Both entries accept `bits`, `sample_type` and `dither_type`. Integer input defaults to **integer16 output**; float input retains its float depth. `bits=32` selects FP32; `bits=16, sample_type=vs.INTEGER` explicitly selects integer16 for float input. Integer output below 16 bits emits one VapourSynth warning at construction: no dither is applied and banding may occur. Processing continues. `dither_type` accepts only `None`/`"none"`; other modes fail. Apply core resize to 16-bit or FP32 output when dithering is required.
+Both entries accept `bits` and `sample_type`. Integer input defaults to **integer16 output**; float input retains its float depth. `bits=32` selects FP32; `bits=16, sample_type=vs.INTEGER` explicitly selects integer16 for float input. Integer output below 16 bits emits one VapourSynth warning at construction: no dither is applied and banding may occur. Processing continues. Version 0.4.1 removes `dither_type` from both entries; passing it fails. Apply core resize to 16-bit or FP32 output when dithering is required.
 
 At unchanged type/depth the original Y plane is shared exactly. Otherwise the final Krig kernel converts original Y directly. Finite float headroom is retained until integer quantization, which rounds to nearest with ties to even and clips to storage range. CPU and GPU entries use identical conversion arithmetic; CPU-frame output adds upload/download, while the resident entry stays on the GPU.
 
@@ -46,7 +46,7 @@ This explicit named VCS form uses a matching central Release package by default:
 python -m pip install "vapoursynth-krigbilateralvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-krigbilateralvk"
 ```
 
-Version `0.4.0` maps to central tag `vapoursynth-krigbilateralvk-v0.4.0`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
+Version `0.4.1` maps to central tag `vapoursynth-krigbilateralvk-v0.4.1`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
 
 For a local checkout:
 
