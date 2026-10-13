@@ -16,7 +16,7 @@ the plugins and external programs they call still have their own requirements.
    `PACKAGE` and `VERSION` in this command with that package name and version:
 
    ```console
-   python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "PACKAGE==VERSION"
+   pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "PACKAGE==VERSION"
    ```
 
 The [package index](https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/)
