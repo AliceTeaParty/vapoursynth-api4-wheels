@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "distribution": "vs-collection-rk",
-  "version": "0.4.3+alice.1",
+  "version": "0.4.4+alice.1",
   "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
   "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
   "collection_version": "0.3.0",
@@ -150,7 +150,7 @@
       "module": "havsfunc",
       "path": "modules/havsfunc",
       "distribution": "havsfunc",
-      "version": "33.post3+alice.1",
+      "version": "33.post4+alice.1",
       "runtime_kind": "module",
       "import_name": "havsfunc",
       "install_path": "_vs_collection_rk_runtime/havsfunc.py",
@@ -185,7 +185,7 @@
       ],
       "license": "Unlicense",
       "runtime_sha256": {
-        "havsfunc.py": "635a7d78a8437a9cd6ac5dd8cb4186a4f5db19bbd5159283fb0ab8f488f5d048"
+        "havsfunc.py": "feb32d88eaaf7dddd57838e7fe0f384c6b8294a73c68125b110f20ac1713c4bf"
       },
       "upstream_runtime_sha256": {
         "havsfunc.py": "229fc191c5e7447c867076a0a3e3b008b5b06d04dfa6517796aec949363d8bac"
@@ -272,7 +272,7 @@
       "module": "muvsfunc",
       "path": "modules/muvsfunc",
       "distribution": "muvsfunc",
-      "version": "0.3.0.post2+alice.1",
+      "version": "0.3.0.post3+alice.1",
       "runtime_kind": "module",
       "import_name": "muvsfunc",
       "install_path": "_vs_collection_rk_runtime/muvsfunc.py",
@@ -293,7 +293,7 @@
       "intermediate_commits": [],
       "license": "Not separately declared",
       "runtime_sha256": {
-        "muvsfunc.py": "bd0b8e560a82de2cb408aaf9fa69351aa44e2ec37ec5a89b9ecd8c0a043cdac3"
+        "muvsfunc.py": "04d6b0e9d8e5bafdac4b4d180fd3205908b9758a4bbb9ee516079203e487a9d5"
       },
       "upstream_runtime_sha256": {
         "muvsfunc.py": "9e40aa0993b34b22a83812b7d3c8c4be06a7594ff3a9b90fb6406cb15af1d8ac"
@@ -306,7 +306,7 @@
       "module": "fvsfunc",
       "path": "modules/fvsfunc",
       "distribution": "fvsfunc",
-      "version": "0.3.0.post3+alice.1",
+      "version": "0.3.0.post4+alice.1",
       "runtime_kind": "module",
       "import_name": "fvsfunc",
       "install_path": "_vs_collection_rk_runtime/fvsfunc.py",
@@ -327,7 +327,7 @@
       "intermediate_commits": [],
       "license": "Not separately declared",
       "runtime_sha256": {
-        "fvsfunc.py": "347a5397ec0f721f2ddd5f8e94900bb1ed3704e263e5b78d45d1bc7509dc5f2f"
+        "fvsfunc.py": "9bf4832b20fdf2571d17e8ea3e143c6c759b999555bf524b47599508c17ed85e"
       },
       "upstream_runtime_sha256": {
         "fvsfunc.py": "1e7f3d9bf293b9bd771bf0886b7ba3f3bed07c1eda47d384ed61fd363a2b715c"

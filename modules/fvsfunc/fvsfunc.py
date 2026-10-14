@@ -50,9 +50,12 @@ def _get_dfttest2():
     return _dfttest2_module
 
 
-def _dfttest_preferring_dfttest2(clip, **kwargs):
-    dfttest2 = _get_dfttest2()
+def _dfttest_preferring_dfttestvk(clip, **kwargs):
     call_kwargs = {key: value for key, value in kwargs.items() if value is not None}
+    if hasattr(core, 'dfttestvk'):
+        return core.dfttestvk.DFTTest(clip, **call_kwargs)
+
+    dfttest2 = _get_dfttest2()
     sbsize = int(call_kwargs.get('sbsize', 16))
     tbsize = int(call_kwargs.get('tbsize', 3))
     cpu_shape = sbsize == 16 and tbsize in (1, 3, 5, 7)
@@ -276,7 +279,7 @@ def GradFun3(src, thr=None, radius=None, elast=None, mask=None, mode=None, ampo=
 
     def dfttest_mod(src, ref, radius, thr, elast, planes):
         hrad = max(radius * 3 // 4, 1)
-        last = _dfttest_preferring_dfttest2(src, sigma=thr * 12, sbsize=hrad * 4,
+        last = _dfttest_preferring_dfttestvk(src, sigma=thr * 12, sbsize=hrad * 4,
                                             sosize=hrad * 3, tbsize=1, planes=planes)
         last = mvf.LimitFilter(last, ref, thr=thr, elast=elast, planes=planes)
         return last
@@ -941,12 +944,12 @@ def AutoDeblock(src, edgevalue=24, db1=1, db2=6, db3=15, deblocky=True, deblocku
     orig_d = orig.rgvs.RemoveGrain(4).rgvs.RemoveGrain(4)
 
     predeblock = haf.Deblock_QED(src.rgvs.RemoveGrain(2).rgvs.RemoveGrain(2))
-    fast = _dfttest_preferring_dfttest2(predeblock, tbsize=1)
+    fast = _dfttest_preferring_dfttestvk(predeblock, tbsize=1)
 
     unfiltered = src
-    weakdeblock = _dfttest_preferring_dfttest2(predeblock, sigma=db1, tbsize=1, planes=planes)
-    mediumdeblock = _dfttest_preferring_dfttest2(predeblock, sigma=db2, tbsize=1, planes=planes)
-    strongdeblock = _dfttest_preferring_dfttest2(predeblock, sigma=db3, tbsize=1, planes=planes)
+    weakdeblock = _dfttest_preferring_dfttestvk(predeblock, sigma=db1, tbsize=1, planes=planes)
+    mediumdeblock = _dfttest_preferring_dfttestvk(predeblock, sigma=db2, tbsize=1, planes=planes)
+    strongdeblock = _dfttest_preferring_dfttestvk(predeblock, sigma=db3, tbsize=1, planes=planes)
 
     difforig = core.std.PlaneStats(orig, orig_d, prop='Orig')
     diffnext = core.std.PlaneStats(src, src.std.DeleteFrames([0]), prop='YNext')

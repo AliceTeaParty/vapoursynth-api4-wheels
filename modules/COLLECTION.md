@@ -89,6 +89,48 @@ The upstream layout is retained beneath each subtree, including upstream
 documentation and license files. Wheel file selection includes only the
 runtime payload, metadata and available license/provenance material.
 
+## DFTTest backend selection
+
+Entry 0.4.4+alice.1 pins havsfunc 33.post4+alice.1, muvsfunc
+0.3.0.post3+alice.1 and fvsfunc 0.3.0.post4+alice.1 with the following policy:
+
+1. If `core.dfttestvk` exists, call `core.dfttestvk.DFTTest` for every window
+   shape, before importing the DFTTest2 Python wrapper.
+2. Otherwise retain the previous DFTTest2 policy: for `sbsize=16` and
+   `tbsize` in `{1, 3, 5, 7}`, choose NVRTC then CPU; for other shapes choose
+   cuFFT. Omitted window sizes retain the defaults `sbsize=16`, `tbsize=3`.
+3. If the wrapper or a suitable DFTTest2 backend is absent, call classic
+   `core.dfttest.DFTTest` through the clip-bound `clip.dfttest.DFTTest` API.
+
+Selection checks plugin presence only. Construction and frame errors propagate
+from the selected backend. Parameters are forwarded unchanged, with `None`
+values omitted as before. Native plugins remain user-managed.
+
+The complete inventory across the entry's 12 pinned component runtimes is
+18 calls, all routed through `_dfttest_preferring_dfttestvk` in these files:
+
+| Component source | Calling function | Call lines |
+| --- | --- | --- |
+| havsfunc.py | `HQDeringmod` | [1362](havsfunc/havsfunc.py#L1362) |
+| havsfunc.py | `_legacy_QTGMC` | [2234](havsfunc/havsfunc.py#L2234) |
+| havsfunc.py | `_legacy_MCTemporalDenoise` | [4310](havsfunc/havsfunc.py#L4310), [4494](havsfunc/havsfunc.py#L4494) |
+| havsfunc.py | `_legacy_SMDegrain` | [4636](havsfunc/havsfunc.py#L4636) |
+| havsfunc.py | `LSFmod` | [6105](havsfunc/havsfunc.py#L6105) |
+| havsfunc.py | `_MCTemporalDenoise_mvu` | [7563](havsfunc/havsfunc.py#L7563), [7716](havsfunc/havsfunc.py#L7716) |
+| havsfunc.py | `_SMDegrain_mvu` | [7825](havsfunc/havsfunc.py#L7825) |
+| muvsfunc.py | `_GF3_dfttest` (GradFun3) | [840](muvsfunc/muvsfunc.py#L840) |
+| muvsfunc.py | `dfttestMC` (direct and motion-compensated paths) | [2828](muvsfunc/muvsfunc.py#L2828), [2903](muvsfunc/muvsfunc.py#L2903) |
+| muvsfunc.py | `haf_LSFmod` | [7564](muvsfunc/muvsfunc.py#L7564) |
+| fvsfunc.py | `GradFun3.dfttest_mod` | [282](fvsfunc/fvsfunc.py#L282) |
+| fvsfunc.py | `AutoDeblock` | [947](fvsfunc/fvsfunc.py#L947), [950](fvsfunc/fvsfunc.py#L950), [951](fvsfunc/fvsfunc.py#L951), [952](fvsfunc/fvsfunc.py#L952) |
+
+`fvsfunc.GradFun3` also delegates one smoothing mode to
+`muvsfunc._GF3_dfttest`, which follows the same policy. The remaining components
+(`sdering-fix`, `csmod`, `nnedi3-resample`, `nnedi3-rpow2`, `getfnative`,
+`mvsfunc`, `vstaambk`, `kagefunc`, `yvsfunc`) contain no DFTTest calls.
+`rksfunc` and `rkstool` are separately maintained distributions outside this
+entry's dependency set.
+
 ## EEDI3 controls
 
 EEDI3 uses `core.vszip.EEDI3` by default. `opencl=True` selects
