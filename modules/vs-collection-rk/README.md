@@ -7,7 +7,7 @@ Python 3.12 or newer is required.
 
 Install from the central index after a manual publication:
 
-    python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.4+alice.1
+    python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.5+alice.1
 
 DFTTest calls in havsfunc, muvsfunc and fvsfunc prefer DFTTestVK when its
 plugin is present, then use the existing DFTTest2 and classic DFTTest policy.
@@ -20,7 +20,7 @@ Version 0.4.3+alice.1 supports a normal upgrade from both the old monolithic
 distribution and the split 0.4.0–0.4.2 distributions, including installations
 whose component files were deleted during an earlier upgrade:
 
-    python -m pip install --upgrade --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.4+alice.1
+    python -m pip install --upgrade --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ vs-collection-rk==0.4.5+alice.1
 
 The old split 0.4.0–0.4.2 releases wrote scripts to paths also owned by the
 monolith. Its uninstall could delete newly installed component files while

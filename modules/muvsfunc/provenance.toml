@@ -1,7 +1,7 @@
 schema_version = 1
 management = "subtree"
 distribution = "muvsfunc"
-wheel_version = "0.3.0.post3+alice.1"
+wheel_version = "0.3.0.post4+alice.1"
 import_name = "muvsfunc"
 runtime_kind = "module"
 upstream_url = "https://github.com/WolframRhodium/muvsfunc"
@@ -17,4 +17,4 @@ collection_commits = ["99759cf98ea1feb3c7a4830ab18644e07e750e91", "9837b539bb72b
 license_observation = "Not separately declared"
 
 [runtime_sha256]
-"muvsfunc.py" = "04d6b0e9d8e5bafdac4b4d180fd3205908b9758a4bbb9ee516079203e487a9d5"
+"muvsfunc.py" = "df2036a7e53852807b537c8d4bbaa1e8f7faf6b2d4ab3a73204b8c68d01ca560"

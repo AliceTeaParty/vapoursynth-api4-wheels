@@ -10,6 +10,8 @@ on:
       - scripts/requirements-collection-runtime.txt
       - tests/test_collection.py
       - tests/test_collection_dfttest.py
+      - tests/test_collection_lsfmod.py
+      - tests/test_collection_rgvs.py
       - tests/test_collection_repair.py
       - VERSIONS.md
       - .gitattributes
@@ -24,6 +26,8 @@ on:
       - scripts/requirements-collection-runtime.txt
       - tests/test_collection.py
       - tests/test_collection_dfttest.py
+      - tests/test_collection_lsfmod.py
+      - tests/test_collection_rgvs.py
       - tests/test_collection_repair.py
       - VERSIONS.md
       - .gitattributes

@@ -118,11 +118,11 @@ The complete inventory across the entry's 12 pinned component runtimes is
 | havsfunc.py | `LSFmod` | [6105](havsfunc/havsfunc.py#L6105) |
 | havsfunc.py | `_MCTemporalDenoise_mvu` | [7563](havsfunc/havsfunc.py#L7563), [7716](havsfunc/havsfunc.py#L7716) |
 | havsfunc.py | `_SMDegrain_mvu` | [7825](havsfunc/havsfunc.py#L7825) |
-| muvsfunc.py | `_GF3_dfttest` (GradFun3) | [840](muvsfunc/muvsfunc.py#L840) |
-| muvsfunc.py | `dfttestMC` (direct and motion-compensated paths) | [2828](muvsfunc/muvsfunc.py#L2828), [2903](muvsfunc/muvsfunc.py#L2903) |
-| muvsfunc.py | `haf_LSFmod` | [7564](muvsfunc/muvsfunc.py#L7564) |
-| fvsfunc.py | `GradFun3.dfttest_mod` | [282](fvsfunc/fvsfunc.py#L282) |
-| fvsfunc.py | `AutoDeblock` | [947](fvsfunc/fvsfunc.py#L947), [950](fvsfunc/fvsfunc.py#L950), [951](fvsfunc/fvsfunc.py#L951), [952](fvsfunc/fvsfunc.py#L952) |
+| muvsfunc.py | `_GF3_dfttest` (GradFun3) | [853](muvsfunc/muvsfunc.py#L853) |
+| muvsfunc.py | `dfttestMC` (direct and motion-compensated paths) | [2841](muvsfunc/muvsfunc.py#L2841), [2916](muvsfunc/muvsfunc.py#L2916) |
+| muvsfunc.py | `haf_LSFmod` | [7580](muvsfunc/muvsfunc.py#L7580) |
+| fvsfunc.py | `GradFun3.dfttest_mod` | [292](fvsfunc/fvsfunc.py#L292) |
+| fvsfunc.py | `AutoDeblock` | [957](fvsfunc/fvsfunc.py#L957), [960](fvsfunc/fvsfunc.py#L960), [961](fvsfunc/fvsfunc.py#L961), [962](fvsfunc/fvsfunc.py#L962) |
 
 `fvsfunc.GradFun3` also delegates one smoothing mode to
 `muvsfunc._GF3_dfttest`, which follows the same policy. The remaining components
@@ -130,6 +130,34 @@ The complete inventory across the entry's 12 pinned component runtimes is
 `mvsfunc`, `vstaambk`, `kagefunc`, `yvsfunc`) contain no DFTTest calls.
 `rksfunc` and `rkstool` are separately maintained distributions outside this
 entry's dependency set.
+
+## RGVS compatibility
+
+When RGVS is absent, all Collection calls to `RemoveGrain`, `Repair` and
+`VerticalCleaner` use the corresponding `core.zsmooth` filter. When RGVS is
+present, its original calls remain in effect. Entry 0.4.5+alice.1 fills the
+missing core and clip-bound routes in muvsfunc, fvsfunc and sdering-fix,
+matching the existing havsfunc, CSMOD and vsTAAmbk policy. The other six components
+have no RGVS calls.
+
+The [zsmooth documentation](https://github.com/adworacz/zsmooth/blob/187ae3011979b8064baf46034a2771b7f018a1c6/README.md)
+specifies the same positional arguments and per-plane mode arrays:
+RemoveGrain and Repair support modes 0–24; VerticalCleaner supports 0–2.
+Unprocessed planes use mode 0, and short mode arrays retain their native
+last-mode repetition. Parameters are forwarded unchanged, and selected-filter
+errors propagate. Plugins remain user-managed.
+
+zsmooth processes edge pixels using mirrored neighbors; RGVS copies those
+edge pixels. zsmooth also uses single precision for float processing. These
+are documented differences when choosing the fallback.
+
+This entry also fixes `muvsfunc.haf_LSFmod` threshold scaling. Its copied
+havsfunc routine supplied a pixel maximum to muvsfunc's bit-depth-based
+`scale` helper, producing invalid expression constants with DFTTest preblur.
+Thresholds now use the integer pixel range or the normalized float range,
+while the public `muvsfunc.scale(value, bits)` API remains intact. Native std
+expression tests compare the result with havsfunc for 8-bit, 16-bit and float
+clips during each fresh-install and migration validation.
 
 ## EEDI3 controls
 
