@@ -93,6 +93,14 @@ without the central packaging label.
 | `rksfunc` | `1.2.1` (upstream) |
 | `rkstool` | `1.1.3` (upstream) |
 
+The fixed packaging fixtures in `tests/module-snapshots.json` validate these
+historical upstream releases independently of the current versions above:
+
+| Distribution | Snapshot version |
+| --- | --- |
+| `rksfunc` | `1.1.5` (upstream) |
+| `rkstool` | `1.1.3` (upstream) |
+
 ## Runtime compatibility
 
 | Package / family | Runtime requirements |
