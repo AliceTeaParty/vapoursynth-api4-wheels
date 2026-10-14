@@ -114,9 +114,12 @@ def _get_dfttest2() -> Any:
     return _dfttest2_module
 
 
-def _dfttest_preferring_dfttest2(clip: vs.VideoNode, **kwargs: Any) -> vs.VideoNode:
-    dfttest2 = _get_dfttest2()
+def _dfttest_preferring_dfttestvk(clip: vs.VideoNode, **kwargs: Any) -> vs.VideoNode:
     call_kwargs = {key: value for key, value in kwargs.items() if value is not None}
+    if hasattr(core, "dfttestvk"):
+        return core.dfttestvk.DFTTest(clip, **call_kwargs)
+
+    dfttest2 = _get_dfttest2()
     sbsize = int(call_kwargs.get("sbsize", 16))
     tbsize = int(call_kwargs.get("tbsize", 3))
     cpu_shape = sbsize == 16 and tbsize in (1, 3, 5, 7)
@@ -834,7 +837,7 @@ def _GF3_dfttest(src: vs.VideoNode, ref: vs.VideoNode, radius: int,
                  thr: float, elast: float, planes: PlanesType
                  ) -> vs.VideoNode:
     hrad = max(radius * 3 // 4, 1)
-    last = _dfttest_preferring_dfttest2(src, sigma=hrad * thr * thr * 32, sbsize=hrad * 4,
+    last = _dfttest_preferring_dfttestvk(src, sigma=hrad * thr * thr * 32, sbsize=hrad * 4,
                                         sosize=hrad * 3, tbsize=1, planes=planes)
     last = mvf.LimitFilter(last, ref, thr=thr, elast=elast, planes=planes)
 
@@ -2822,7 +2825,7 @@ def dfttestMC(input: vs.VideoNode, pp: Optional[vs.VideoNode] = None, mc: int = 
     mc = min(max(int(mc), 0), 5)
 
     if mc == 0:
-        return _dfttest_preferring_dfttest2(input, sigma=sigma, sbsize=sbsize, sosize=sosize, tbsize=tbsize, **dfttest_params)
+        return _dfttest_preferring_dfttestvk(input, sigma=sigma, sbsize=sbsize, sosize=sosize, tbsize=tbsize, **dfttest_params)
     else:
         if pp is not None:
             if not isinstance(pp, vs.VideoNode):
@@ -2897,7 +2900,7 @@ def dfttestMC(input: vs.VideoNode, pp: Optional[vs.VideoNode] = None, mc: int = 
         interleaved = core.std.Interleave(fclips[::-1] + [degrained] + bclips)
 
         # Perform dfttest.
-        filtered = _dfttest_preferring_dfttest2(
+        filtered = _dfttest_preferring_dfttestvk(
             interleaved, sigma=sigma, sbsize=sbsize, sosize=sosize, tbsize=tbsize, **dfttest_params)
 
         return core.std.SelectEvery(filtered, mc * 2 + 1, mc)
@@ -7558,7 +7561,7 @@ def haf_LSFmod(input, strength=None, Smode=None, Smethod=None, kernel=11, preblu
         pre = tmp
     elif preblur >= 3:
         expr = 'x {i} < {peak} x {j} > 0 {peak} x {i} - {peak} {j} {i} - / * - ? ?'.format(i=scale(16, peak), j=scale(75, peak), peak=peak)
-        pre = core.std.MaskedMerge(_dfttest_preferring_dfttest2(tmp, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0]), tmp, tmp.std.Expr(expr=[expr]))
+        pre = core.std.MaskedMerge(_dfttest_preferring_dfttestvk(tmp, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0]), tmp, tmp.std.Expr(expr=[expr]))
     else:
         pre = haf_MinBlur(tmp, r=preblur)
 

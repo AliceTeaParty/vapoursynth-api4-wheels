@@ -9,6 +9,7 @@ on:
       - scripts/smoke_installed_module.py
       - scripts/requirements-collection-runtime.txt
       - tests/test_collection.py
+      - tests/test_collection_dfttest.py
       - tests/test_collection_repair.py
       - VERSIONS.md
       - .gitattributes
@@ -22,6 +23,7 @@ on:
       - scripts/smoke_installed_module.py
       - scripts/requirements-collection-runtime.txt
       - tests/test_collection.py
+      - tests/test_collection_dfttest.py
       - tests/test_collection_repair.py
       - VERSIONS.md
       - .gitattributes

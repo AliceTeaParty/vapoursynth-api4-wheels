@@ -359,9 +359,12 @@ def _get_dfttest2() -> Any:
     return _dfttest2_module
 
 
-def _dfttest_preferring_dfttest2(clip: vs.VideoNode, **kwargs: Any) -> vs.VideoNode:
-    dfttest2 = _get_dfttest2()
+def _dfttest_preferring_dfttestvk(clip: vs.VideoNode, **kwargs: Any) -> vs.VideoNode:
     call_kwargs = {key: value for key, value in kwargs.items() if value is not None}
+    if hasattr(core, 'dfttestvk'):
+        return core.dfttestvk.DFTTest(clip, **call_kwargs)
+
+    dfttest2 = _get_dfttest2()
     sbsize = int(call_kwargs.get('sbsize', 16))
     tbsize = int(call_kwargs.get('tbsize', 3))
     cpu_shape = sbsize == 16 and tbsize in (1, 3, 5, 7)
@@ -1310,6 +1313,7 @@ def HQDeringmod(
         show: Whether to output mask clip instead of filtered clip.
 
         cuda: Retained for compatibility. Backend selection is automatic:
+            prefer dfttestvk whenever its plugin is present; otherwise,
             for sbsize=16 with tbsize in {1,3,5,7}, prefer dfttest2 NVRTC then
             CPU; otherwise prefer dfttest2 cuFFT; if no suitable dfttest2
             backend is available, fall back to classic dfttest.
@@ -1355,7 +1359,7 @@ def HQDeringmod(
     # Kernel: Smoothing
     if smoothed is None:
         if nrmode <= 0:
-            smoothed = _dfttest_preferring_dfttest2(
+            smoothed = _dfttest_preferring_dfttestvk(
                 input,
                 sbsize=sbsize,
                 sosize=sosize,
@@ -2227,7 +2231,7 @@ def _legacy_QTGMC(
         if Denoiser == 'bm3d':
             dnWindow = mvf.BM3D(noiseWindow, radius1=NoiseTR, sigma=[Sigma if plane in CNplanes else 0 for plane in range(3)])
         elif Denoiser == 'dfttest':
-            dnWindow = _dfttest_preferring_dfttest2(noiseWindow, sigma=Sigma * 4, tbsize=noiseTD, planes=CNplanes)
+            dnWindow = _dfttest_preferring_dfttestvk(noiseWindow, sigma=Sigma * 4, tbsize=noiseTD, planes=CNplanes)
         elif Denoiser in ['knlm', 'knlmeanscl']:
             if ChromaNoise and not is_gray:
                 dnWindow = KNLMeansCL(noiseWindow, d=NoiseTR, h=Sigma)
@@ -4303,7 +4307,7 @@ def _legacy_MCTemporalDenoise(i, radius=None, pfMode=3, sigma=None, twopass=None
     elif pfMode == 0:
         p = i.fft3dfilter.FFT3DFilter(sigma=sigma * 0.8, sigma2=sigma * 0.6, sigma3=sigma * 0.4, sigma4=sigma * 0.2, **fft3d_args)
     elif pfMode >= 3:
-        p = _dfttest_preferring_dfttest2(i, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0], planes=planes)
+        p = _dfttest_preferring_dfttestvk(i, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0], planes=planes)
     else:
         p = MinBlur(i, r=pfMode, planes=planes)
 
@@ -4487,7 +4491,7 @@ def _legacy_MCTemporalDenoise(i, radius=None, pfMode=3, sigma=None, twopass=None
         mP = AvsPrewitt(mvf.GetPlane(smP, 0))
         mS = mt_expand_multi(mP, sw=ECrad, sh=ECrad).std.Inflate()
         mD = core.std.Expr([mS, mP.std.Inflate()], expr=[f'x y - {ECthr} <= 0 x y - ?']).std.Inflate().std.Convolution(matrix=[1, 1, 1, 1, 1, 1, 1, 1, 1])
-        smP = core.std.MaskedMerge(smP, DeHalo_alpha(_dfttest_preferring_dfttest2(smP, tbsize=1, planes=planes), darkstr=0), mD, planes=planes)
+        smP = core.std.MaskedMerge(smP, DeHalo_alpha(_dfttest_preferring_dfttestvk(smP, tbsize=1, planes=planes), darkstr=0), mD, planes=planes)
 
     ### STABILIZING
     if stabilize:
@@ -4629,7 +4633,7 @@ def _legacy_SMDegrain(input, tr=2, thSAD=300, thSADC=None, RefineMotion=False, c
             pref = inputP
         elif prefilter == 3:
             expr = 'x {i} < {peak} x {j} > 0 {peak} x {i} - {peak} {j} {i} - / * - ? ?'.format(i=scale(16, peak), j=scale(75, peak), peak=peak)
-            pref = core.std.MaskedMerge(_dfttest_preferring_dfttest2(inputP, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0], planes=planes),
+            pref = core.std.MaskedMerge(_dfttest_preferring_dfttestvk(inputP, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0], planes=planes),
                                         inputP,
                                         mvf.GetPlane(inputP, 0).std.Expr(expr=[expr]),
                                         planes=planes)
@@ -6098,7 +6102,7 @@ def LSFmod(input, strength=None, Smode=None, Smethod=None, kernel=11, preblur=No
         pre = tmp
     elif preblur >= 3:
         expr = 'x {i} < {peak} x {j} > 0 {peak} x {i} - {peak} {j} {i} - / * - ? ?'.format(i=scale(16, peak), j=scale(75, peak), peak=peak)
-        pre = core.std.MaskedMerge(_dfttest_preferring_dfttest2(tmp, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0]), tmp, tmp.std.Expr(expr=[expr]))
+        pre = core.std.MaskedMerge(_dfttest_preferring_dfttestvk(tmp, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0]), tmp, tmp.std.Expr(expr=[expr]))
     else:
         pre = MinBlur(tmp, r=preblur)
 
@@ -7556,7 +7560,7 @@ def _MCTemporalDenoise_mvu(i, radius=None, pfMode=3, sigma=None, twopass=None, u
     elif pfMode == 0:
         p = i.fft3dfilter.FFT3DFilter(sigma=sigma * 0.8, sigma2=sigma * 0.6, sigma3=sigma * 0.4, sigma4=sigma * 0.2, **fft3d_args)
     elif pfMode >= 3:
-        p = _dfttest_preferring_dfttest2(i, tbsize=1, slocation=[0.0, 4.0, 0.2, 9.0, 1.0, 15.0], planes=planes)
+        p = _dfttest_preferring_dfttestvk(i, tbsize=1, slocation=[0.0, 4.0, 0.2, 9.0, 1.0, 15.0], planes=planes)
     else:
         p = MinBlur(i, r=pfMode, planes=planes)
 
@@ -7709,7 +7713,7 @@ def _MCTemporalDenoise_mvu(i, radius=None, pfMode=3, sigma=None, twopass=None, u
         mP = AvsPrewitt(mvf.GetPlane(smP, 0))
         mS = mt_expand_multi(mP, sw=ECrad, sh=ECrad).std.Inflate()
         mD = core.std.Expr([mS, mP.std.Inflate()], expr=[f"x y - {ECthr} <= 0 x y - ?"]).std.Inflate().std.Convolution(matrix=[1, 1, 1, 1, 1, 1, 1, 1, 1])
-        smP = core.std.MaskedMerge(smP, DeHalo_alpha(_dfttest_preferring_dfttest2(smP, tbsize=1, planes=planes), darkstr=0), mD, planes=planes)
+        smP = core.std.MaskedMerge(smP, DeHalo_alpha(_dfttest_preferring_dfttestvk(smP, tbsize=1, planes=planes), darkstr=0), mD, planes=planes)
 
     if stabilize:
         mE = AvsPrewitt(mvf.GetPlane(smP, 0)).std.Lut(function=lambda x: min(cround(x ** 1.8), peak)).std.Median().std.Inflate()
@@ -7818,7 +7822,7 @@ def _SMDegrain_mvu(input, tr=2, thSAD=300, thSADC=None, RefineMotion=False, cont
         elif prefilter == 3:
             expr = "x {i} < {peak} x {j} > 0 {peak} x {i} - {peak} {j} {i} - / * - ? ?".format(i=scale(16, peak), j=scale(75, peak), peak=peak)
             pref = core.std.MaskedMerge(
-                _dfttest_preferring_dfttest2(inputP, tbsize=1, slocation=[0.0, 4.0, 0.2, 9.0, 1.0, 15.0], planes=planes),
+                _dfttest_preferring_dfttestvk(inputP, tbsize=1, slocation=[0.0, 4.0, 0.2, 9.0, 1.0, 15.0], planes=planes),
                 inputP,
                 mvf.GetPlane(inputP, 0).std.Expr(expr=[expr]),
                 planes=planes,
