@@ -6,6 +6,19 @@ from vapoursynth import core
 from havsfunc import MinBlur
 
 
+class _CoreProxy:
+    def __getattr__(self, name):
+        if name == 'rgvs':
+            try:
+                return getattr(vs.core, 'rgvs')
+            except AttributeError:
+                return getattr(vs.core, 'zsmooth')
+        return getattr(vs.core, name)
+
+
+core = _CoreProxy()
+
+
 ### Edge-Detection modes ###
 def edge_detect(clip: vs.VideoNode, mode="sobel", thY1=0, thY2=255, thC1=0, thC2=0) -> vs.VideoNode:
     # constant values for bit_depth adaptive
@@ -118,7 +131,7 @@ def mask_process(msk: vs.VideoNode, pro1=None, pro1_diff=None, prepro2=None, pro
                  maskpro1=None, maskpro2=None) -> vs.VideoNode:
     sBitP = msk.format.bits_per_sample
     if pro1 is None:
-        pro1 = MinBlur(msk, 2).rgvs.RemoveGrain(11)
+        pro1 = core.rgvs.RemoveGrain(MinBlur(msk, 2), 11)
     if pro1_diff is None:
         pro1_diff = core.std.MakeDiff(msk, pro1)
     if prepro2 is None:
@@ -126,7 +139,7 @@ def mask_process(msk: vs.VideoNode, pro1=None, pro1_diff=None, prepro2=None, pro
         prepro2 = core.warp.AWarpSharp2(msk_8, depth=32, blur=2, thresh=128)
         prepro2 = Depth(prepro2, sBitP)
     if pro2 is None:
-        pro2 = MinBlur(prepro2, 2, [0]).rgvs.RemoveGrain(11)
+        pro2 = core.rgvs.RemoveGrain(MinBlur(prepro2, 2, [0]), 11)
     if pro2_diff is None:
         pro2_diff = core.std.MakeDiff(prepro2, pro2)
     if maskpro1 is None:
@@ -171,10 +184,10 @@ def dering_process(clp: vs.VideoNode, strength1=None, strength2=None, mode=None,
     if dering_line_mask1 is None:
         dering_line_mask1 = edge_detect(clp, "sobel", 4, 255, 0, 0)
     if ps1mask is None:
-        ps1mask = dering_line_mask1.std.Levels(0, round(90 / 255 * white), 3.3, 0, white).rgvs.RemoveGrain(11)
+        ps1mask = core.rgvs.RemoveGrain(dering_line_mask1.std.Levels(0, round(90 / 255 * white), 3.3, 0, white), 11)
     if thickmask is None:
         thickmask = dering_line_mask1.std.Inflate().std.Inflate().std.Inflate()
-        thickmask = thickmask.std.Levels(0, round(90 / 255 * white), 3.3, 0, white).rgvs.RemoveGrain(11)
+        thickmask = core.rgvs.RemoveGrain(thickmask.std.Levels(0, round(90 / 255 * white), 3.3, 0, white), 11)
         thickmask = thickmask.std.Inflate().std.Inflate().std.Levels(0, white, 3.3, 0, white)
         thickmask = thickmask.std.Inflate().std.Inflate()
     if dering_line_mask2 is None:
@@ -183,7 +196,7 @@ def dering_process(clp: vs.VideoNode, strength1=None, strength2=None, mode=None,
 
     ps1 = core.std.MaskedMerge(
         clipa = clp,
-        clipb = clp.rgvs.RemoveGrain(20),
+        clipb = core.rgvs.RemoveGrain(clp, 20),
         mask = dering_line_mask2.std.Levels(round(60 / 255 * white), round(140 / 255 * white), 3.0, 0, strength1),
         first_plane = True
     )
@@ -256,10 +269,10 @@ def dering_process2(clp: vs.VideoNode, strength3=None, strength4=None, mode=None
     if dering_line_mask1 is None:
         dering_line_mask1 = edge_detect(clp, "sobel", 4, 255, 0, 0)
     if ps1mask is None:
-        ps1mask = dering_line_mask1.std.Levels(0, round(90 / 255 * white), 3.3, 0, white).rgvs.RemoveGrain(11)
+        ps1mask = core.rgvs.RemoveGrain(dering_line_mask1.std.Levels(0, round(90 / 255 * white), 3.3, 0, white), 11)
     if thickmask is None:
         thickmask = dering_line_mask1.std.Inflate().std.Inflate().std.Inflate()
-        thickmask = thickmask.std.Levels(0, round(90 / 255 * white), 3.3, 0, white).rgvs.RemoveGrain(11)
+        thickmask = core.rgvs.RemoveGrain(thickmask.std.Levels(0, round(90 / 255 * white), 3.3, 0, white), 11)
         thickmask = thickmask.std.Inflate().std.Inflate().std.Levels(0, white, 3.3, 0, white)
         thickmask = thickmask.std.Inflate().std.Inflate()
     if dering_line_mask2 is None:
@@ -268,7 +281,7 @@ def dering_process2(clp: vs.VideoNode, strength3=None, strength4=None, mode=None
     
     ps1 = core.std.MaskedMerge(
         clipa = clp, 
-        clipb = clp.rgvs.RemoveGrain(20), 
+        clipb = core.rgvs.RemoveGrain(clp, 20),
         mask = dering_line_mask2.std.Levels(round(60 / 255 * white), round(140 / 255 * white), 3.0, 0, strength3),
         first_plane = True
     )
@@ -328,9 +341,9 @@ def SHDdering(clip: vs.VideoNode, mode=None, strength1=None, strength2=None, str
     
     # mask
     dering_line_mask1 = edge_detect(clip, "sobel", 4, 255, 0, 0)
-    ps1mask = dering_line_mask1.std.Levels(0, round(90 / 255 * white), 3.3, 0, white).rgvs.RemoveGrain(11)
+    ps1mask = core.rgvs.RemoveGrain(dering_line_mask1.std.Levels(0, round(90 / 255 * white), 3.3, 0, white), 11)
     thickmask = dering_line_mask1.std.Inflate().std.Inflate().std.Inflate()
-    thickmask = thickmask.std.Levels(0, round(90 / 255 * white), 3.3, 0, white).rgvs.RemoveGrain(11)
+    thickmask = core.rgvs.RemoveGrain(thickmask.std.Levels(0, round(90 / 255 * white), 3.3, 0, white), 11)
     thickmask = thickmask.std.Inflate().std.Inflate().std.Levels(0, white, 3.3, 0, white)
     thickmask = thickmask.std.Inflate().std.Inflate()
     ps1mask_ivt = ps1mask.std.Invert()
@@ -341,9 +354,9 @@ def SHDdering(clip: vs.VideoNode, mode=None, strength1=None, strength2=None, str
     # mask
     if twomask:
         dering_line_mask1 = edge_detect(pro1, "sobel", 4, 255, 0, 0)
-        ps1mask = dering_line_mask1.std.Levels(0, round(90 / 255 * white), 3.3, 0, white).rgvs.RemoveGrain(11)
+        ps1mask = core.rgvs.RemoveGrain(dering_line_mask1.std.Levels(0, round(90 / 255 * white), 3.3, 0, white), 11)
         thickmask = dering_line_mask1.std.Inflate().std.Inflate().std.Inflate()
-        thickmask = thickmask.std.Levels(0, round(90 / 255 * white), 3.3, 0, white).rgvs.RemoveGrain(11)
+        thickmask = core.rgvs.RemoveGrain(thickmask.std.Levels(0, round(90 / 255 * white), 3.3, 0, white), 11)
         thickmask = thickmask.std.Inflate().std.Inflate().std.Levels(0, white, 3.3, 0, white)
         thickmask = thickmask.std.Inflate().std.Inflate()
         ps1mask_ivt = ps1mask.std.Invert()

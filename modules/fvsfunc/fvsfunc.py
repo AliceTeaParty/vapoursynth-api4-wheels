@@ -29,7 +29,17 @@ from functools import partial
 # nnedi3_rpow2: https://gist.github.com/4re/342624c9e1a144a696c6
 
 
-core = vs.core
+class _CoreProxy:
+    def __getattr__(self, name):
+        if name == 'rgvs':
+            try:
+                return getattr(vs.core, 'rgvs')
+            except AttributeError:
+                return getattr(vs.core, 'zsmooth')
+        return getattr(vs.core, name)
+
+
+core = _CoreProxy()
 _DFTTEST2_UNSET = object()
 _dfttest2_module = _DFTTEST2_UNSET
 _NNEDI3_CORE_ORDER = ('nnedi3vk', 'nnedi3cl', 'znedi3')
@@ -941,9 +951,9 @@ def AutoDeblock(src, edgevalue=24, db1=1, db2=6, db3=15, deblocky=True, deblocku
 
     orig = core.std.Prewitt(src)
     orig = core.std.Expr(orig, f"x {edgevalue} >= {maxvalue} x ?")
-    orig_d = orig.rgvs.RemoveGrain(4).rgvs.RemoveGrain(4)
+    orig_d = core.rgvs.RemoveGrain(core.rgvs.RemoveGrain(orig, 4), 4)
 
-    predeblock = haf.Deblock_QED(src.rgvs.RemoveGrain(2).rgvs.RemoveGrain(2))
+    predeblock = haf.Deblock_QED(core.rgvs.RemoveGrain(core.rgvs.RemoveGrain(src, 2), 2))
     fast = _dfttest_preferring_dfttestvk(predeblock, tbsize=1)
 
     unfiltered = src

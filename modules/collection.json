@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "distribution": "vs-collection-rk",
-  "version": "0.4.4+alice.1",
+  "version": "0.4.5+alice.1",
   "collection_repository": "https://github.com/RyougiKukoc/VapourSynth-Scripts-Collection",
   "collection_revision": "14091484381778fe55102b58ac584e38f5e0fc6a",
   "collection_version": "0.3.0",
@@ -15,7 +15,7 @@
       "module": "sdering-fix",
       "path": "modules/sdering-fix",
       "distribution": "sdering-fix",
-      "version": "0.3.0.post2+alice.1",
+      "version": "0.3.0.post3+alice.1",
       "runtime_kind": "module",
       "import_name": "sdering_fix",
       "install_path": "_vs_collection_rk_runtime/sdering_fix.py",
@@ -34,7 +34,7 @@
       "intermediate_commits": [],
       "license": "Not separately declared",
       "runtime_sha256": {
-        "sdering_fix.py": "967909471956d9570f6b95a7ad73bc284db0a6589b300863af04c9bf4430a4b5"
+        "sdering_fix.py": "bcdb6d9f2631e598c610af5d1d64ed1623f149eb5a57f28e472d3fe5f9466ccc"
       },
       "upstream_runtime_sha256": {
         "sdering_fix.py": "967909471956d9570f6b95a7ad73bc284db0a6589b300863af04c9bf4430a4b5"
@@ -272,7 +272,7 @@
       "module": "muvsfunc",
       "path": "modules/muvsfunc",
       "distribution": "muvsfunc",
-      "version": "0.3.0.post3+alice.1",
+      "version": "0.3.0.post4+alice.1",
       "runtime_kind": "module",
       "import_name": "muvsfunc",
       "install_path": "_vs_collection_rk_runtime/muvsfunc.py",
@@ -293,7 +293,7 @@
       "intermediate_commits": [],
       "license": "Not separately declared",
       "runtime_sha256": {
-        "muvsfunc.py": "04d6b0e9d8e5bafdac4b4d180fd3205908b9758a4bbb9ee516079203e487a9d5"
+        "muvsfunc.py": "df2036a7e53852807b537c8d4bbaa1e8f7faf6b2d4ab3a73204b8c68d01ca560"
       },
       "upstream_runtime_sha256": {
         "muvsfunc.py": "9e40aa0993b34b22a83812b7d3c8c4be06a7594ff3a9b90fb6406cb15af1d8ac"
@@ -306,7 +306,7 @@
       "module": "fvsfunc",
       "path": "modules/fvsfunc",
       "distribution": "fvsfunc",
-      "version": "0.3.0.post4+alice.1",
+      "version": "0.3.0.post5+alice.1",
       "runtime_kind": "module",
       "import_name": "fvsfunc",
       "install_path": "_vs_collection_rk_runtime/fvsfunc.py",
@@ -327,7 +327,7 @@
       "intermediate_commits": [],
       "license": "Not separately declared",
       "runtime_sha256": {
-        "fvsfunc.py": "9bf4832b20fdf2571d17e8ea3e143c6c759b999555bf524b47599508c17ed85e"
+        "fvsfunc.py": "f07c661953a4a2c97d3a09e2e20d609d2b24fc8b2cea0a04fe51d851abff6b07"
       },
       "upstream_runtime_sha256": {
         "fvsfunc.py": "1e7f3d9bf293b9bd771bf0886b7ba3f3bed07c1eda47d384ed61fd363a2b715c"

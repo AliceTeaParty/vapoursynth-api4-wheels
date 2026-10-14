@@ -87,6 +87,19 @@ from vapoursynth import core
 import mvsfunc as mvf
 
 
+class _CoreProxy:
+    def __getattr__(self, name: str) -> Any:
+        if name == 'rgvs':
+            try:
+                return getattr(vs.core, 'rgvs')
+            except AttributeError:
+                return getattr(vs.core, 'zsmooth')
+        return getattr(vs.core, name)
+
+
+core = _CoreProxy()
+
+
 _is_api4: bool = hasattr(vs, "__api_version__") and vs.__api_version__.api_major == 4
 
 _has_lexpr: bool = (
@@ -2432,7 +2445,7 @@ def _SeeSaw_sharpen2(clp: vs.VideoNode, strength: float, power: float, zp: float
     elif rg == 20:
         method = clp.std.Convolution(matrix=[1, 1, 1, 1, 1, 1, 1, 1, 1], planes=[0])
     else:
-        method = clp.rgvs.RemoveGrain([rg] if isGray else [rg, 0])
+        method = core.rgvs.RemoveGrain(clp, [rg] if isGray else [rg, 0])
 
     sharpdiff = core.std.MakeDiff(clp, method, [0]).std.Lut(function=get_lut1, planes=[0])
 
@@ -5987,7 +6000,7 @@ def MSR(clip: vs.VideoNode, *passes: numbers.Real, radius: int = 1, planes: Plan
     def blur(clip: vs.VideoNode, num_pass: int) -> vs.VideoNode:
         if clip.format.sample_type == vs.INTEGER and radius == 1:
             for _ in range(num_pass):
-                clip = clip.rgvs.RemoveGrain([(20 if i in planes else 0) for i in range(clip.format.num_planes)]) # type: ignore
+                clip = core.rgvs.RemoveGrain(clip, [(20 if i in planes else 0) for i in range(clip.format.num_planes)]) # type: ignore
             return clip
         else:
             return clip.std.BoxBlur(hpasses=num_pass, hradius=radius, vpasses=num_pass, vradius=radius, planes=planes)
@@ -7473,6 +7486,9 @@ def haf_LSFmod(input, strength=None, Smode=None, Smethod=None, kernel=11, preblu
         peak = 1.0
         factor = 255.0
 
+    def scale_threshold(value):
+        return haf_cround(value * peak / 255) if isInteger else value / 255
+
     ### DEFAULTS
     try:
         num = ['old', 'slow', 'fast'].index(defaults.lower())
@@ -7560,7 +7576,7 @@ def haf_LSFmod(input, strength=None, Smode=None, Smethod=None, kernel=11, preblu
     if preblur <= -1:
         pre = tmp
     elif preblur >= 3:
-        expr = 'x {i} < {peak} x {j} > 0 {peak} x {i} - {peak} {j} {i} - / * - ? ?'.format(i=scale(16, peak), j=scale(75, peak), peak=peak)
+        expr = 'x {i} < {peak} x {j} > 0 {peak} x {i} - {peak} {j} {i} - / * - ? ?'.format(i=scale_threshold(16), j=scale_threshold(75), peak=peak)
         pre = core.std.MaskedMerge(_dfttest_preferring_dfttestvk(tmp, tbsize=1, slocation=[0.0,4.0, 0.2,9.0, 1.0,15.0]), tmp, tmp.std.Expr(expr=[expr]))
     else:
         pre = haf_MinBlur(tmp, r=preblur)
@@ -7577,7 +7593,7 @@ def haf_LSFmod(input, strength=None, Smode=None, Smethod=None, kernel=11, preblu
             method = RemoveGrain(core.std.Merge(dark_limit, bright_limit))
 
         if secure:
-            method = core.std.Expr([method, pre], expr=['x y < x {i} + x y > x {i} - x ? ?'.format(i=scale(1, peak))])
+            method = core.std.Expr([method, pre], expr=['x y < x {i} + x y > x {i} - x ? ?'.format(i=scale_threshold(1))])
 
         if preblur > -1:
             method = core.std.MakeDiff(tmp, core.std.MakeDiff(pre, method))
@@ -7593,14 +7609,14 @@ def haf_LSFmod(input, strength=None, Smode=None, Smethod=None, kernel=11, preblu
         normsharp = pre.cas.CAS(sharpness=min(Str, 1))
 
         if secure:
-            normsharp = core.std.Expr([normsharp, pre], expr=['x y < x {i} + x y > x {i} - x ? ?'.format(i=scale(1, peak))])
+            normsharp = core.std.Expr([normsharp, pre], expr=['x y < x {i} + x y > x {i} - x ? ?'.format(i=scale_threshold(1))])
 
         if preblur > -1:
             normsharp = core.std.MakeDiff(tmp, core.std.MakeDiff(pre, normsharp))
 
     ### LIMIT
-    normal = haf_Clamp(normsharp, bright_limit, dark_limit, scale(overshoot, peak), scale(undershoot, peak))
-    second = haf_Clamp(normsharp, bright_limit, dark_limit, scale(overshoot2, peak), scale(undershoot2, peak))
+    normal = haf_Clamp(normsharp, bright_limit, dark_limit, scale_threshold(overshoot), scale_threshold(undershoot))
+    second = haf_Clamp(normsharp, bright_limit, dark_limit, scale_threshold(overshoot2), scale_threshold(undershoot2))
     zero = haf_Clamp(normsharp, bright_limit, dark_limit, 0, 0)
 
     if edgemaskHQ:

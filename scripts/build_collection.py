@@ -98,6 +98,7 @@ def verify_install(plan: dict, validated: dict, wheel_dir: Path, legacy_wheel: P
             ], check=True, cwd=temporary)
             subprocess.run([str(python), "-m", "pip", "check"], check=True, cwd=temporary)
             subprocess.run([str(python), "-I", "-m", "vs_collection_rk", "check", "--imports"], check=True, cwd=temporary)
+            subprocess.run([str(python), "-I", str(ROOT / "tests/test_collection_lsfmod.py")], check=True, cwd=temporary)
             for manifest in validated["wheels"]:
                 manifest["validation"]["runtime_import"] = "passed"
 
