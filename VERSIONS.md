@@ -91,7 +91,7 @@ without the central packaging label.
 | `vstaambk` | `0.3.0.post3+alice.1` |
 | `yvsfunc` | `0.3.0.post3+alice.1` |
 | `rksfunc` | `1.2.1` (upstream) |
-| `rkstool` | `1.1.3` (upstream) |
+| `rkstool` | `1.1.4` (upstream) |
 
 The fixed packaging fixtures in `tests/module-snapshots.json` validate these
 historical upstream releases independently of the current versions above:
