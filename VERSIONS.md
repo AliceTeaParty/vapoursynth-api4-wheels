@@ -27,10 +27,10 @@ when migrating an existing labeled installation.
 | `vapoursynth-dfttest2-cpu` | `10.2+alice.1` |
 | `vapoursynth-dfttest2-cu121` | `10.2+alice.1` |
 | `vapoursynth-dfttest2-cu129` | `10.2+alice.1` |
-| `vapoursynth-dfttestvk` | `0.1.0` |
+| `vapoursynth-dfttestvk` | `0.1.1` |
 | `vapoursynth-fft3dfilter` | `2.1+alice.1` |
 | `vapoursynth-knlm` | `1.1.2+alice.1` |
-| `vapoursynth-krigbilateralvk` | `0.4.1` |
+| `vapoursynth-krigbilateralvk` | `0.4.2` |
 | `vapoursynth-misc` | `2.1+alice.1` |
 | `vapoursynth-nnedi3cl` | `8.1+alice.1` |
 | `vapoursynth-retinex` | `4.1+alice.1` |
@@ -156,8 +156,8 @@ plugin; those files remain authoritative for each native wheel.
 
 | Source directory | Central integration directory | Source version | Upstream revision |
 | --- | --- | --- | --- |
-| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | 0.4.1 | f9a79ec45b7008cab6baf0aaa2a55d96187ce751 |
-| plugins/vapoursynth-dfttestvk/native | plugins/vapoursynth-dfttestvk | 0.1.0 | f4760440ff5e360e773a4ebe0bb23f89de801a93 |
+| plugins/vapoursynth-krigbilateralvk/native | plugins/vapoursynth-krigbilateralvk | 0.4.2 | 096f32ee95ac76a32bfb95af817c07b189cf5e44 |
+| plugins/vapoursynth-dfttestvk/native | plugins/vapoursynth-dfttestvk | 0.1.1 | 59d8bc3a5f347804fc4e17aac293041749affbf3 |
 
 Source authority remains in
 [RyougiKukoc/vapoursynth-krigbilateralvk](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk)

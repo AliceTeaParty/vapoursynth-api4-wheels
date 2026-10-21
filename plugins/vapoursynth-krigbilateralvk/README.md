@@ -1,13 +1,13 @@
 # vapoursynth-krigbilateralvk wheels
 
-The central wheel project for [KrigBilateral Vulkan](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk) lives at `plugins/vapoursynth-krigbilateralvk`. The original native source is its `native/` git submodule; `source.json` records the exact upstream commit. Wheel metadata, tools and release workflows are maintained in `AliceTeaParty/vapoursynth-api4-wheels` alongside the other plugin packages. The wheel retains the original upstream version without a local `+alice.x` label.
+Native Vulkan KrigBilateral chroma reconstruction, packaged for VapourSynth autoloading.
 
 ## Install
 
 Windows and Linux x86_64 wheels are published on the central index:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.4.1"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-krigbilateralvk==0.4.2"
 ```
 
 Use the same Python environment as VapourSynth. The wheel requires VapourSynth R81 or newer (`>=81`) because the plugin's core GPU interface targets that SDK. A Vulkan 1.4 device/driver is needed for rendering; GPU FP16 conversions additionally depend on the core's device support. Linux wheels use the `manylinux_2_28_x86_64` runtime floor. macOS and ARM packages are not published.
@@ -38,6 +38,14 @@ eight_bit_no_dither = vs.core.krigvk.KrigBilateral(source, bits=8)
 
 Version 0.4.0 removes `debug` and all diagnostic output branches; calls passing `debug` fail, including `debug=0`. The `reference` option remains removed. The covariance and solver are unchanged. Windows RTX 3090 Ti and Linux A100 each pass 730 range/depth checks, 41 contracts and the 32-configuration / 256-frame original-GLSL matrix against an independent resize-based oracle. Mesa also passes the full range/depth, contract and original-GLSL suites; the integer chroma adaptation boundary prevents contraction into its range affine. Eight real 1080p frames match across 99,532,800 output samples. Matched source measurements improve CPU16 from 112.67 to 189.29 fps and resident GPU16 from 122.29 to 220.73 fps. The [validation report](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk/blob/main/docs/validation.md) records measured binary hashes and differing timing boundaries; these source measurements identify their binaries separately from hosted release artifacts.
 
+Version 0.4.2 maps the three existing kernels from 8x8 to 32x2 workgroups,
+keeping consecutive samples along each row. Matched RTX 3090 Ti measurements
+improve complete CPU throughput by 1.86x and completed GPU resident throughput
+by 2.18x over 0.4.1. Windows hardware and Linux Mesa pass 732 range/depth cases,
+45 contracts and the 256-frame original-GLSL comparison without pixel changes.
+See the upstream [optimization report](https://github.com/RyougiKukoc/vapoursynth-krigbilateralvk/blob/main/docs/r2-optimization.md)
+for the measured workload, raw evidence and device limits.
+
 ## Source installation
 
 This explicit named VCS form uses a matching central Release package by default:
@@ -46,7 +54,7 @@ This explicit named VCS form uses a matching central Release package by default:
 python -m pip install "vapoursynth-krigbilateralvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-krigbilateralvk"
 ```
 
-Version `0.4.1` maps to central tag `vapoursynth-krigbilateralvk-v0.4.1`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
+Version `0.4.2` maps to central tag `vapoursynth-krigbilateralvk-v0.4.2`. Assets are `krigbilateralvk-windows-x86_64.zip` and `krigbilateralvk-linux-x86_64.zip`. If the matching platform asset is unavailable, the backend compiles the pinned submodule with CMake and a C++20 compiler. `KRIGVK_FORCE_BUILD=1` explicitly selects that native build. No automatic platform substitution occurs.
 
 For a local checkout:
 

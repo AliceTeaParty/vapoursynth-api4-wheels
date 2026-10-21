@@ -8,7 +8,7 @@ spatial/temporal frequency-domain denoising on VapourSynth's Vulkan device.
 Windows and Linux x86_64 wheels install the plugin and its autoload manifest:
 
 ```console
-python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-dfttestvk==0.1.0"
+python -m pip install --extra-index-url https://aliceteaparty.github.io/vapoursynth-api4-wheels/simple/ "vapoursynth-dfttestvk==0.1.1"
 ```
 
 Use the same Python environment as your scripts. Requirements are Python 3.12+,
@@ -31,6 +31,14 @@ with spatial overlap 12 and three temporal frames. Selected unprocessed planes
 and frame properties are preserved. Temporal processing can reuse spatial FFTs;
 see the upstream guide for cache controls, parameters and numerical limits.
 
+Version 0.1.1 consumes cached frequency rows incrementally for `tbsize=3`,
+shortening private-array lifetimes. Matched RTX 3090 Ti measurements improve
+complete CPU throughput by 6.5% for Gray16 and 13.1% for all YUV420P16 planes.
+T=1/5/7 retain the previous schedule. Windows hardware and Linux Mesa numerical
+checks passed without widening error budgets. See the upstream
+[optimization report](https://github.com/RyougiKukoc/vapoursynth-dfttestvk/blob/main/docs/r2-optimization.md)
+for the workload, raw evidence and device limits.
+
 ## Source installation
 
 The named VCS install uses the matching central Release payload by default:
@@ -39,7 +47,7 @@ The named VCS install uses the matching central Release payload by default:
 python -m pip install "vapoursynth-dfttestvk @ git+https://github.com/AliceTeaParty/vapoursynth-api4-wheels.git#subdirectory=plugins/vapoursynth-dfttestvk"
 ```
 
-Version `0.1.0` maps to `vapoursynth-dfttestvk-v0.1.0`. Payloads are
+Version `0.1.1` maps to `vapoursynth-dfttestvk-v0.1.1`. Payloads are
 `dfttestvk-windows-x86_64.zip` and `dfttestvk-linux-x86_64.zip`. If the matching
 asset is unavailable, the build hook compiles the registered native source.
 `DFTTESTVK_FORCE_BUILD=1` selects native compilation; it requires Git, a C++20
